@@ -2,8 +2,12 @@
  * BrailleBuddy Haptic Engine
  * 
  * This module provides haptic feedback for braille patterns,
- * contractions, and phonetic elements to enhance the tactile
- * learning experience.
+ * contractions, words, and biological rhythms to enhance the tactile
+ * learning experience and implement compression concepts.
+ * 
+ * The haptic engine supports both character-level and word-level
+ * vibration patterns, with biologically-inspired rhythms for
+ * more intuitive tactile feedback.
  */
 
 class HapticEngine {
@@ -103,6 +107,24 @@ class HapticEngine {
     }
     
     /**
+     * Play a haptic pattern for a complete word
+     * @param {string} word - Word to play
+     * @returns {boolean} - Whether the pattern was played successfully
+     */
+    playWord(word) {
+        return this.playPattern('words', word.toLowerCase());
+    }
+    
+    /**
+     * Play a biological rhythm pattern
+     * @param {string} rhythm - Rhythm to play (e.g., "heartbeat", "breathing")
+     * @returns {boolean} - Whether the pattern was played successfully
+     */
+    playBiologicalRhythm(rhythm) {
+        return this.playPattern('biologicalRhythms', rhythm);
+    }
+    
+    /**
      * Play a haptic pattern for a tone (used in Chinese)
      * @param {number} toneNumber - Tone number (1-4)
      * @returns {boolean} - Whether the pattern was played successfully
@@ -142,29 +164,82 @@ class HapticEngine {
      * Create a custom haptic pattern based on text
      * @param {string} text - Text to convert to a haptic pattern
      * @param {string} language - Language code for the text
+     * @param {boolean} useWordPatterns - Whether to use word-level patterns
      * @returns {boolean} - Whether the pattern was played successfully
      */
-    playTextPattern(text, language = 'en') {
+    playTextPattern(text, language = 'en', useWordPatterns = true) {
         if (!this.isSupported) {
             console.warn('Haptic feedback not supported on this device');
             return false;
         }
         
-        // This is a simplified implementation
-        // In a full implementation, we would analyze the text for language-specific patterns
+        // If word patterns are enabled, try to use them
+        if (useWordPatterns) {
+            // Split text into words
+            const words = text.toLowerCase().match(/\b(\w+)\b/g) || [];
+            
+            // Check if we have patterns for these words
+            const patterns = [];
+            let hasWordPatterns = false;
+            
+            for (const word of words) {
+                if (this.patterns.words && this.patterns.words[word]) {
+                    // We have a pattern for this word
+                    patterns.push(...this.patterns.words[word]);
+                    patterns.push(100); // Pause between words
+                    hasWordPatterns = true;
+                } else {
+                    // Check for contractions
+                    const contractions = ['th', 'ing', 'the', 'and', 'er', 'ou'];
+                    let foundContraction = false;
+                    
+                    for (const contraction of contractions) {
+                        if (word.includes(contraction) && 
+                            this.patterns.contractions && 
+                            this.patterns.contractions[contraction]) {
+                            patterns.push(...this.patterns.contractions[contraction]);
+                            patterns.push(70); // Shorter pause after contraction
+                            foundContraction = true;
+                            hasWordPatterns = true;
+                            break;
+                        }
+                    }
+                    
+                    if (!foundContraction) {
+                        // Fall back to character-by-character for this word
+                        for (let i = 0; i < word.length; i++) {
+                            this._addCharacterPattern(word[i], patterns);
+                        }
+                        patterns.push(100); // Pause between words
+                    }
+                }
+            }
+            
+            // If we found any word patterns, use them
+            if (hasWordPatterns && patterns.length > 0) {
+                return navigator.vibrate(patterns);
+            }
+        }
+        
+        // Fall back to character-by-character pattern
+        return this.playCharacterByCharacter(text);
+    }
+    
+    /**
+     * Play a character-by-character haptic pattern
+     * @param {string} text - Text to convert to a haptic pattern
+     * @returns {boolean} - Whether the pattern was played successfully
+     */
+    playCharacterByCharacter(text) {
+        if (!this.isSupported) {
+            console.warn('Haptic feedback not supported on this device');
+            return false;
+        }
+        
         const pattern = [];
         
         for (let i = 0; i < text.length; i++) {
-            // Different pulse lengths based on character type
-            if (/[aeiou]/i.test(text[i])) {
-                pattern.push(150); // Vowels get longer pulses
-            } else if (/[bcdfghjklmnpqrstvwxyz]/i.test(text[i])) {
-                pattern.push(80);  // Consonants get medium pulses
-            } else if (/[0-9]/i.test(text[i])) {
-                pattern.push(120); // Numbers get different pulses
-            } else {
-                pattern.push(50);  // Other characters get short pulses
-            }
+            this._addCharacterPattern(text[i], pattern);
             
             if (i < text.length - 1) {
                 pattern.push(30); // Short pause between characters
@@ -172,6 +247,84 @@ class HapticEngine {
         }
         
         return navigator.vibrate(pattern);
+    }
+    
+    /**
+     * Add a character pattern to an existing pattern array
+     * @private
+     * @param {string} char - Character to add
+     * @param {Array} pattern - Pattern array to add to
+     */
+    _addCharacterPattern(char, pattern) {
+        // Different pulse lengths based on character type
+        if (/[aeiou]/i.test(char)) {
+            pattern.push(150); // Vowels get longer pulses
+        } else if (/[bcdfghjklmnpqrstvwxyz]/i.test(char)) {
+            pattern.push(80);  // Consonants get medium pulses
+        } else if (/[0-9]/i.test(char)) {
+            pattern.push(120); // Numbers get different pulses
+        } else {
+            pattern.push(50);  // Other characters get short pulses
+        }
+    }
+    
+    /**
+     * Play a compression pattern for a word or character
+     * @param {string} text - Text to play
+     * @param {string} compressionLevel - Compression level ("grade1", "grade2", "aiOptimized")
+     * @returns {boolean} - Whether the pattern was played successfully
+     */
+    playCompressionPattern(text, compressionLevel = 'grade2') {
+        if (!this.isSupported) {
+            console.warn('Haptic feedback not supported on this device');
+            return false;
+        }
+        
+        if (!this.patterns.compressionPatterns || 
+            !this.patterns.compressionPatterns[compressionLevel]) {
+            console.error(`Compression level ${compressionLevel} not found`);
+            return false;
+        }
+        
+        const compressionPatterns = this.patterns.compressionPatterns[compressionLevel];
+        
+        // Check if we have a pattern for the whole text
+        if (compressionPatterns[text.toLowerCase()]) {
+            return navigator.vibrate(compressionPatterns[text.toLowerCase()]);
+        }
+        
+        // Otherwise, try to find patterns for parts of the text
+        const pattern = [];
+        let textRemaining = text.toLowerCase();
+        let foundPattern = false;
+        
+        // Try to match the longest patterns first
+        const patternKeys = Object.keys(compressionPatterns).sort((a, b) => b.length - a.length);
+        
+        while (textRemaining.length > 0) {
+            foundPattern = false;
+            
+            for (const key of patternKeys) {
+                if (textRemaining.startsWith(key)) {
+                    pattern.push(...compressionPatterns[key]);
+                    pattern.push(50); // Pause between patterns
+                    textRemaining = textRemaining.substring(key.length);
+                    foundPattern = true;
+                    break;
+                }
+            }
+            
+            if (!foundPattern) {
+                // No pattern found, skip this character
+                textRemaining = textRemaining.substring(1);
+            }
+        }
+        
+        if (pattern.length > 0) {
+            return navigator.vibrate(pattern);
+        }
+        
+        return false;
     }
 }
 

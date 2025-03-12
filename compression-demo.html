@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BrailleBuddy - Braille Compression Demo</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+        }
+        
+        header {
+            background-color: #3498db;
+            color: white;
+            padding: 1rem 0;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+        }
+        
+        .subtitle {
+            font-style: italic;
+            margin-top: 0.5rem;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .intro {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+        }
+        
+        .intro h2 {
+            color: #2c3e50;
+            margin-top: 0;
+        }
+        
+        .intro p {
+            font-size: 1.1rem;
+        }
+        
+        .highlight {
+            background-color: #f1c40f;
+            padding: 0 5px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        
+        .compression-facts {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .fact-card {
+            flex: 1 1 300px;
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            border-left: 5px solid #3498db;
+        }
+        
+        .fact-card h3 {
+            margin-top: 0;
+            color: #3498db;
+        }
+        
+        footer {
+            background-color: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 1.5rem 0;
+            margin-top: 3rem;
+        }
+        
+        .button-row {
+            display: flex;
+            gap: 1rem;
+            margin: 1.5rem 0;
+            flex-wrap: wrap;
+        }
+        
+        .button {
+            display: inline-block;
+            background-color: #3498db;
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background-color 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .button:hover {
+            background-color: #2980b9;
+        }
+        
+        .button.secondary {
+            background-color: #95a5a6;
+        }
+        
+        .button.secondary:hover {
+            background-color: #7f8c8d;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>BrailleBuddy</h1>
+        <div class="subtitle">Exploring Braille as a Compression System</div>
+    </header>
+    
+    <div class="container">
+        <div class="intro">
+            <h2>Braille: The Ultimate Compression Format for Language</h2>
+            <p>
+                Braille is more than just a tactile writing system—it's one of the most efficient 
+                <span class="highlight">data compression formats</span> for written language ever created.
+            </p>
+            <p>
+                This demo explores how Braille compresses language and demonstrates how we can 
+                enhance this compression even further with haptic feedback and AI optimization.
+            </p>
+            
+            <div class="button-row">
+                <button class="button" id="start-demo-button">Start Interactive Demo</button>
+                <button class="button secondary" id="learn-more-button">Learn More About Braille</button>
+            </div>
+        </div>
+        
+        <div class="compression-facts">
+            <div class="fact-card">
+                <h3>6 Dots = 26 Letters</h3>
+                <p>
+                    Braille uses just 6 dots to encode the entire alphabet, numbers, and punctuation.
+                    This is remarkably space-efficient compared to visual text.
+                </p>
+            </div>
+            
+            <div class="fact-card">
+                <h3>Grade 2 Contractions</h3>
+                <p>
+                    Grade 2 Braille uses contractions to represent common words and letter combinations.
+                    For example, "the" is just one character (⠮) instead of three.
+                </p>
+            </div>
+            
+            <div class="fact-card">
+                <h3>Haptic Compression</h3>
+                <p>
+                    Our haptic engine takes compression further by encoding words as
+                    unique vibration patterns inspired by biological rhythms.
+                </p>
+            </div>
+        </div>
+        
+        <!-- This is where the demo will be inserted by JavaScript -->
+        <div id="demo-container"></div>
+    </div>
+    
+    <footer>
+        <p>BrailleBuddy - Making Braille Learning Accessible and Intuitive</p>
+    </footer>
+    
+    <!-- Load scripts -->
+    <script src="src/hapticEngine.js"></script>
+    <script src="src/brailleLanguageManager.js"></script>
+    <script src="src/compression-demo.js"></script>
+    <script>
+        // Initialize the demo when the page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Start demo button
+            const startDemoButton = document.getElementById('start-demo-button');
+            if (startDemoButton) {
+                startDemoButton.addEventListener('click', function() {
+                    // Scroll to the demo
+                    const demoContainer = document.getElementById('braille-compression-demo');
+                    if (demoContainer) {
+                        demoContainer.scrollIntoView({ behavior: 'smooth' });
+                    }
+                });
+            }
+            
+            // Learn more button
+            const learnMoreButton = document.getElementById('learn-more-button');
+            if (learnMoreButton) {
+                learnMoreButton.addEventListener('click', function() {
+                    alert('Braille was invented by Louis Braille in 1824. It revolutionized reading and writing for blind people by creating a tactile system that could be read with fingertips.');
+                });
+            }
+        });
+    </script>
+</body>
+</html>

@@ -480,6 +480,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize the app
     populateBrailleGrid();
     setupPractice();
+    setupCompressionDemo();
     
     // Already loaded at the beginning of the document
     
@@ -811,6 +812,29 @@ function setupAchievementNotifications() {
         }
     `;
     document.head.appendChild(style);
+}
+
+// Set up the compression demo functionality
+function setupCompressionDemo() {
+    const launchButton = document.getElementById('launch-compression-demo');
+    
+    if (launchButton) {
+        launchButton.addEventListener('click', function() {
+            // Open the compression demo in a new window/tab
+            window.open('compression-demo.html', '_blank');
+            
+            // Track this interaction if progress tracker is available
+            if (window.progressTracker) {
+                progressTracker.trackActivity('compression_demo_launched');
+                
+                // Check for achievement
+                if (!progressTracker.hasAchievement('compression_explorer')) {
+                    progressTracker.awardAchievement('compression_explorer', 'Compression Explorer', 'You explored how Braille works as a data compression system!');
+                    showAchievementNotification('Compression Explorer', 'You explored how Braille works as a data compression system!');
+                }
+            }
+        });
+    }
 }
 
 // Show achievement notification
