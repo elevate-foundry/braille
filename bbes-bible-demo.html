@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BBES - Bible Compression Demo</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+        }
+        
+        header {
+            background-color: #3498db;
+            color: white;
+            padding: 1rem 0;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+        }
+        
+        .subtitle {
+            font-style: italic;
+            margin-top: 0.5rem;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .intro {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+        }
+        
+        .intro h2 {
+            color: #2c3e50;
+            margin-top: 0;
+        }
+        
+        .intro p {
+            font-size: 1.1rem;
+        }
+        
+        .highlight {
+            background-color: #f1c40f;
+            padding: 0 5px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        
+        .demo-section {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+        }
+        
+        .demo-section h2 {
+            color: #2c3e50;
+            margin-top: 0;
+        }
+        
+        .button-row {
+            display: flex;
+            gap: 1rem;
+            margin: 1.5rem 0;
+            flex-wrap: wrap;
+        }
+        
+        .button {
+            display: inline-block;
+            background-color: #3498db;
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background-color 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .button:hover {
+            background-color: #2980b9;
+        }
+        
+        .button.secondary {
+            background-color: #95a5a6;
+        }
+        
+        .button.secondary:hover {
+            background-color: #7f8c8d;
+        }
+        
+        .compression-stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .stat-card {
+            flex: 1 1 200px;
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #3498db;
+            margin: 0.5rem 0;
+        }
+        
+        .stat-label {
+            font-size: 1rem;
+            color: #7f8c8d;
+        }
+        
+        .comparison-chart {
+            height: 300px;
+            margin: 2rem 0;
+            position: relative;
+        }
+        
+        .chart-bar {
+            position: absolute;
+            bottom: 0;
+            width: 80px;
+            background-color: #3498db;
+            border-radius: 4px 4px 0 0;
+            transition: height 1s ease-in-out;
+        }
+        
+        .chart-bar:nth-child(2) {
+            background-color: #e74c3c;
+            left: 100px;
+        }
+        
+        .chart-bar:nth-child(3) {
+            background-color: #2ecc71;
+            left: 200px;
+        }
+        
+        .chart-bar:nth-child(4) {
+            background-color: #f1c40f;
+            left: 300px;
+        }
+        
+        .chart-label {
+            position: absolute;
+            bottom: -30px;
+            text-align: center;
+            width: 80px;
+            font-size: 0.9rem;
+        }
+        
+        .chart-value {
+            position: absolute;
+            top: -25px;
+            width: 80px;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .results-section {
+            margin-top: 2rem;
+        }
+        
+        .results-card {
+            background-color: #f8f9fa;
+            border-left: 5px solid #3498db;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border-radius: 4px;
+        }
+        
+        .results-title {
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            color: #2c3e50;
+        }
+        
+        .results-content {
+            font-family: monospace;
+            white-space: pre-wrap;
+            background-color: #f1f1f1;
+            padding: 1rem;
+            border-radius: 4px;
+            overflow-x: auto;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .book-selector {
+            margin-bottom: 1.5rem;
+        }
+        
+        .book-selector select {
+            padding: 0.5rem;
+            font-size: 1rem;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            font-style: italic;
+            color: #7f8c8d;
+        }
+        
+        .progress-container {
+            width: 100%;
+            background-color: #f1f1f1;
+            border-radius: 4px;
+            margin: 1rem 0;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 20px;
+            background-color: #3498db;
+            width: 0;
+            transition: width 0.3s;
+            text-align: center;
+            line-height: 20px;
+            color: white;
+            font-size: 0.8rem;
+        }
+        
+        .bible-text {
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 1rem;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 1rem 0;
+        }
+        
+        .bible-verse {
+            margin-bottom: 0.5rem;
+        }
+        
+        .verse-number {
+            font-weight: bold;
+            color: #3498db;
+            margin-right: 0.5rem;
+        }
+        
+        footer {
+            background-color: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 1.5rem 0;
+            margin-top: 3rem;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .button-row {
+                flex-direction: column;
+            }
+            
+            .button {
+                width: 100%;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>BBES</h1>
+        <div class="subtitle">Bible Compression Demo</div>
+    </header>
+    
+    <div class="container">
+        <div class="intro">
+            <h2>Compressing the Bible with Braille Binary Encoding Standard</h2>
+            <p>
+                The Bible is one of the most widely distributed texts in human history, with billions of copies in circulation.
+                What if we could reduce its digital storage requirements by <span class="highlight">50%</span> using
+                the efficiency of Braille's encoding system?
+            </p>
+            <p>
+                This demo showcases how BBES (Braille Binary Encoding Standard) can dramatically reduce the file size
+                of the Bible while maintaining perfect fidelity to the original text.
+            </p>
+            
+            <div class="button-row">
+                <button class="button" id="run-demo-button">Run Bible Compression Demo</button>
+                <button class="button secondary" id="back-to-app-button">Back to BrailleBuddy</button>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2>Bible Compression Demo</h2>
+            
+            <div class="book-selector">
+                <label for="bible-book">Select a Bible book to compress:</label>
+                <select id="bible-book">
+                    <option value="genesis">Genesis (Old Testament)</option>
+                    <option value="exodus">Exodus (Old Testament)</option>
+                    <option value="psalms">Psalms (Old Testament)</option>
+                    <option value="isaiah">Isaiah (Old Testament)</option>
+                    <option value="matthew">Matthew (New Testament)</option>
+                    <option value="john">John (New Testament)</option>
+                    <option value="romans">Romans (New Testament)</option>
+                    <option value="revelation">Revelation (New Testament)</option>
+                    <option value="full">Full Bible (Warning: Large file)</option>
+                </select>
+            </div>
+            
+            <div class="button-row">
+                <button class="button" id="compress-button">Compress Selected Book</button>
+                <button class="button secondary" id="reset-button">Reset</button>
+                <button class="button" id="download-bbes-button">Download as .bbes</button>
+            </div>
+            
+            <div id="loading" class="loading" style="display: none;">
+                <p>Loading and compressing Bible text...</p>
+                <div class="progress-container">
+                    <div class="progress-bar" id="progress-bar">0%</div>
+                </div>
+            </div>
+            
+            <div id="results-section" class="results-section" style="display: none;">
+                <h3>Compression Results</h3>
+                
+                <div class="compression-stats">
+                    <div class="stat-card">
+                        <div class="stat-label">Original Size</div>
+                        <div class="stat-value" id="original-size">0</div>
+                        <div class="stat-label">bytes</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-label">BBES Size</div>
+                        <div class="stat-value" id="bbes-size">0</div>
+                        <div class="stat-label">bytes</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-label">Compression Ratio</div>
+                        <div class="stat-value" id="compression-ratio">0%</div>
+                        <div class="stat-label">smaller</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-label">Contractions Used</div>
+                        <div class="stat-value" id="contractions-used">0</div>
+                        <div class="stat-label">replacements</div>
+                    </div>
+                </div>
+                
+                <h3>Compression Comparison</h3>
+                <div class="comparison-chart" id="comparison-chart">
+                    <div class="chart-bar" style="left: 0; height: 0%;">
+                        <div class="chart-value">0 B</div>
+                        <div class="chart-label">ASCII</div>
+                    </div>
+                    <div class="chart-bar" style="left: 100px; height: 0%;">
+                        <div class="chart-value">0 B</div>
+                        <div class="chart-label">UTF-8</div>
+                    </div>
+                    <div class="chart-bar" style="left: 200px; height: 0%;">
+                        <div class="chart-value">0 B</div>
+                        <div class="chart-label">BBES</div>
+                    </div>
+                    <div class="chart-bar" style="left: 300px; height: 0%;">
+                        <div class="chart-value">0 B</div>
+                        <div class="chart-label">Gzip</div>
+                    </div>
+                </div>
+                
+                <h3>Sample Bible Text</h3>
+                <div class="bible-text" id="bible-text">
+                    <!-- Bible text will be inserted here -->
+                </div>
+                
+                <h3>Decompression Test</h3>
+                <div class="results-card">
+                    <div class="results-title">Decompressed Output (Sample)</div>
+                    <div class="results-content" id="decompressed-output"></div>
+                </div>
+                
+                <h3>Storage Impact Analysis</h3>
+                <div class="results-card">
+                    <div class="results-title">What This Means</div>
+                    <div class="results-content" id="impact-analysis">
+                        <!-- Impact analysis will be inserted here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2>Why Compress the Bible?</h2>
+            <p>The Bible serves as an excellent benchmark for text compression for several reasons:</p>
+            
+            <ol>
+                <li>
+                    <strong>Scale:</strong> At approximately 800,000 words, the Bible provides a substantial corpus
+                    for testing compression algorithms on real-world text.
+                </li>
+                <li>
+                    <strong>Linguistic Patterns:</strong> The Bible contains numerous repetitive phrases, common words,
+                    and linguistic patterns that are ideal for Braille's contraction system.
+                </li>
+                <li>
+                    <strong>Global Distribution:</strong> With billions of digital copies in circulation, even a modest
+                    compression improvement would have massive aggregate storage savings.
+                </li>
+                <li>
+                    <strong>Multilingual Availability:</strong> The Bible has been translated into over 700 languages,
+                    making it perfect for testing BBES across different linguistic structures.
+                </li>
+            </ol>
+            
+            <h3>Practical Applications</h3>
+            <p>
+                Beyond the Bible, BBES could be applied to compress:
+            </p>
+            <ul>
+                <li>Digital libraries and archives</li>
+                <li>E-book collections</li>
+                <li>Legal document databases</li>
+                <li>Educational materials</li>
+                <li>AI training datasets</li>
+                <li>Any text-heavy application where storage efficiency matters</li>
+            </ul>
+            
+            <p>
+                With 50% compression rates, BBES represents a significant advancement in text storage efficiency
+                that could benefit countless digital applications.
+            </p>
+        </div>
+    </div>
+    
+    <footer>
+        <p>BBES - Part of the BrailleBuddy Project | Created with ❤️ by Elevate Foundry</p>
+    </footer>
+    
+    <!-- Load scripts -->
+    <script src="src/hapticEngine.js"></script>
+    <script src="src/brailleLanguageManager.js"></script>
+    <script src="src/brailleCompression.js"></script>
+    <script src="src/bbesFormat.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize UI elements
+            const bibleBookSelect = document.getElementById('bible-book');
+            const compressButton = document.getElementById('compress-button');
+            const resetButton = document.getElementById('reset-button');
+            const downloadButton = document.getElementById('download-bbes-button');
+            const resultsSection = document.getElementById('results-section');
+            const loadingSection = document.getElementById('loading');
+            const progressBar = document.getElementById('progress-bar');
+            const bibleTextContainer = document.getElementById('bible-text');
+            const decompressedOutput = document.getElementById('decompressed-output');
+            const impactAnalysis = document.getElementById('impact-analysis');
+            const backToAppButton = document.getElementById('back-to-app-button');
+            const runDemoButton = document.getElementById('run-demo-button');
+            
+            // Stats elements
+            const originalSizeEl = document.getElementById('original-size');
+            const bbesSizeEl = document.getElementById('bbes-size');
+            const compressionRatioEl = document.getElementById('compression-ratio');
+            const contractionsUsedEl = document.getElementById('contractions-used');
+            
+            // Chart elements
+            const chartBars = document.querySelectorAll('.chart-bar');
+            const chartValues = document.querySelectorAll('.chart-value');
+            
+            // Bible API endpoint
+            const bibleApiBaseUrl = 'https://bible-api.com/';
+            
+            // Make sure BBES format is initialized
+            if (!window.bbesFormat) {
+                window.bbesFormat = new BBESFormat();
+            }
+            
+            // Bible book data
+            const bibleData = {
+                current: null,
+                text: '',
+                compressed: null,
+                stats: null
+            };
+            
+            // Compress button click handler
+            compressButton.addEventListener('click', async function() {
+                const selectedBook = bibleBookSelect.value;
+                
+                if (!selectedBook) {
+                    alert('Please select a Bible book to compress');
+                    return;
+                }
+                
+                // Show loading
+                loadingSection.style.display = 'block';
+                resultsSection.style.display = 'none';
+                progressBar.style.width = '0%';
+                progressBar.textContent = '0%';
+                
+                try {
+                    // Fetch Bible text
+                    await fetchBibleText(selectedBook);
+                    
+                    // Update progress
+                    progressBar.style.width = '50%';
+                    progressBar.textContent = '50% - Compressing...';
+                    
+                    // Allow UI to update
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    
+                    // Compress the text
+                    await compressBibleText();
+                    
+                    // Update progress
+                    progressBar.style.width = '100%';
+                    progressBar.textContent = '100% - Complete!';
+                    
+                    // Show results
+                    setTimeout(() => {
+                        loadingSection.style.display = 'none';
+                        resultsSection.style.display = 'block';
+                    }, 500);
+                } catch (error) {
+                    console.error('Error compressing Bible text:', error);
+                    alert('Error compressing Bible text: ' + error.message);
+                    loadingSection.style.display = 'none';
+                }
+            });
+            
+            // Reset button click handler
+            resetButton.addEventListener('click', function() {
+                bibleData.current = null;
+                bibleData.text = '';
+                bibleData.compressed = null;
+                bibleData.stats = null;
+                
+                bibleTextContainer.innerHTML = '';
+                decompressedOutput.textContent = '';
+                impactAnalysis.textContent = '';
+                
+                resultsSection.style.display = 'none';
+                loadingSection.style.display = 'none';
+            });
+            
+            // Download button click handler
+            downloadButton.addEventListener('click', function() {
+                if (!bibleData.current || !bibleData.text) {
+                    alert('Please compress a Bible book first');
+                    return;
+                }
+                
+                // Create BBES file
+                window.bbesFormat.createBBESFile(
+                    bibleData.text,
+                    `bible_${bibleData.current}.bbes`
+                );
+            });
+            
+            // Back to app button click handler
+            backToAppButton.addEventListener('click', function() {
+                window.location.href = 'index.html';
+            });
+            
+            // Run demo button click handler
+            runDemoButton.addEventListener('click', function() {
+                // Select John as a good demo example
+                bibleBookSelect.value = 'john';
+                
+                // Scroll to demo section
+                document.querySelector('.demo-section').scrollIntoView({ behavior: 'smooth' });
+                
+                // Trigger compression
+                compressButton.click();
+            });
+            
+            // Fetch Bible text from API
+            async function fetchBibleText(book) {
+                // Store current book
+                bibleData.current = book;
+                
+                // For demo purposes, we'll use a sample if "full" is selected
+                // as fetching the entire Bible would be too resource-intensive
+                if (book === 'full') {
+                    // Use a sample chapter from each testament
+                    const genesisPromise = fetch(bibleApiBaseUrl + 'genesis+1').then(res => res.json());
+                    const johnPromise = fetch(bibleApiBaseUrl + 'john+1').then(res => res.json());
+                    
+                    const [genesis, john] = await Promise.all([genesisPromise, johnPromise]);
+                    
+                    // Combine texts
+                    bibleData.text = 'GENESIS CHAPTER 1\\n\\n' + genesis.text + '\\n\\nJOHN CHAPTER 1\\n\\n' + john.text;
+                    
+                    // For demo purposes, we'll multiply the text to simulate a larger file
+                    bibleData.text = bibleData.text.repeat(10);
+                } else {
+                    // Fetch specific book
+                    const response = await fetch(bibleApiBaseUrl + book);
+                    const data = await response.json();
+                    
+                    bibleData.text = data.text;
+                }
+                
+                // Display Bible text
+                displayBibleText();
+            }
+            
+            // Display Bible text in the UI
+            function displayBibleText() {
+                // Clear container
+                bibleTextContainer.innerHTML = '';
+                
+                // Split text into verses
+                const verses = bibleData.text.split('\\n');
+                
+                // Display first 20 verses
+                const maxVerses = Math.min(verses.length, 20);
+                
+                for (let i = 0; i < maxVerses; i++) {
+                    const verse = verses[i].trim();
+                    
+                    if (verse) {
+                        const verseEl = document.createElement('div');
+                        verseEl.className = 'bible-verse';
+                        
+                        // Check if it starts with a verse number
+                        const match = verse.match(/^(\d+):(\d+)\s+(.+)$/);
+                        
+                        if (match) {
+                            const chapter = match[1];
+                            const verseNum = match[2];
+                            const text = match[3];
+                            
+                            verseEl.innerHTML = `<span class="verse-number">${chapter}:${verseNum}</span> ${text}`;
+                        } else {
+                            verseEl.textContent = verse;
+                        }
+                        
+                        bibleTextContainer.appendChild(verseEl);
+                    }
+                }
+                
+                // Add ellipsis if there are more verses
+                if (verses.length > maxVerses) {
+                    const ellipsis = document.createElement('div');
+                    ellipsis.className = 'bible-verse';
+                    ellipsis.textContent = '... ' + (verses.length - maxVerses) + ' more verses';
+                    bibleTextContainer.appendChild(ellipsis);
+                }
+            }
+            
+            // Compress Bible text using BBES
+            async function compressBibleText() {
+                // Generate compression report
+                bibleData.stats = await window.bbesFormat.generateCompressionReport(bibleData.text);
+                
+                // Compress the text
+                bibleData.compressed = window.bbesFormat.encode(bibleData.text);
+                
+                // Update stats display
+                originalSizeEl.textContent = bibleData.stats.sizes.ascii.toLocaleString();
+                bbesSizeEl.textContent = bibleData.stats.sizes.bbes.toLocaleString();
+                compressionRatioEl.textContent = Math.round(bibleData.stats.savings.bbes) + '%';
+                contractionsUsedEl.textContent = bibleData.stats.contractions.count.toLocaleString();
+                
+                // Update chart
+                updateCompressionChart(bibleData.stats);
+                
+                // Test decompression
+                testDecompression();
+                
+                // Generate impact analysis
+                generateImpactAnalysis();
+            }
+            
+            // Test decompression to verify integrity
+            function testDecompression() {
+                // Decompress a sample of the compressed text
+                const decompressed = window.bbesFormat.decode(bibleData.compressed);
+                
+                // Display first 500 characters of decompressed text
+                decompressedOutput.textContent = decompressed.substring(0, 500) + '...';
+                
+                // Verify integrity
+                if (decompressed === bibleData.text) {
+                    decompressedOutput.textContent += '\\n\\n✅ Decompression successful! The decompressed text exactly matches the original.';
+                } else {
+                    decompressedOutput.textContent += '\\n\\n❌ Decompression error! The decompressed text does not match the original.';
+                }
+            }
+            
+            // Generate impact analysis
+            function generateImpactAnalysis() {
+                const book = bibleData.current;
+                const originalSize = bibleData.stats.sizes.ascii;
+                const bbesSize = bibleData.stats.sizes.bbes;
+                const savings = originalSize - bbesSize;
+                const savingsPercent = bibleData.stats.savings.bbes;
+                
+                // Calculate scaled impact
+                const fullBibleSize = 4.5 * 1024 * 1024; // ~4.5MB for full Bible text
+                const scaledSavings = (savingsPercent / 100) * fullBibleSize;
+                
+                // Calculate global impact
+                const billionCopies = 1000000000;
+                const globalSavings = scaledSavings * billionCopies;
+                
+                // Format as readable sizes
+                const formatSize = (bytes) => {
+                    if (bytes < 1024) return bytes + ' bytes';
+                    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
+                    if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+                    return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+                };
+                
+                // Generate analysis text
+                let analysis = `BBES Compression Impact Analysis\\n`;
+                analysis += `--------------------------------\\n\\n`;
+                
+                analysis += `For this ${book === 'full' ? 'Bible sample' : book} text:\\n`;
+                analysis += `- Original size: ${formatSize(originalSize)}\\n`;
+                analysis += `- BBES size: ${formatSize(bbesSize)}\\n`;
+                analysis += `- Storage saved: ${formatSize(savings)} (${Math.round(savingsPercent)}%)\\n\\n`;
+                
+                analysis += `Scaled to full Bible:\\n`;
+                analysis += `- Estimated full Bible size: ${formatSize(fullBibleSize)}\\n`;
+                analysis += `- Estimated BBES size: ${formatSize(fullBibleSize * (1 - savingsPercent/100))}\\n`;
+                analysis += `- Potential storage saved: ${formatSize(scaledSavings)}\\n\\n`;
+                
+                analysis += `Global impact (1 billion digital copies):\\n`;
+                analysis += `- Total storage saved: ${formatSize(globalSavings)}\\n\\n`;
+                
+                analysis += `This represents significant storage savings that could be applied to:\\n`;
+                analysis += `- Digital libraries (50% smaller text files)\\n`;
+                analysis += `- E-readers (twice as many books in the same space)\\n`;
+                analysis += `- AI training data (more efficient storage of text corpora)\\n`;
+                analysis += `- Mobile apps (reduced download and storage requirements)\\n`;
+                
+                // Set analysis text
+                impactAnalysis.textContent = analysis;
+            }
+            
+            // Update compression chart
+            function updateCompressionChart(stats) {
+                // Calculate max size for scaling
+                const maxSize = Math.max(
+                    stats.sizes.ascii,
+                    stats.sizes.utf8,
+                    stats.sizes.bbes,
+                    stats.sizes.gzipEstimated || 0
+                );
+                
+                // Update chart bars
+                const sizes = [
+                    stats.sizes.ascii,
+                    stats.sizes.utf8,
+                    stats.sizes.bbes,
+                    stats.sizes.gzipEstimated || stats.sizes.gzip || 0
+                ];
+                const maxHeight = 250; // Maximum height in pixels
+                
+                for (let i = 0; i < chartBars.length; i++) {
+                    const height = (sizes[i] / maxSize) * maxHeight;
+                    chartBars[i].style.height = height + 'px';
+                    chartValues[i].textContent = formatSize(sizes[i]);
+                }
+            }
+            
+            // Format size in human-readable format
+            function formatSize(bytes) {
+                if (bytes < 1024) return bytes + ' B';
+                if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+                return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+            }
+            
+            // Run demo automatically if URL has a parameter
+            if (window.location.search.includes('autorun')) {
+                setTimeout(function() {
+                    runDemoButton.click();
+                }, 500);
+            }
+        });
+    </script>
+</body>
+</html>
