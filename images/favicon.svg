@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="32" height="32" rx="4" fill="#4a6fa5"/>
+  
+  <!-- Braille Dots for "B" (1,1,0,0,0,0) -->
+  <circle cx="10" cy="8" r="4" fill="#ff9e6d"/>
+  <circle cx="10" cy="16" r="4" fill="#ff9e6d"/>
+  <circle cx="10" cy="24" r="4" fill="#f0f0f0"/>
+  <circle cx="22" cy="8" r="4" fill="#f0f0f0"/>
+  <circle cx="22" cy="16" r="4" fill="#f0f0f0"/>
+  <circle cx="22" cy="24" r="4" fill="#f0f0f0"/>
+</svg>
