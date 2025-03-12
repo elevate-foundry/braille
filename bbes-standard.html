@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BBES: Braille Binary Encoding Standard</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2ecc71;
+            --accent-color: #f39c12;
+            --dark-color: #2c3e50;
+            --light-color: #ecf0f1;
+            --text-color: #333;
+            --background-color: #fff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--background-color);
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background-color: var(--dark-color);
+            color: white;
+            padding: 1rem 0;
+            text-align: center;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 4rem 2rem;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .section {
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .section h2 {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--light-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .section h3 {
+            color: var(--dark-color);
+            margin-top: 1.5rem;
+        }
+
+        .two-columns {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+        }
+
+        .column {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .feature-box {
+            background-color: var(--light-color);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            transition: transform 0.3s ease;
+        }
+
+        .feature-box:hover {
+            transform: translateY(-5px);
+        }
+
+        .feature-box h3 {
+            color: var(--primary-color);
+            margin-top: 0;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background-color: var(--accent-color);
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+            margin-top: 1rem;
+        }
+
+        .cta-button:hover {
+            background-color: #e67e22;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+        }
+
+        table, th, td {
+            border: 1px solid var(--light-color);
+        }
+
+        th, td {
+            padding: 0.8rem;
+            text-align: left;
+        }
+
+        th {
+            background-color: var(--light-color);
+            color: var(--dark-color);
+        }
+
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        code {
+            background-color: var(--light-color);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        pre {
+            background-color: var(--dark-color);
+            color: white;
+            padding: 1rem;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        .demo-container {
+            background-color: var(--light-color);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 2rem 0;
+        }
+
+        .input-group {
+            margin-bottom: 1rem;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+
+        .input-group input, .input-group textarea {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: inherit;
+        }
+
+        .result-display {
+            background-color: white;
+            padding: 1rem;
+            border-radius: 4px;
+            min-height: 100px;
+            margin-top: 1rem;
+            border: 1px solid #ddd;
+        }
+
+        footer {
+            background-color: var(--dark-color);
+            color: white;
+            text-align: center;
+            padding: 2rem 0;
+            margin-top: 3rem;
+        }
+
+        .social-links {
+            margin-top: 1rem;
+        }
+
+        .social-links a {
+            color: white;
+            margin: 0 0.5rem;
+            font-size: 1.2rem;
+        }
+
+        @media (max-width: 768px) {
+            .two-columns {
+                flex-direction: column;
+            }
+            
+            .hero h1 {
+                font-size: 2rem;
+            }
+            
+            .section {
+                padding: 1.5rem;
+            }
+        }
+
+        /* Braille display styling */
+        .braille-display {
+            font-size: 2rem;
+            letter-spacing: 0.2rem;
+            margin: 1rem 0;
+            line-height: 1.5;
+        }
+
+        /* Haptic feedback indicator */
+        .haptic-indicator {
+            display: inline-block;
+            width: 15px;
+            height: 15px;
+            background-color: var(--accent-color);
+            border-radius: 50%;
+            margin-left: 8px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(243, 156, 18, 0.7);
+            }
+            
+            70% {
+                transform: scale(1);
+                box-shadow: 0 0 0 10px rgba(243, 156, 18, 0);
+            }
+            
+            100% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(243, 156, 18, 0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <nav>
+                <a href="index.html">Home</a> |
+                <a href="bbes-fingerprint-demo.html">BBES Fingerprint Demo</a> |
+                <a href="bbes-standard.html">BBES Standard</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="hero">
+        <div class="container">
+            <h1>BBES: Braille Binary Encoding Standard</h1>
+            <p>A revolutionary approach to data encoding that combines the efficiency of binary representation with the accessibility and human-readability of Braille.</p>
+            <a href="#demo" class="cta-button">Try BBES Encoding</a>
+            <a href="docs/bbes-specification.md" class="cta-button">View Full Specification</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="section">
+            <h2>What is BBES?</h2>
+            <div class="two-columns">
+                <div class="column">
+                    <p>BBES (Braille Binary Encoding Standard) is an innovative data encoding system that leverages Braille patterns to represent binary data. It provides a unique approach that combines:</p>
+                    <ul>
+                        <li>Efficient machine processing</li>
+                        <li>Human-readable format (for those familiar with Braille)</li>
+                        <li>Haptic representation capabilities</li>
+                        <li>Universal design principles</li>
+                    </ul>
+                    <p>BBES was developed as part of the BrailleBuddy project to create a more accessible and compact way to represent data, particularly for device fingerprinting and identification.</p>
+                </div>
+                <div class="column">
+                    <div class="feature-box">
+                        <h3>Key Features</h3>
+                        <ul>
+                            <li>Maps hexadecimal characters to Braille patterns</li>
+                            <li>Supports haptic feedback representation</li>
+                            <li>Compact data representation</li>
+                            <li>Bridges machine efficiency and human accessibility</li>
+                            <li>Open standard with reference implementation</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>BBES Character Mapping</h2>
+            <p>BBES defines a mapping between hexadecimal characters (0-9, a-f) and Braille patterns:</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Hex</th>
+                        <th>Braille</th>
+                        <th>Unicode</th>
+                        <th>Dot Pattern</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>0</td><td>⠚</td><td>U+281A</td><td>245</td></tr>
+                    <tr><td>1</td><td>⠁</td><td>U+2801</td><td>1</td></tr>
+                    <tr><td>2</td><td>⠃</td><td>U+2803</td><td>12</td></tr>
+                    <tr><td>3</td><td>⠉</td><td>U+2809</td><td>14</td></tr>
+                    <tr><td>4</td><td>⠙</td><td>U+2819</td><td>145</td></tr>
+                    <tr><td>5</td><td>⠑</td><td>U+2811</td><td>15</td></tr>
+                    <tr><td>6</td><td>⠋</td><td>U+280B</td><td>124</td></tr>
+                    <tr><td>7</td><td>⠛</td><td>U+281B</td><td>1245</td></tr>
+                    <tr><td>8</td><td>⠓</td><td>U+2813</td><td>125</td></tr>
+                    <tr><td>9</td><td>⠊</td><td>U+280A</td><td>24</td></tr>
+                    <tr><td>a</td><td>⠁⠃</td><td>U+2801 U+2803</td><td>1, 12</td></tr>
+                    <tr><td>b</td><td>⠃⠃</td><td>U+2803 U+2803</td><td>12, 12</td></tr>
+                    <tr><td>c</td><td>⠉⠃</td><td>U+2809 U+2803</td><td>14, 12</td></tr>
+                    <tr><td>d</td><td>⠙⠃</td><td>U+2819 U+2803</td><td>145, 12</td></tr>
+                    <tr><td>e</td><td>⠑⠃</td><td>U+2811 U+2803</td><td>15, 12</td></tr>
+                    <tr><td>f</td><td>⠋⠃</td><td>U+280B U+2803</td><td>124, 12</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section" id="demo">
+            <h2>Try BBES Encoding</h2>
+            <div class="demo-container">
+                <div class="input-group">
+                    <label for="input-text">Enter text to encode:</label>
+                    <input type="text" id="input-text" placeholder="Enter text here...">
+                </div>
+                <button id="encode-button" class="cta-button">Encode to BBES</button>
+                <div class="input-group">
+                    <label for="hex-output">Hexadecimal representation:</label>
+                    <input type="text" id="hex-output" readonly>
+                </div>
+                <div class="input-group">
+                    <label for="bbes-output">BBES encoded output:</label>
+                    <div id="bbes-output" class="braille-display result-display"></div>
+                </div>
+                <div class="input-group">
+                    <label>
+                        <input type="checkbox" id="haptic-feedback"> Enable haptic feedback
+                        <span class="haptic-indicator"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Applications of BBES</h2>
+            <div class="two-columns">
+                <div class="column">
+                    <div class="feature-box">
+                        <h3>Device Fingerprinting</h3>
+                        <p>BBES provides a unique way to represent device fingerprints that can be:</p>
+                        <ul>
+                            <li>Visually displayed in Braille</li>
+                            <li>Haptically communicated through vibration patterns</li>
+                            <li>More compact than traditional representations</li>
+                        </ul>
+                        <a href="bbes-fingerprint-demo.html" class="cta-button">Try the Demo</a>
+                    </div>
+                </div>
+                <div class="column">
+                    <div class="feature-box">
+                        <h3>Data Compression</h3>
+                        <p>BBES can serve as a foundation for specialized compression algorithms that optimize for:</p>
+                        <ul>
+                            <li>Common patterns in specific domains</li>
+                            <li>Accessibility requirements</li>
+                            <li>Haptic transmission efficiency</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="two-columns">
+                <div class="column">
+                    <div class="feature-box">
+                        <h3>Accessibility</h3>
+                        <p>BBES enables new approaches to making digital content accessible:</p>
+                        <ul>
+                            <li>Converting binary data to formats readable by Braille displays</li>
+                            <li>Creating haptic representations of digital signatures</li>
+                            <li>Enabling new forms of authentication for users with visual impairments</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="column">
+                    <div class="feature-box">
+                        <h3>Educational Applications</h3>
+                        <p>BBES provides opportunities for teaching concepts at the intersection of:</p>
+                        <ul>
+                            <li>Binary encoding</li>
+                            <li>Accessibility</li>
+                            <li>Data representation</li>
+                            <li>Cryptography</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Implementation Example</h2>
+            <p>Here's a simple JavaScript implementation of BBES encoding and decoding:</p>
+            <pre><code>function encodeBBES(input) {
+    if (!input) return '';
+    
+    // Convert input to hex if it's not already
+    let hexString = '';
+    for (let i = 0; i < input.length; i++) {
+        hexString += input.charCodeAt(i).toString(16);
+    }
+    
+    // Braille patterns for hexadecimal characters
+    const brailleMap = {
+        '0': '⠚', '1': '⠁', '2': '⠃', '3': '⠉', '4': '⠙', '5': '⠑',
+        '6': '⠋', '7': '⠛', '8': '⠓', '9': '⠊', 'a': '⠁⠃', 'b': '⠃⠃',
+        'c': '⠉⠃', 'd': '⠙⠃', 'e': '⠑⠃', 'f': '⠋⠃'
+    };
+    
+    // Convert each character to its Braille representation
+    return hexString.split('').map(char => {
+        return brailleMap[char.toLowerCase()] || char;
+    }).join('');
+}
+
+function decodeBBES(bbesString) {
+    if (!bbesString) return '';
+    
+    // Reverse mapping from Braille to hexadecimal
+    const reverseMap = {
+        '⠚': '0', '⠁': '1', '⠃': '2', '⠉': '3', '⠙': '4', '⠑': '5',
+        '⠋': '6', '⠛': '7', '⠓': '8', '⠊': '9', '⠁⠃': 'a', '⠃⠃': 'b',
+        '⠉⠃': 'c', '⠙⠃': 'd', '⠑⠃': 'e', '⠋⠃': 'f'
+    };
+    
+    // Handle double-character codes
+    let result = '';
+    let i = 0;
+    
+    while (i < bbesString.length) {
+        // Check for two-character codes first
+        if (i < bbesString.length - 1) {
+            const twoChars = bbesString.substring(i, i + 2);
+            if (reverseMap[twoChars]) {
+                result += reverseMap[twoChars];
+                i += 2;
+                continue;
+            }
+        }
+        
+        // Otherwise check for single character
+        const oneChar = bbesString[i];
+        result += reverseMap[oneChar] || oneChar;
+        i++;
+    }
+    
+    return result;
+}</code></pre>
+        </div>
+
+        <div class="section">
+            <h2>Future Directions</h2>
+            <p>We're actively exploring several exciting directions for BBES:</p>
+            <div class="two-columns">
+                <div class="column">
+                    <div class="feature-box">
+                        <h3>Extended Character Sets</h3>
+                        <p>Future versions of BBES may include:</p>
+                        <ul>
+                            <li>Support for additional character sets beyond hexadecimal</li>
+                            <li>Optimized encodings for specific languages or domains</li>
+                            <li>Variable-length encodings for improved efficiency</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="column">
+                    <div class="feature-box">
+                        <h3>Compression Optimization</h3>
+                        <p>The BBES approach can be extended with:</p>
+                        <ul>
+                            <li>Machine learning techniques to identify optimal encodings</li>
+                            <li>Context-aware compression similar to Huffman coding</li>
+                            <li>Domain-specific optimizations</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="feature-box" style="margin-top: 2rem;">
+                <h3>Get Involved</h3>
+                <p>We're looking for contributors to help develop BBES further:</p>
+                <ul>
+                    <li>Implement BBES in different programming languages</li>
+                    <li>Develop applications that showcase BBES capabilities</li>
+                    <li>Research optimal Braille patterns for different use cases</li>
+                    <li>Test BBES with assistive technologies</li>
+                </ul>
+                <a href="https://github.com/elevate-foundry/braille-buddy" class="cta-button">Contribute on GitHub</a>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>BBES: Braille Binary Encoding Standard</p>
+            <p>© 2025 Elevate Foundry. All rights reserved.</p>
+            <div class="social-links">
+                <a href="#">Twitter</a> |
+                <a href="#">GitHub</a> |
+                <a href="#">LinkedIn</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/device-fingerprint.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const inputText = document.getElementById('input-text');
+            const encodeButton = document.getElementById('encode-button');
+            const hexOutput = document.getElementById('hex-output');
+            const bbesOutput = document.getElementById('bbes-output');
+            const hapticFeedback = document.getElementById('haptic-feedback');
+            
+            // Braille patterns for hexadecimal characters
+            const brailleMap = {
+                '0': '⠚', '1': '⠁', '2': '⠃', '3': '⠉', '4': '⠙', '5': '⠑',
+                '6': '⠋', '7': '⠛', '8': '⠓', '9': '⠊', 'a': '⠁⠃', 'b': '⠃⠃',
+                'c': '⠉⠃', 'd': '⠙⠃', 'e': '⠑⠃', 'f': '⠋⠃'
+            };
+            
+            function stringToHex(str) {
+                let hex = '';
+                for (let i = 0; i < str.length; i++) {
+                    hex += str.charCodeAt(i).toString(16);
+                }
+                return hex;
+            }
+            
+            function encodeBBES(hexString) {
+                return hexString.split('').map(char => {
+                    return brailleMap[char.toLowerCase()] || char;
+                }).join('');
+            }
+            
+            function triggerHapticFeedback(bbesString) {
+                if (!window.navigator.vibrate) return;
+                
+                const vibrationPattern = [];
+                
+                // Create a vibration pattern based on the BBES string
+                for (let i = 0; i < bbesString.length; i++) {
+                    const char = bbesString[i];
+                    
+                    // Skip non-Braille characters
+                    if (char.charCodeAt(0) < 0x2800 || char.charCodeAt(0) > 0x28FF) continue;
+                    
+                    // Convert Braille to dot pattern
+                    const dotPattern = char.charCodeAt(0) - 0x2800;
+                    
+                    // For each of the 6 possible dots
+                    for (let dot = 0; dot < 6; dot++) {
+                        // Check if this dot is raised (1) or not (0)
+                        const isDotRaised = (dotPattern & (1 << dot)) !== 0;
+                        
+                        // Add to vibration pattern: 100ms if raised, 50ms pause between dots
+                        vibrationPattern.push(isDotRaised ? 100 : 0);
+                        vibrationPattern.push(50);
+                    }
+                    
+                    // Add a longer pause between characters
+                    vibrationPattern.push(200);
+                }
+                
+                // Trigger vibration
+                window.navigator.vibrate(vibrationPattern);
+            }
+            
+            encodeButton.addEventListener('click', function() {
+                const text = inputText.value;
+                if (!text) return;
+                
+                const hexString = stringToHex(text);
+                hexOutput.value = hexString;
+                
+                const bbesString = encodeBBES(hexString);
+                bbesOutput.textContent = bbesString;
+                
+                if (hapticFeedback.checked) {
+                    triggerHapticFeedback(bbesString);
+                }
+            });
+            
+            // Initialize device fingerprint
+            if (typeof DeviceFingerprint !== 'undefined') {
+                window.deviceFingerprint = new DeviceFingerprint();
+                deviceFingerprint.initialize().then(fingerprint => {
+                    console.log('Device fingerprint initialized');
+                });
+            }
+        });
+    </script>
+</body>
+</html>

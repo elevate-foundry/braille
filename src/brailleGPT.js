@@ -3,6 +3,9 @@
  * 
  * This module implements a prototype of BrailleGPT, which uses machine learning
  * techniques to optimize Braille contractions and compression for maximum efficiency.
+ * 
+ * It integrates with device fingerprinting using BBES (Braille Binary Encoding Standard)
+ * to provide personalized experiences without requiring user login.
  */
 
 class BrailleGPT {
@@ -12,6 +15,8 @@ class BrailleGPT {
         this.frequencyAnalysis = {};
         this.initialized = false;
         this.bbesFormat = null;
+        this.deviceId = null;
+        this.userProfile = null;
         
         // Default language model parameters
         this.params = {
@@ -22,6 +27,103 @@ class BrailleGPT {
             contextWindow: 5, // Words of context to consider
             hapticFeedbackEnabled: true
         };
+        
+        // Listen for device fingerprint events
+        this._setupDeviceFingerprinting();
+    }
+    
+    /**
+     * Set up device fingerprinting integration
+     * @private
+     */
+    _setupDeviceFingerprinting() {
+        // Check if deviceFingerprint is available
+        if (typeof window !== 'undefined') {
+            // Listen for the fingerprint ready event
+            document.addEventListener('deviceFingerprint:ready', (event) => {
+                if (event.detail && event.detail.fingerprint) {
+                    this.deviceId = event.detail.fingerprint;
+                    console.log('BrailleGPT: Device fingerprint received');
+                    this._loadUserProfile();
+                }
+            });
+            
+            // Check if fingerprint is already available
+            if (typeof deviceFingerprint !== 'undefined' && deviceFingerprint.getFingerprint()) {
+                this.deviceId = deviceFingerprint.getFingerprint();
+                console.log('BrailleGPT: Using existing device fingerprint');
+                this._loadUserProfile();
+            }
+        }
+    }
+    
+    /**
+     * Load user profile based on device ID
+     * @private
+     */
+    _loadUserProfile() {
+        if (!this.deviceId) return;
+        
+        const storageKey = `brailleGPT_profile_${this.deviceId}`;
+        const savedProfile = localStorage.getItem(storageKey);
+        
+        if (savedProfile) {
+            try {
+                this.userProfile = JSON.parse(savedProfile);
+                console.log('BrailleGPT: Loaded user profile');
+            } catch (error) {
+                console.error('BrailleGPT: Error loading user profile', error);
+                this._initializeUserProfile();
+            }
+        } else {
+            this._initializeUserProfile();
+        }
+    }
+    
+    /**
+     * Initialize a new user profile
+     * @private
+     */
+    _initializeUserProfile() {
+        this.userProfile = {
+            deviceId: this.deviceId,
+            created: new Date().toISOString(),
+            lastAccess: new Date().toISOString(),
+            preferences: {
+                optimizationTarget: this.params.optimizationTarget,
+                hapticFeedbackEnabled: this.params.hapticFeedbackEnabled
+            },
+            learningData: {
+                analyzedTexts: 0,
+                generatedContractions: 0,
+                favoritePatterns: []
+            },
+            compressionStats: {
+                totalTextCompressed: 0,
+                averageCompressionRatio: 0,
+                bestCompressionRatio: 0
+            }
+        };
+        
+        this._saveUserProfile();
+        console.log('BrailleGPT: Initialized new user profile');
+    }
+    
+    /**
+     * Save user profile to localStorage
+     * @private
+     */
+    _saveUserProfile() {
+        if (!this.deviceId || !this.userProfile) return;
+        
+        const storageKey = `brailleGPT_profile_${this.deviceId}`;
+        this.userProfile.lastAccess = new Date().toISOString();
+        
+        try {
+            localStorage.setItem(storageKey, JSON.stringify(this.userProfile));
+        } catch (error) {
+            console.error('BrailleGPT: Error saving user profile', error);
+        }
     }
     
     /**
@@ -29,6 +131,17 @@ class BrailleGPT {
      */
     async initialize(bbesFormat, customParams = {}) {
         this.bbesFormat = bbesFormat;
+        
+        // If we have a user profile, use their preferences
+        if (this.userProfile && this.userProfile.preferences) {
+            customParams = {
+                ...customParams,
+                optimizationTarget: this.userProfile.preferences.optimizationTarget || this.params.optimizationTarget,
+                hapticFeedbackEnabled: this.userProfile.preferences.hapticFeedbackEnabled !== undefined ? 
+                    this.userProfile.preferences.hapticFeedbackEnabled : this.params.hapticFeedbackEnabled
+            };
+        }
+        
         this.params = { ...this.params, ...customParams };
         
         // Load base contractions from BBES
@@ -41,6 +154,14 @@ class BrailleGPT {
         await this._initializeModel();
         
         this.initialized = true;
+        
+        // Update user profile if available
+        if (this.userProfile) {
+            this.userProfile.preferences.optimizationTarget = this.params.optimizationTarget;
+            this.userProfile.preferences.hapticFeedbackEnabled = this.params.hapticFeedbackEnabled;
+            this._saveUserProfile();
+        }
+        
         return this;
     }
     
@@ -109,10 +230,20 @@ class BrailleGPT {
         
         console.log(`Analyzed ${wordCount} words and identified ${Object.keys(this.frequencyAnalysis).length} potential patterns`);
         
+        // Update user profile if available
+        if (this.userProfile) {
+            this.userProfile.learningData.analyzedTexts++;
+            this.userProfile.compressionStats.totalTextCompressed += wordCount;
+            this._saveUserProfile();
+        }
+        
+        const topPatterns = this._getTopPatterns(10);
+        
         return {
             wordCount,
             uniquePatterns: Object.keys(this.frequencyAnalysis).length,
-            topPatterns: this._getTopPatterns(10)
+            topPatterns,
+            deviceId: this.deviceId ? this.deviceId.substring(0, 10) + '...' : 'Not available'
         };
     }
     
@@ -199,6 +330,35 @@ class BrailleGPT {
             }))
             .sort((a, b) => b.compressionValue - a.compressionValue)
             .slice(0, maxNewContractions);
+            
+        // Update user profile if available
+        if (this.userProfile) {
+            this.userProfile.learningData.generatedContractions += topPatterns.length;
+            
+            // Store favorite patterns (patterns with highest compression value)
+            if (topPatterns.length > 0) {
+                const favoritePatterns = this.userProfile.learningData.favoritePatterns || [];
+                
+                // Add new top patterns if they're not already in favorites
+                topPatterns.slice(0, 5).forEach(pattern => {
+                    const exists = favoritePatterns.some(p => p.pattern === pattern.pattern);
+                    if (!exists) {
+                        favoritePatterns.push({
+                            pattern: pattern.pattern,
+                            compressionValue: pattern.compressionValue,
+                            addedAt: new Date().toISOString()
+                        });
+                    }
+                });
+                
+                // Keep only top 20 favorite patterns
+                this.userProfile.learningData.favoritePatterns = favoritePatterns
+                    .sort((a, b) => b.compressionValue - a.compressionValue)
+                    .slice(0, 20);
+                    
+                this._saveUserProfile();
+            }
+        }
         
         // Generate new contractions
         const newContractions = {};

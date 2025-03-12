@@ -2,18 +2,61 @@
  * BrailleBuddy Progress Tracker
  * 
  * This module handles user progress tracking, achievements, and adaptive learning features.
- * It stores user data in localStorage to persist between sessions.
+ * It stores user data in localStorage to persist between sessions and uses device fingerprinting
+ * for user identification without requiring login.
  */
 
 class ProgressTracker {
     constructor() {
-        this.userData = this.loadUserData();
-        this.initializeIfNeeded();
+        this.isInitialized = false;
+        this.deviceId = null;
+        
+        // Initialize after device fingerprint is available
+        this.initialize();
+    }
+    
+    /**
+     * Initialize the progress tracker with device fingerprinting
+     */
+    async initialize() {
+        // Wait for device fingerprint to be available
+        if (typeof deviceFingerprint !== 'undefined') {
+            try {
+                // Get or generate device fingerprint
+                this.deviceId = await deviceFingerprint.initialize();
+                console.log('Progress tracker initialized with device ID:', this.deviceId);
+                
+                // Load user data after device ID is available
+                this.userData = this.loadUserData();
+                this.initializeIfNeeded();
+                this.isInitialized = true;
+                
+                // Dispatch event when progress tracker is ready
+                document.dispatchEvent(new CustomEvent('progressTracker:ready'));
+            } catch (error) {
+                console.error('Error initializing progress tracker with device fingerprint:', error);
+                // Fallback to regular initialization without device ID
+                this.userData = this.loadUserData();
+                this.initializeIfNeeded();
+                this.isInitialized = true;
+            }
+        } else {
+            // Fallback if device fingerprint is not available
+            console.warn('Device fingerprint not available, using standard initialization');
+            this.userData = this.loadUserData();
+            this.initializeIfNeeded();
+            this.isInitialized = true;
+        }
     }
 
     // Load user data from localStorage or create new data if none exists
     loadUserData() {
-        const savedData = localStorage.getItem('brailleBuddyUserData');
+        // If we have a device ID, use it to create a unique storage key
+        const storageKey = this.deviceId ? 
+            `brailleBuddyUserData_${this.deviceId}` : 
+            'brailleBuddyUserData';
+            
+        const savedData = localStorage.getItem(storageKey);
         return savedData ? JSON.parse(savedData) : null;
     }
 
@@ -23,6 +66,7 @@ class ProgressTracker {
             this.userData = {
                 username: '',
                 displayName: '',
+                deviceId: this.deviceId || '',
                 created: new Date().toISOString(),
                 lastLogin: new Date().toISOString(),
                 settings: {
@@ -65,7 +109,17 @@ class ProgressTracker {
 
     // Save user data to localStorage
     saveUserData() {
-        localStorage.setItem('brailleBuddyUserData', JSON.stringify(this.userData));
+        // If we have a device ID, use it to create a unique storage key
+        const storageKey = this.deviceId ? 
+            `brailleBuddyUserData_${this.deviceId}` : 
+            'brailleBuddyUserData';
+            
+        // Add device ID to user data
+        if (this.deviceId && this.userData) {
+            this.userData.deviceId = this.deviceId;
+        }
+        
+        localStorage.setItem(storageKey, JSON.stringify(this.userData));
     }
 
     // Set user profile information
@@ -370,3 +424,68 @@ class ProgressTracker {
 
 // Create global instance
 const progressTracker = new ProgressTracker();
+
+// Add helper methods for working with device fingerprinting
+
+/**
+ * Check if the progress tracker is ready
+ * @returns {boolean} - Whether the progress tracker is initialized
+ */
+progressTracker.isReady = function() {
+    return this.isInitialized && this.deviceId !== null;
+};
+
+/**
+ * Get the current device ID
+ * @returns {string|null} - The device ID or null if not available
+ */
+progressTracker.getDeviceId = function() {
+    return this.deviceId;
+};
+
+/**
+ * Export user data for backup or transfer
+ * @returns {Object|null} - User data object or null if not available
+ */
+progressTracker.exportUserData = function() {
+    if (!this.isReady() || !this.userData) {
+        console.warn('Cannot export user data: not initialized or data not available');
+        return null;
+    }
+    
+    return {
+        ...this.userData,
+        exportDate: new Date().toISOString()
+    };
+};
+
+/**
+ * Import user data from backup or transfer
+ * @param {Object} data - User data object to import
+ * @returns {boolean} - Whether the import was successful
+ */
+progressTracker.importUserData = function(data) {
+    if (!this.isReady()) {
+        console.warn('Cannot import user data: not initialized');
+        return false;
+    }
+    
+    try {
+        // Preserve the current device ID
+        const currentDeviceId = this.deviceId;
+        
+        // Merge the imported data with current data, prioritizing imported data
+        this.userData = {
+            ...data,
+            deviceId: currentDeviceId,
+            lastLogin: new Date().toISOString(),
+            importDate: new Date().toISOString()
+        };
+        
+        this.saveUserData();
+        return true;
+    } catch (error) {
+        console.error('Error importing user data:', error);
+        return false;
+    }
+};

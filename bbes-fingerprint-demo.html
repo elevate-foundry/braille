@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BBES Device Fingerprinting Demo - BrailleBuddy</title>
+    
+    <!-- Primary Meta Tags -->
+    <meta name="title" content="BBES Device Fingerprinting - BrailleBuddy">
+    <meta name="description" content="Experience Braille Binary Encoding Standard (BBES) - a new way to represent device identities using Braille patterns.">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://braillebuddy.vercel.app/bbes-fingerprint-demo.html">
+    <meta property="og:title" content="BBES Device Fingerprinting - BrailleBuddy">
+    <meta property="og:description" content="Experience Braille Binary Encoding Standard (BBES) - a new way to represent device identities using Braille patterns.">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://braillebuddy.vercel.app/bbes-fingerprint-demo.html">
+    <meta property="twitter:title" content="BBES Device Fingerprinting - BrailleBuddy">
+    <meta property="twitter:description" content="Experience Braille Binary Encoding Standard (BBES) - a new way to represent device identities using Braille patterns.">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
+    
+    <!-- PWA Support -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4a6fa5">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        .demo-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .fingerprint-display {
+            margin: 30px 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .braille-fingerprint {
+            font-size: 24px;
+            letter-spacing: 2px;
+            line-height: 1.5;
+            word-wrap: break-word;
+            margin: 20px 0;
+            padding: 15px;
+            background-color: white;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+        
+        .raw-fingerprint {
+            font-family: monospace;
+            font-size: 14px;
+            word-wrap: break-word;
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f0f0f0;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+        
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 30px 0;
+        }
+        
+        .comparison-table th, .comparison-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .comparison-table th {
+            background-color: #4a6fa5;
+            color: white;
+        }
+        
+        .comparison-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        .haptic-button {
+            display: inline-block;
+            margin: 10px 0;
+            padding: 12px 24px;
+            background-color: #4a6fa5;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .haptic-button:hover {
+            background-color: #3a5a85;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .feature-card {
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .feature-card h3 {
+            margin-top: 0;
+            color: #4a6fa5;
+        }
+        
+        .spec-section {
+            margin: 40px 0;
+            padding: 20px;
+            background-color: #f0f8ff;
+            border-radius: 8px;
+            border-left: 5px solid #4a6fa5;
+        }
+        
+        .code-block {
+            font-family: monospace;
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+        
+        @media (max-width: 600px) {
+            .braille-fingerprint {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>BBES Device Fingerprinting</h1>
+            <p class="tagline">Braille Binary Encoding Standard</p>
+            <nav>
+                <ul>
+                    <li><a href="index.html">Back to BrailleBuddy</a></li>
+                </ul>
+            </nav>
+        </header>
+        
+        <main class="demo-container">
+            <section>
+                <h2>Your Device in Braille</h2>
+                <p>Below is your unique device fingerprint encoded using BBES (Braille Binary Encoding Standard). This is a new way to represent digital identities using Braille patterns, making them both machine-efficient and human-readable.</p>
+                
+                <div class="fingerprint-display">
+                    <h3>BBES Fingerprint</h3>
+                    <div id="braille-fingerprint" class="braille-fingerprint">
+                        Loading your unique Braille fingerprint...
+                    </div>
+                    
+                    <button id="feel-fingerprint" class="haptic-button">Feel Your Fingerprint</button>
+                    
+                    <div class="fingerprint-details">
+                        <h4>Technical Details</h4>
+                        <p>Length: <span id="fingerprint-length">--</span> characters</p>
+                        <p>Raw Fingerprint (Hex):</p>
+                        <div id="raw-fingerprint" class="raw-fingerprint">
+                            Loading...
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <section class="spec-section">
+                <h2>What is BBES?</h2>
+                <p>BBES (Braille Binary Encoding Standard) is an experimental encoding system that represents data using Braille patterns. It combines the benefits of binary data compression with the human-readability of Braille.</p>
+                
+                <h3>Key Features</h3>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h3>Compression</h3>
+                        <p>BBES can represent complex data in a more compact form than traditional encoding methods.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>Accessibility</h3>
+                        <p>Data encoded in BBES can be read by both machines and humans familiar with Braille.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>Haptic Potential</h3>
+                        <p>BBES-encoded data can be transmitted through haptic feedback, enabling new forms of communication.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>Cross-Platform</h3>
+                        <p>Works across different systems and devices as it's based on Unicode Braille patterns.</p>
+                    </div>
+                </div>
+            </section>
+            
+            <section>
+                <h2>BBES vs. Traditional Encoding</h2>
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Feature</th>
+                            <th>BBES</th>
+                            <th>Hex Encoding</th>
+                            <th>Base64</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Human Readable</td>
+                            <td>Yes (with Braille knowledge)</td>
+                            <td>Partially</td>
+                            <td>No</td>
+                        </tr>
+                        <tr>
+                            <td>Character Set</td>
+                            <td>Braille Patterns (Unicode)</td>
+                            <td>0-9, A-F</td>
+                            <td>A-Z, a-z, 0-9, +, /</td>
+                        </tr>
+                        <tr>
+                            <td>Haptic Potential</td>
+                            <td>High</td>
+                            <td>Low</td>
+                            <td>Low</td>
+                        </tr>
+                        <tr>
+                            <td>Bits per Character</td>
+                            <td>6 (Braille cell)</td>
+                            <td>4</td>
+                            <td>6</td>
+                        </tr>
+                        <tr>
+                            <td>Accessibility</td>
+                            <td>High</td>
+                            <td>Medium</td>
+                            <td>Low</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+            
+            <section>
+                <h2>BBES Technical Specification</h2>
+                <p>The current implementation maps hexadecimal characters to their Braille equivalents:</p>
+                
+                <div class="code-block">
+                    <pre>
+'0': '⠚', '1': '⠁', '2': '⠃', '3': '⠉', '4': '⠙', '5': '⠑',
+'6': '⠋', '7': '⠛', '8': '⠓', '9': '⠊', 'a': '⠁⠃', 'b': '⠃⠃',
+'c': '⠉⠃', 'd': '⠙⠃', 'e': '⠑⠃', 'f': '⠋⠃'
+                    </pre>
+                </div>
+                
+                <p>This mapping allows for efficient encoding of any hexadecimal string (such as SHA-256 hashes) into Braille patterns.</p>
+                
+                <h3>Future Directions</h3>
+                <p>The BBES specification is evolving to include:</p>
+                <ul>
+                    <li>Optimized compression for common words and phrases</li>
+                    <li>Integration with haptic feedback systems</li>
+                    <li>Machine learning-based optimization of encoding patterns</li>
+                    <li>Support for multilingual content</li>
+                </ul>
+            </section>
+            
+            <section>
+                <h2>Try BBES in Your Projects</h2>
+                <p>BBES is open source and available for experimentation. You can integrate it into your own projects using the following code:</p>
+                
+                <div class="code-block">
+                    <pre>
+function encodeBBES(input) {
+    if (!input) return '';
+    
+    // Braille patterns for hexadecimal characters
+    const brailleMap = {
+        '0': '⠚', '1': '⠁', '2': '⠃', '3': '⠉', '4': '⠙', '5': '⠑',
+        '6': '⠋', '7': '⠛', '8': '⠓', '9': '⠊', 'a': '⠁⠃', 'b': '⠃⠃',
+        'c': '⠉⠃', 'd': '⠙⠃', 'e': '⠑⠃', 'f': '⠋⠃'
+    };
+    
+    // Convert each character to its Braille representation
+    return input.split('').map(char => {
+        return brailleMap[char.toLowerCase()] || char;
+    }).join('');
+}
+                    </pre>
+                </div>
+                
+                <p>Check out the <a href="https://github.com/elevate-foundry/braille" target="_blank">GitHub repository</a> for the full implementation and documentation.</p>
+            </section>
+            
+            <section>
+                <h2>Share Your BBES Fingerprint</h2>
+                <p>Copy and share your unique BBES fingerprint with others:</p>
+                <button id="copy-fingerprint" class="haptic-button">Copy to Clipboard</button>
+                <p id="copy-message" style="display: none; color: green;">Copied to clipboard!</p>
+                
+                <div style="margin-top: 30px;">
+                    <p>Can you read this? Share this page and challenge others to decode your device's unique Braille identity!</p>
+                    <div class="social-share">
+                        <button id="share-twitter" class="haptic-button">Share on Twitter</button>
+                        <button id="share-facebook" class="haptic-button">Share on Facebook</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+        
+        <footer>
+            <p>&copy; 2025 BrailleBuddy | Created with ❤️ by Elevate Foundry</p>
+        </footer>
+    </div>
+    
+    <!-- Load scripts -->
+    <script src="js/device-fingerprint.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Wait for device fingerprint to be ready
+            if (!deviceFingerprint.getFingerprint()) {
+                await deviceFingerprint.initialize();
+            }
+            
+            // Display the BBES fingerprint
+            const brailleFingerprintElement = document.getElementById('braille-fingerprint');
+            const rawFingerprintElement = document.getElementById('raw-fingerprint');
+            const fingerprintLengthElement = document.getElementById('fingerprint-length');
+            
+            const bbesFingerprint = deviceFingerprint.getFingerprint();
+            const rawFingerprint = deviceFingerprint.getRawFingerprint() || 'Not available';
+            
+            if (bbesFingerprint) {
+                brailleFingerprintElement.textContent = bbesFingerprint;
+                fingerprintLengthElement.textContent = bbesFingerprint.length;
+            } else {
+                brailleFingerprintElement.textContent = 'Could not generate fingerprint';
+            }
+            
+            rawFingerprintElement.textContent = rawFingerprint;
+            
+            // Haptic feedback for "Feel Your Fingerprint" button
+            const feelFingerprintButton = document.getElementById('feel-fingerprint');
+            feelFingerprintButton.addEventListener('click', () => {
+                if (!bbesFingerprint) return;
+                
+                // Check if vibration API is supported
+                if ('vibrate' in navigator) {
+                    // Convert Braille patterns to vibration patterns
+                    const vibrationPattern = [];
+                    
+                    // For each Braille character, create a vibration pattern
+                    for (let i = 0; i < bbesFingerprint.length; i++) {
+                        const char = bbesFingerprint[i];
+                        
+                        // Skip spaces
+                        if (char === ' ') {
+                            vibrationPattern.push(0);
+                            vibrationPattern.push(300);
+                            continue;
+                        }
+                        
+                        // Convert Braille character to binary representation
+                        const charCode = char.charCodeAt(0);
+                        const binaryStr = (charCode - 0x2800).toString(2).padStart(6, '0');
+                        
+                        // For each bit in the Braille cell, vibrate if it's a 1
+                        for (let j = 0; j < binaryStr.length; j++) {
+                            if (binaryStr[j] === '1') {
+                                vibrationPattern.push(100);
+                            } else {
+                                vibrationPattern.push(50);
+                            }
+                            vibrationPattern.push(50);
+                        }
+                        
+                        // Pause between characters
+                        vibrationPattern.push(200);
+                    }
+                    
+                    // Vibrate with the pattern
+                    navigator.vibrate(vibrationPattern);
+                    
+                    // Visual feedback
+                    feelFingerprintButton.textContent = 'Feeling...';
+                    setTimeout(() => {
+                        feelFingerprintButton.textContent = 'Feel Your Fingerprint';
+                    }, 2000);
+                } else {
+                    alert('Vibration API is not supported on your device.');
+                }
+            });
+            
+            // Copy fingerprint to clipboard
+            const copyFingerprintButton = document.getElementById('copy-fingerprint');
+            const copyMessage = document.getElementById('copy-message');
+            
+            copyFingerprintButton.addEventListener('click', () => {
+                if (!bbesFingerprint) return;
+                
+                // Copy to clipboard
+                navigator.clipboard.writeText(bbesFingerprint).then(() => {
+                    copyMessage.style.display = 'block';
+                    setTimeout(() => {
+                        copyMessage.style.display = 'none';
+                    }, 2000);
+                }).catch(err => {
+                    console.error('Could not copy text: ', err);
+                    alert('Failed to copy to clipboard');
+                });
+                
+                // Haptic feedback
+                if ('vibrate' in navigator) {
+                    navigator.vibrate([100, 50, 100]);
+                }
+            });
+            
+            // Social sharing
+            document.getElementById('share-twitter').addEventListener('click', () => {
+                const text = encodeURIComponent(`Can you read this? ${bbesFingerprint.substring(0, 20)}... This is my device's unique fingerprint in Braille! Learn more about BBES (Braille Binary Encoding Standard):`);
+                const url = encodeURIComponent(window.location.href);
+                window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank');
+            });
+            
+            document.getElementById('share-facebook').addEventListener('click', () => {
+                const url = encodeURIComponent(window.location.href);
+                window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
+            });
+        });
+    </script>
+</body>
+</html>
