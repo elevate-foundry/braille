@@ -37,8 +37,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (window.brailleLanguageManager) {
             return window.brailleLanguageManager.getCurrentAlphabet();
         } else {
-            // Fallback to default UEB alphabet
+            // Fallback to default UEB alphabet with numbers
             return {
+                // Letters
                 'a': [1, 0, 0, 0, 0, 0],
                 'b': [1, 1, 0, 0, 0, 0],
                 'c': [1, 0, 0, 1, 0, 0],
@@ -64,7 +65,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 'w': [0, 1, 0, 1, 1, 1],
                 'x': [1, 0, 1, 1, 0, 1],
                 'y': [1, 0, 1, 1, 1, 1],
-                'z': [1, 0, 1, 0, 1, 1]
+                'z': [1, 0, 1, 0, 1, 1],
+                
+                // Numbers (same patterns as a-j but preceded by # in display)
+                '1': [1, 0, 0, 0, 0, 0],
+                '2': [1, 1, 0, 0, 0, 0],
+                '3': [1, 0, 0, 1, 0, 0],
+                '4': [1, 0, 0, 1, 1, 0],
+                '5': [1, 0, 0, 0, 1, 0],
+                '6': [1, 1, 0, 1, 0, 0],
+                '7': [1, 1, 0, 1, 1, 0],
+                '8': [1, 1, 0, 0, 1, 0],
+                '9': [0, 1, 0, 1, 0, 0],
+                '0': [0, 1, 0, 1, 1, 0],
+                
+                // Number sign (indicates that the following character is a number)
+                '#': [0, 0, 1, 1, 1, 1]
             };
         }
     }
@@ -152,8 +168,19 @@ document.addEventListener('DOMContentLoaded', function() {
         // Get current alphabet (may have changed if language was switched)
         const currentAlphabet = getBrailleAlphabet();
         
-        // Add alphabet letters
-        Object.keys(currentAlphabet).forEach(letter => {
+        // Filter out special characters like '#' (number sign) from the display grid
+        const specialCharacters = ['#'];
+        const filteredAlphabet = Object.keys(currentAlphabet).filter(char => !specialCharacters.includes(char));
+        
+        // Add a section header for letters
+        const lettersHeader = document.createElement('div');
+        lettersHeader.className = 'grid-section-header';
+        lettersHeader.innerHTML = '<h3>Letters</h3>';
+        lettersHeader.style.gridColumn = '1 / -1'; // Span all columns
+        brailleGrid.appendChild(lettersHeader);
+        
+        // Add alphabet letters (excluding numbers and special characters)
+        filteredAlphabet.filter(char => !/^[0-9]$/.test(char)).forEach(letter => {
             const letterElement = document.createElement('div');
             letterElement.className = 'braille-letter';
             letterElement.setAttribute('data-letter', letter);
@@ -171,6 +198,35 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
                 letterElement.classList.add('active');
                 displayBrailleLetter(letter);
+            });
+        });
+        
+        // Add a section header for numbers
+        const numbersHeader = document.createElement('div');
+        numbersHeader.className = 'grid-section-header';
+        numbersHeader.innerHTML = '<h3>Numbers</h3>';
+        numbersHeader.style.gridColumn = '1 / -1'; // Span all columns
+        brailleGrid.appendChild(numbersHeader);
+        
+        // Add numbers
+        filteredAlphabet.filter(char => /^[0-9]$/.test(char)).forEach(number => {
+            const numberElement = document.createElement('div');
+            numberElement.className = 'braille-letter number';
+            numberElement.setAttribute('data-letter', number);
+            
+            const numberSpan = document.createElement('span');
+            numberSpan.className = 'letter';
+            numberSpan.textContent = number;
+            
+            numberElement.appendChild(numberSpan);
+            brailleGrid.appendChild(numberElement);
+            
+            numberElement.addEventListener('click', () => {
+                document.querySelectorAll('.braille-letter').forEach(el => {
+                    el.classList.remove('active');
+                });
+                numberElement.classList.add('active');
+                displayBrailleLetter(number);
             });
         });
         
@@ -217,6 +273,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Display braille representation of a letter
     function displayBrailleLetter(letter) {
         let pattern;
+        // Check if the letter is a number
+        const isNumber = /^[0-9]$/.test(letter);
         
         // Try to get pattern from language manager first
         if (window.brailleLanguageManager) {
@@ -229,9 +287,9 @@ document.addEventListener('DOMContentLoaded', function() {
             pattern = currentAlphabet[letter.toLowerCase()];
         }
         
-        // Update dots
+        // Update dots for the letter/number
         dots.forEach((dot, index) => {
-            if (pattern[index] === 1) {
+            if (pattern && pattern[index] === 1) {
                 dot.classList.add('active');
             } else {
                 dot.classList.remove('active');
@@ -239,8 +297,47 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
         // Update info
-        currentLetter.textContent = letter.toUpperCase();
-        letterDescription.textContent = letterDescriptions[letter.toLowerCase()];
+        if (isNumber) {
+            // For numbers, show the number sign prefix
+            currentLetter.textContent = `# ${letter}`;
+            letterDescription.textContent = `The number ${letter}. In Braille, numbers use the same patterns as the first 10 letters (a-j) but are preceded by the number sign.`;
+            
+            // If we have a number sign container, show it
+            const numberSignContainer = document.getElementById('number-sign-container');
+            if (numberSignContainer) {
+                numberSignContainer.style.display = 'block';
+                
+                // If we have a number sign pattern, display it
+                const currentAlphabet = getBrailleAlphabet();
+                const numberSignPattern = currentAlphabet['#'];
+                if (numberSignPattern) {
+                    const numberSignDots = document.querySelectorAll('#number-sign-container .dot');
+                    numberSignDots.forEach((dot, index) => {
+                        if (numberSignPattern[index] === 1) {
+                            dot.classList.add('active');
+                        } else {
+                            dot.classList.remove('active');
+                        }
+                    });
+                }
+            }
+        } else {
+            // For regular letters
+            currentLetter.textContent = letter.toUpperCase();
+            
+            // Use provided description or default
+            if (letterDescriptions[letter.toLowerCase()]) {
+                letterDescription.textContent = letterDescriptions[letter.toLowerCase()];
+            } else {
+                letterDescription.textContent = `The letter ${letter.toUpperCase()}.`;
+            }
+            
+            // Hide number sign container if it exists
+            const numberSignContainer = document.getElementById('number-sign-container');
+            if (numberSignContainer) {
+                numberSignContainer.style.display = 'none';
+            }
+        }
         
         // Provide haptic feedback for the letter
         if (window.hapticFeedback && 
