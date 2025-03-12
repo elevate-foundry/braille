@@ -12,12 +12,14 @@ const FILES_TO_CACHE = [
   '/js/progress-tracker.js',
   '/js/adaptive-learning.js',
   '/js/mobile-optimization.js',
-  '/js/games/memory-match.js',
-  '/js/games/word-builder.js',
-  '/js/games/speedster.js',
+  '/js/games.js',  // All games are in this single file instead of separate files
   '/images/favicon.svg',
   '/images/apple-touch-icon.svg',
   '/images/og-image.svg',
+  // MOTL-related files
+  '/src/ai-core/m2m-compression.js',
+  '/test/motl-cross-religious-benchmark.js',
+  '/test/motl-bible-benchmark.js',
   'https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap'
 ];
 
