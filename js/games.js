@@ -247,6 +247,21 @@ class BrailleGames {
         cardElement.classList.add('flipped');
         flippedCards.push({ element: cardElement, card: card, index: index });
         
+        // Provide haptic feedback for card flip
+        if (window.hapticFeedback && 
+            window.progressTracker && 
+            window.progressTracker.userData.settings.hapticFeedback !== false) {
+            // Short vibration for card flip
+            window.hapticFeedback.vibrate([50]);
+            
+            // If it's a braille card, provide the pattern for that letter
+            if (card.type === 'braille' && card.value) {
+                setTimeout(() => {
+                    window.hapticFeedback.provideFeedback(card.value);
+                }, 100);
+            }
+        }
+        
         // Check for match if two cards are flipped
         if (flippedCards.length === 2) {
             onAttempt();
@@ -265,6 +280,14 @@ class BrailleGames {
                     allCards[flippedCards[0].index].matched = true;
                     allCards[flippedCards[1].index].matched = true;
                     
+                    // Provide haptic feedback for match
+                    if (window.hapticFeedback && 
+                        window.progressTracker && 
+                        window.progressTracker.userData.settings.hapticFeedback !== false) {
+                        // Success pattern for match
+                        window.hapticFeedback.vibrate([100, 50, 100]);
+                    }
+                    
                     flippedCards = [];
                     onMatch();
                     
@@ -276,6 +299,14 @@ class BrailleGames {
             } else {
                 // No match
                 setTimeout(() => {
+                    // Provide haptic feedback for no match
+                    if (window.hapticFeedback && 
+                        window.progressTracker && 
+                        window.progressTracker.userData.settings.hapticFeedback !== false) {
+                        // Error pattern for no match
+                        window.hapticFeedback.vibrate([100, 50, 100, 50, 100]);
+                    }
+                    
                     flippedCards[0].element.classList.remove('flipped');
                     flippedCards[1].element.classList.remove('flipped');
                     flippedCards = [];
@@ -290,6 +321,14 @@ class BrailleGames {
         const timeBonus = Math.max(0, 500 - time * 2);
         const attemptsBonus = Math.max(0, 500 - (attempts - pairs) * 20);
         const totalScore = baseScore + timeBonus + attemptsBonus;
+        
+        // Provide haptic feedback for game completion
+        if (window.hapticFeedback && 
+            window.progressTracker && 
+            window.progressTracker.userData.settings.hapticFeedback !== false) {
+            // Victory pattern for game completion
+            window.hapticFeedback.vibrate([100, 50, 100, 50, 200, 50, 100, 50, 100]);
+        }
         
         // Create completion message
         const gameBoard = document.getElementById('memory-game-board');

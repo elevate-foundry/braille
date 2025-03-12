@@ -149,6 +149,13 @@ document.addEventListener('DOMContentLoaded', function() {
         currentLetter.textContent = letter.toUpperCase();
         letterDescription.textContent = letterDescriptions[letter.toLowerCase()];
         
+        // Provide haptic feedback for the letter
+        if (window.hapticFeedback && 
+            window.progressTracker && 
+            window.progressTracker.userData.settings.hapticFeedback !== false) {
+            window.hapticFeedback.provideFeedback(letter.toLowerCase());
+        }
+        
         // Record that this letter has been learned
         if (window.progressTracker) {
             progressTracker.recordLetterLearned(letter);
@@ -215,6 +222,14 @@ document.addEventListener('DOMContentLoaded', function() {
             practiceFeedback.textContent = 'Correct! Great job!';
             practiceFeedback.className = 'feedback correct';
             
+            // Provide haptic feedback for correct answer
+            if (window.hapticFeedback && 
+                window.progressTracker && 
+                window.progressTracker.userData.settings.hapticFeedback !== false) {
+                // Use a success pattern for correct answers
+                window.hapticFeedback.vibrate([100, 50, 100]);
+            }
+            
             // Record successful practice
             if (window.progressTracker) {
                 progressTracker.recordPracticeAttempt(currentPracticeLetter, true);
@@ -223,6 +238,19 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             practiceFeedback.textContent = `Incorrect. This is the letter ${currentPracticeLetter.toUpperCase()}.`;
             practiceFeedback.className = 'feedback incorrect';
+            
+            // Provide haptic feedback for incorrect answer
+            if (window.hapticFeedback && 
+                window.progressTracker && 
+                window.progressTracker.userData.settings.hapticFeedback !== false) {
+                // Use an error pattern for incorrect answers
+                window.hapticFeedback.vibrate([250, 100, 250]);
+                
+                // After a short delay, provide the correct pattern
+                setTimeout(() => {
+                    window.hapticFeedback.provideFeedback(currentPracticeLetter);
+                }, 1000);
+            }
             
             // Record failed practice
             if (window.progressTracker) {
@@ -368,6 +396,24 @@ function setupSettingsUI() {
     const highContrastSetting = document.getElementById('high-contrast-setting');
     const adaptiveLearningSettings = document.getElementById('adaptive-learning-setting');
     
+    // Haptic feedback elements
+    const hapticFeedbackSetting = document.getElementById('haptic-feedback-setting');
+    const hapticModeSelect = document.getElementById('haptic-mode-select');
+    const hapticIntensity = document.getElementById('haptic-intensity');
+    const hapticIntensityValue = document.getElementById('haptic-intensity-value');
+    const testHapticButton = document.getElementById('test-haptic');
+    
+    // Mobile optimization elements
+    const touchGesturesSetting = document.getElementById('touch-gestures-setting');
+    const fullscreenOnStartSetting = document.getElementById('fullscreen-on-start-setting');
+    const bluetoothSetting = document.getElementById('bluetooth-setting');
+    
+    // Show/hide mobile-only settings based on device detection
+    const mobileOnlyElements = document.querySelectorAll('.mobile-only');
+    if (window.mobileOptimization && window.mobileOptimization.isMobile()) {
+        mobileOnlyElements.forEach(el => el.style.display = 'block');
+    }
+    
     // Open settings modal when profile button is clicked
     profileButton.addEventListener('click', function() {
         // Populate form with current settings if available
@@ -379,6 +425,23 @@ function setupSettingsUI() {
             soundEffectsSetting.checked = userData.settings.soundEffects;
             highContrastSetting.checked = userData.settings.highContrast;
             adaptiveLearningSettings.checked = userData.settings.adaptiveLearning;
+            
+            // Populate haptic feedback settings
+            if (window.hapticFeedback) {
+                hapticFeedbackSetting.checked = userData.settings.hapticFeedback !== false;
+                hapticModeSelect.value = userData.settings.hapticMode || 'standard';
+                hapticIntensity.value = userData.settings.hapticIntensity || 5;
+                hapticIntensityValue.textContent = hapticIntensity.value;
+            }
+            
+            // Populate mobile optimization settings
+            if (window.mobileOptimization) {
+                touchGesturesSetting.checked = userData.settings.touchGestures !== false;
+                fullscreenOnStartSetting.checked = userData.settings.fullscreenOnStart || false;
+                if (bluetoothSetting) {
+                    bluetoothSetting.checked = userData.settings.bluetoothEnabled || false;
+                }
+            }
         }
         
         settingsModal.classList.add('show');
@@ -396,6 +459,21 @@ function setupSettingsUI() {
         }
     });
     
+    // Update haptic intensity value display when slider changes
+    if (hapticIntensity && hapticIntensityValue) {
+        hapticIntensity.addEventListener('input', function() {
+            hapticIntensityValue.textContent = this.value;
+        });
+    }
+    
+    // Test haptic feedback button
+    if (testHapticButton && window.hapticFeedback) {
+        testHapticButton.addEventListener('click', function() {
+            // Test with letter 'a'
+            window.hapticFeedback.provideFeedback('a');
+        });
+    }
+    
     // Save settings
     saveSettingsBtn.addEventListener('click', function() {
         if (window.progressTracker) {
@@ -406,12 +484,30 @@ function setupSettingsUI() {
             );
             
             // Update settings
-            progressTracker.updateSettings({
+            const updatedSettings = {
                 useKeyboardInput: keyboardInputSetting.checked,
                 soundEffects: soundEffectsSetting.checked,
                 highContrast: highContrastSetting.checked,
                 adaptiveLearning: adaptiveLearningSettings.checked
-            });
+            };
+            
+            // Add haptic feedback settings
+            if (window.hapticFeedback) {
+                updatedSettings.hapticFeedback = hapticFeedbackSetting.checked;
+                updatedSettings.hapticMode = hapticModeSelect.value;
+                updatedSettings.hapticIntensity = parseInt(hapticIntensity.value, 10);
+            }
+            
+            // Add mobile optimization settings
+            if (window.mobileOptimization) {
+                updatedSettings.touchGestures = touchGesturesSetting.checked;
+                updatedSettings.fullscreenOnStart = fullscreenOnStartSetting.checked;
+                if (bluetoothSetting) {
+                    updatedSettings.bluetoothEnabled = bluetoothSetting.checked;
+                }
+            }
+            
+            progressTracker.updateSettings(updatedSettings);
             
             // Apply settings
             applySettings();
@@ -442,6 +538,47 @@ function applySettings() {
     const toggleKeyboardBtn = document.querySelector('.toggle-keyboard-btn');
     if (toggleKeyboardBtn && settings.useKeyboardInput !== toggleKeyboardBtn.textContent.includes('Disable')) {
         toggleKeyboardBtn.click();
+    }
+    
+    // Apply haptic feedback settings
+    if (window.hapticFeedback) {
+        window.hapticFeedback.setEnabled(settings.hapticFeedback !== false);
+        if (settings.hapticMode) {
+            window.hapticFeedback.setMode(settings.hapticMode);
+        }
+        if (settings.hapticIntensity) {
+            window.hapticFeedback.setIntensity(settings.hapticIntensity);
+        }
+    }
+    
+    // Apply mobile optimization settings
+    if (window.mobileOptimization && window.mobileOptimization.isMobile()) {
+        // Handle fullscreen on start setting
+        if (settings.fullscreenOnStart && !document.fullscreenElement && 
+            !document.webkitFullscreenElement && 
+            !document.mozFullScreenElement && 
+            !document.msFullscreenElement) {
+            window.mobileOptimization.toggleFullscreen();
+        }
+        
+        // Handle Bluetooth connection if enabled
+        if (settings.bluetoothEnabled && window.mobileOptimization.bluetoothState && 
+            !window.mobileOptimization.bluetoothState.connected) {
+            // Attempt to connect to Bluetooth device when requested
+            const bluetoothButton = document.getElementById('bluetooth-setting');
+            if (bluetoothButton) {
+                bluetoothButton.addEventListener('change', function() {
+                    if (this.checked) {
+                        window.mobileOptimization.initializeBluetooth()
+                            .then(connected => {
+                                if (!connected) {
+                                    this.checked = false;
+                                }
+                            });
+                    }
+                });
+            }
+        }
     }
 }
 

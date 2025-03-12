@@ -160,6 +160,44 @@
                     <input type="checkbox" id="adaptive-learning-setting" checked>
                     <label for="adaptive-learning-setting">Adaptive Learning</label>
                 </div>
+                
+                <h3 class="settings-section-title">Haptic Feedback</h3>
+                <div class="setting-group checkbox">
+                    <input type="checkbox" id="haptic-feedback-setting" checked>
+                    <label for="haptic-feedback-setting">Enable Haptic Feedback</label>
+                </div>
+                <div class="setting-group">
+                    <label for="haptic-mode-select">Haptic Mode:</label>
+                    <select id="haptic-mode-select">
+                        <option value="standard">Standard</option>
+                        <option value="rhythmic">Rhythmic</option>
+                        <option value="frequency">Frequency-based</option>
+                        <option value="custom">Custom</option>
+                    </select>
+                </div>
+                <div class="setting-group">
+                    <label for="haptic-intensity">Vibration Intensity:</label>
+                    <input type="range" id="haptic-intensity" min="1" max="10" value="5">
+                    <span id="haptic-intensity-value">5</span>
+                </div>
+                <div class="setting-group">
+                    <button id="test-haptic" class="test-button">Test Haptic Feedback</button>
+                </div>
+                
+                <h3 class="settings-section-title">Mobile Options</h3>
+                <div class="setting-group checkbox">
+                    <input type="checkbox" id="touch-gestures-setting" checked>
+                    <label for="touch-gestures-setting">Enable Touch Gestures</label>
+                </div>
+                <div class="setting-group checkbox">
+                    <input type="checkbox" id="fullscreen-on-start-setting">
+                    <label for="fullscreen-on-start-setting">Fullscreen on Start</label>
+                </div>
+                <div class="setting-group checkbox mobile-only" style="display: none;">
+                    <input type="checkbox" id="bluetooth-setting">
+                    <label for="bluetooth-setting">Connect to Braille Hardware</label>
+                </div>
+                
                 <button id="save-settings" class="save-settings-btn">Save Settings</button>
             </div>
         </div>
@@ -169,6 +207,8 @@
     <script src="js/progress-tracker.js"></script>
     <script src="js/keyboard-input.js"></script>
     <script src="js/adaptive-learning.js"></script>
+    <script src="js/haptic-feedback.js"></script>
+    <script src="js/mobile-optimization.js"></script>
     <script src="js/games.js"></script>
     <script src="js/script.js"></script>
 </body>

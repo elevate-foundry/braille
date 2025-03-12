@@ -7,6 +7,8 @@ BrailleBuddy is an interactive web application designed to help sighted children
 - **Learn Mode**: Interactive display of the braille alphabet with descriptions and context for each letter
 - **Practice Mode**: Test your knowledge by identifying braille characters
 - **Games**: Fun activities to reinforce braille learning (Memory Match, Word Builder, and Speedster)
+- **Haptic Feedback**: Feel braille patterns through vibration on mobile devices with multiple encoding options
+- **Mobile Optimization**: Touch gestures, responsive design, and fullscreen mode for learning on-the-go
 - **About Section**: Educational information about braille and its importance
 
 ## Why Learn Braille?
@@ -31,16 +33,19 @@ BrailleBuddy is built using:
 - HTML5
 - CSS3
 - Vanilla JavaScript
+- Web Vibration API for haptic feedback
+- Web Bluetooth API for future hardware integration
 
-No external libraries or frameworks are required, making it lightweight and easy to run on any modern web browser.
+No external libraries or frameworks are required, making it lightweight and easy to run on any modern web browser. The application is designed to be responsive and work on both desktop and mobile devices.
 
 ## Future Enhancements
 
 - Add support for numbers and punctuation in braille
-- Implement full functionality for the game sections
-- Add audio feedback for enhanced learning
-- Create a progress tracking system
-- Develop a mobile app version
+- Expand game offerings with additional educational activities
+- Enhance haptic feedback with customizable patterns for different learning styles
+- Integrate with physical braille learning devices via Bluetooth
+- Implement adaptive learning algorithms to personalize the learning experience
+- Add multi-language support for international braille standards
 
 ## Contributing
 
