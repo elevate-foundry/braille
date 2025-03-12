@@ -370,11 +370,92 @@
             border-color: #ebccd1;
             color: #a94442;
         }
+        
+        /* Language Selector Styles */
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .language-selector {
+            position: relative;
+        }
+        
+        #language-selector {
+            padding: 8px 12px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            background-color: #fff;
+            font-size: 14px;
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url('data:image/svg+xml;utf8,<svg fill="%23333" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
+            background-repeat: no-repeat;
+            background-position: right 8px center;
+            padding-right: 30px;
+            transition: border-color 0.3s ease;
+        }
+        
+        #language-selector:hover {
+            border-color: #aaa;
+        }
+        
+        /* Identity Format Display */
+        .identity-formats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .format-card {
+            flex: 1 1 200px;
+            padding: 15px;
+            background-color: #fff;
+            border-radius: 6px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        
+        .format-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        
+        .format-content {
+            font-size: 16px;
+            word-break: break-all;
+        }
+        
+        .format-content.braille {
+            font-size: 18px;
+            line-height: 1.5;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>BBID Recognition System</h1>
+        <div class="header-container">
+            <h1>BBID Recognition System</h1>
+            <div class="language-selector">
+                <select id="language-selector" aria-label="Select language">
+                    <option value="en">English</option>
+                    <option value="es">Español</option>
+                    <option value="fr">Français</option>
+                    <option value="zh">中文</option>
+                    <option value="ar">العربية</option>
+                    <option value="hi">हिन्दी</option>
+                </select>
+            </div>
+        </div>
         
         <div class="greeting-container" id="greeting-container">
             <div class="greeting-text" id="greeting-text">Hello there!</div>
@@ -458,6 +539,30 @@
                     <div class="braille-fingerprint" id="braille-fingerprint">-</div>
                 </div>
             </div>
+            
+            <!-- Identity Format Display Section -->
+            <div class="identity-formats" id="identity-formats">
+                <div class="format-card">
+                    <div class="format-title">Native</div>
+                    <div class="format-content" id="native-format">-</div>
+                </div>
+                <div class="format-card">
+                    <div class="format-title">Braille Grade 1</div>
+                    <div class="format-content braille" id="braille-grade1">-</div>
+                </div>
+                <div class="format-card">
+                    <div class="format-title">Braille Grade 2</div>
+                    <div class="format-content braille" id="braille-grade2">-</div>
+                </div>
+                <div class="format-card">
+                    <div class="format-title">Braille Grade 3</div>
+                    <div class="format-content braille" id="braille-grade3">-</div>
+                </div>
+                <div class="format-card">
+                    <div class="format-title">BBES Compressed</div>
+                    <div class="format-content" id="bbes-format">-</div>
+                </div>
+            </div>
         </div>
     </div>
     
@@ -493,11 +598,106 @@
                 this.CONFIDENCE_THRESHOLD = 0.8; // 80% confidence to auto-recognize
                 this.LOCAL_STORAGE_KEY = 'braillefst_identity';
                 
+                // Language support
+                this.currentLanguage = 'en';
+                this.translations = {
+                    en: {
+                        greeting: 'Hello there!',
+                        unrecognized: "I don't recognize this device yet. Let's get acquainted!",
+                        newUser: "Hello there! I don't think we've met.",
+                        confirmIdentity: (name) => `I think I recognize you as ${name}. Is that correct?`,
+                        welcome: (name) => `Nice to meet you, ${name}! I'll remember you next time.`,
+                        welcomeBack: (name) => `Welcome back, ${name}! It's good to see you again.`,
+                        submit: 'Submit',
+                        yes: 'Yes, that\'s me',
+                        no: 'No, I\'m someone else',
+                        reset: 'Reset Identity',
+                        export: 'Export BBID',
+                        learn: 'Learn My Name in Braille'
+                    },
+                    es: {
+                        greeting: '¡Hola!',
+                        unrecognized: '¡No reconozco este dispositivo todavía. ¡Vamos a conocernos!',
+                        newUser: '¡Hola! Creo que no nos hemos conocido.',
+                        confirmIdentity: (name) => `Creo que te reconozco como ${name}. ¿Es correcto?`,
+                        welcome: (name) => `¡Encantado de conocerte, ${name}! Te recordaré la próxima vez.`,
+                        welcomeBack: (name) => `¡Bienvenido de nuevo, ${name}! Es bueno verte otra vez.`,
+                        submit: 'Enviar',
+                        yes: 'Sí, soy yo',
+                        no: 'No, soy otra persona',
+                        reset: 'Restablecer Identidad',
+                        export: 'Exportar BBID',
+                        learn: 'Aprender Mi Nombre en Braille'
+                    },
+                    fr: {
+                        greeting: 'Bonjour!',
+                        unrecognized: 'Je ne reconnais pas encore cet appareil. Faisons connaissance!',
+                        newUser: 'Bonjour! Je pense que nous ne nous sommes pas rencontrés.',
+                        confirmIdentity: (name) => `Je pense vous reconnaître comme ${name}. Est-ce correct?`,
+                        welcome: (name) => `Ravi de vous rencontrer, ${name}! Je me souviendrai de vous la prochaine fois.`,
+                        welcomeBack: (name) => `Bon retour, ${name}! C'est bon de vous revoir.`,
+                        submit: 'Soumettre',
+                        yes: 'Oui, c\'est moi',
+                        no: 'Non, je suis quelqu\'un d\'autre',
+                        reset: 'Réinitialiser l\'identité',
+                        export: 'Exporter BBID',
+                        learn: 'Apprendre mon nom en Braille'
+                    },
+                    zh: {
+                        greeting: '你好!',
+                        unrecognized: '我还不认识这个设备。让我们互相认识一下!',
+                        newUser: '你好！我想我们还没有见过面。',
+                        confirmIdentity: (name) => `我想我认出你是${name}。对吗？`,
+                        welcome: (name) => `很高兴认识你，${name}！下次我会记得你。`,
+                        welcomeBack: (name) => `欢迎回来，${name}！很高兴再次见到你。`,
+                        submit: '提交',
+                        yes: '是的，是我',
+                        no: '不，我是其他人',
+                        reset: '重置身份',
+                        export: '导出BBID',
+                        learn: '用盲文学习我的名字'
+                    },
+                    ar: {
+                        greeting: 'مرحباً!',
+                        unrecognized: 'أنا لا أتعرف على هذا الجهاز بعد. دعنا نتعرف!',
+                        newUser: 'مرحباً! أعتقد أننا لم نلتق من قبل.',
+                        confirmIdentity: (name) => `أعتقد أنني أتعرف عليك كـ ${name}. هل هذا صحيح؟`,
+                        welcome: (name) => `سعيد بلقائك، ${name}! سأتذكرك في المرة القادمة.`,
+                        welcomeBack: (name) => `مرحباً بعودتك، ${name}! من الجيد رؤيتك مرة أخرى.`,
+                        submit: 'إرسال',
+                        yes: 'نعم، هذا أنا',
+                        no: 'لا، أنا شخص آخر',
+                        reset: 'إعادة تعيين الهوية',
+                        export: 'تصدير BBID',
+                        learn: 'تعلم اسمي بلغة برايل'
+                    },
+                    hi: {
+                        greeting: 'नमस्ते!',
+                        unrecognized: 'मैं अभी तक इस डिवाइस को नहीं पहचानता। आइए परिचित हों!',
+                        newUser: 'नमस्ते! मुझे लगता है कि हम मिले नहीं हैं।',
+                        confirmIdentity: (name) => `मुझे लगता है कि मैं आपको ${name} के रूप में पहचानता हूं। क्या यह सही है?`,
+                        welcome: (name) => `आपसे मिलकर अच्छा लगा, ${name}! मैं आपको अगली बार याद रखूंगा।`,
+                        welcomeBack: (name) => `वापस आने पर स्वागत है, ${name}! आपको फिर से देखकर अच्छा लगा।`,
+                        submit: 'जमा करें',
+                        yes: 'हां, यह मैं हूं',
+                        no: 'नहीं, मैं कोई और हूं',
+                        reset: 'पहचान रीसेट करें',
+                        export: 'BBID निर्यात करें',
+                        learn: 'ब्रेल में मेरा नाम सीखें'
+                    }
+                };
+                
                 // Initialize
                 this.initialize();
             }
             
             async initialize() {
+                // Set up language selector
+                const languageSelector = document.getElementById('language-selector');
+                languageSelector.addEventListener('change', (e) => {
+                    this.setLanguage(e.target.value);
+                });
+                
                 try {
                     // Get device fingerprint
                     await this.deviceFingerprint.initialize();
@@ -702,7 +902,7 @@
             displayRecognizedUser(identity) {
                 // Update status
                 const statusElement = document.getElementById('recognition-status');
-                statusElement.textContent = `Welcome, ${identity.name}! I recognize you.`;
+                statusElement.textContent = `${this.translations[this.currentLanguage].greeting} ${identity.name}!`;
                 statusElement.className = 'recognition-status status-recognized';
                 
                 // Hide identity form if visible
@@ -745,6 +945,9 @@
                 document.getElementById('start-learning').addEventListener('click', () => {
                     this.startIdentityLearning();
                 });
+                
+                // Update identity formats display
+                this.updateIdentityFormats(identity.name);
             }
             
             displayKnownDevices(devices) {
@@ -1010,6 +1213,79 @@
                         day: 'numeric' 
                     });
                 }
+            }
+            
+            // Language switching functionality
+            setLanguage(lang) {
+                if (!this.translations[lang]) return;
+                
+                this.currentLanguage = lang;
+                
+                // Update UI with new language
+                if (this.currentUser) {
+                    // Update greeting for recognized user
+                    document.getElementById('greeting-text').textContent = 
+                        this.translations[lang].welcomeBack(this.currentUser.name);
+                    
+                    // Update status message
+                    const statusElement = document.getElementById('recognition-status');
+                    statusElement.textContent = `${this.translations[lang].greeting} ${this.currentUser.name}!`;
+                    
+                    // Update action buttons
+                    const resetButton = document.getElementById('reset-profile');
+                    const exportButton = document.getElementById('export-bbid');
+                    const learnButton = document.getElementById('start-learning');
+                    
+                    if (resetButton) resetButton.textContent = this.translations[lang].reset;
+                    if (exportButton) exportButton.textContent = this.translations[lang].export;
+                    if (learnButton) learnButton.textContent = this.translations[lang].learn;
+                    
+                    // Update identity formats with new language
+                    this.updateIdentityFormats(this.currentUser.name);
+                } else {
+                    // Update greeting for unrecognized user
+                    document.getElementById('greeting-text').textContent = this.translations[lang].newUser;
+                    
+                    // Update status message
+                    const statusElement = document.getElementById('recognition-status');
+                    statusElement.textContent = this.translations[lang].unrecognized;
+                    
+                    // Update form button if visible
+                    const submitButton = document.getElementById('submit-name');
+                    if (submitButton) submitButton.textContent = this.translations[lang].submit;
+                }
+                
+                // Always keep the braille greeting as "<3 Ryan"
+                document.getElementById('braille-greeting').textContent = 
+                    this.brailleFST.encode("<3 Ryan").unicode;
+            }
+            
+            // Update identity formats display
+            updateIdentityFormats(name) {
+                if (!name) return;
+                
+                // Set up different braille encoders for different grades
+                const brailleFST1 = new BrailleFST({ grade: 1, language: this.currentLanguage });
+                const brailleFST2 = new BrailleFST({ grade: 2, language: this.currentLanguage });
+                const brailleFST3 = new BrailleFST({ grade: 3, language: this.currentLanguage });
+                
+                // Get braille representations
+                const grade1 = brailleFST1.encode(name).unicode;
+                const grade2 = brailleFST2.encode(name).unicode;
+                const grade3 = brailleFST3.encode(name).unicode;
+                
+                // Get BBES compressed representation
+                const bbesCompressed = btoa(name).substring(0, 12) + '...';
+                
+                // Update the display
+                document.getElementById('native-format').textContent = name;
+                document.getElementById('braille-grade1').textContent = grade1;
+                document.getElementById('braille-grade2').textContent = grade2;
+                document.getElementById('braille-grade3').textContent = grade3;
+                document.getElementById('bbes-format').textContent = bbesCompressed;
+                
+                // Show the formats section
+                document.getElementById('identity-formats').style.display = 'flex';
             }
         }
         
