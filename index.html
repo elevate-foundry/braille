@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BrailleBuddy - Learn Braille Through Play</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>BrailleBuddy</h1>
+            <p class="tagline">Learn Braille Through Play!</p>
+        </header>
+        
+        <nav>
+            <ul>
+                <li><a href="#" class="active" data-section="learn">Learn</a></li>
+                <li><a href="#" data-section="practice">Practice</a></li>
+                <li><a href="#" data-section="games">Games</a></li>
+                <li><a href="#" data-section="about">About</a></li>
+            </ul>
+        </nav>
+        
+        <main>
+            <section id="learn" class="active-section">
+                <h2>Learn Braille Alphabet</h2>
+                <div class="braille-grid">
+                    <!-- Braille characters will be dynamically loaded here -->
+                </div>
+                <div class="braille-display">
+                    <div class="braille-cell">
+                        <div class="dot" id="dot1"></div>
+                        <div class="dot" id="dot2"></div>
+                        <div class="dot" id="dot3"></div>
+                        <div class="dot" id="dot4"></div>
+                        <div class="dot" id="dot5"></div>
+                        <div class="dot" id="dot6"></div>
+                    </div>
+                    <div class="braille-info">
+                        <h3 id="current-letter">Select a letter</h3>
+                        <p id="letter-description">Click on a letter to see its braille representation</p>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="practice" class="hidden-section">
+                <h2>Practice Braille</h2>
+                <div class="practice-area">
+                    <div class="practice-prompt">
+                        <p>What letter is this?</p>
+                        <div class="braille-cell large">
+                            <div class="dot" id="practice-dot1"></div>
+                            <div class="dot" id="practice-dot2"></div>
+                            <div class="dot" id="practice-dot3"></div>
+                            <div class="dot" id="practice-dot4"></div>
+                            <div class="dot" id="practice-dot5"></div>
+                            <div class="dot" id="practice-dot6"></div>
+                        </div>
+                    </div>
+                    <div class="answer-area">
+                        <input type="text" id="practice-answer" maxlength="1" placeholder="Type your answer">
+                        <button id="check-answer">Check</button>
+                    </div>
+                    <div class="feedback" id="practice-feedback"></div>
+                    <button id="next-practice">Next</button>
+                </div>
+            </section>
+            
+            <section id="games" class="hidden-section">
+                <h2>Fun Braille Games</h2>
+                <div class="games-container">
+                    <div class="game-card">
+                        <h3>Braille Memory Match</h3>
+                        <p>Match letters with their braille patterns</p>
+                        <button class="play-button" data-game="memory">Play</button>
+                    </div>
+                    <div class="game-card">
+                        <h3>Braille Word Builder</h3>
+                        <p>Build words using braille characters</p>
+                        <button class="play-button" data-game="word-builder">Play</button>
+                    </div>
+                    <div class="game-card">
+                        <h3>Braille Speedster</h3>
+                        <p>How fast can you identify braille characters?</p>
+                        <button class="play-button" data-game="speedster">Play</button>
+                    </div>
+                </div>
+                <div id="game-area" class="hidden-section"></div>
+            </section>
+            
+            <section id="about" class="hidden-section">
+                <h2>About Braille</h2>
+                <div class="about-content">
+                    <p>Braille is a tactile writing system used by people who are visually impaired. It was invented by Louis Braille in 1824, who was blind himself.</p>
+                    <p>Each braille character or "cell" is made up of 6 dots arranged in a 2×3 grid. By raising different combinations of these dots, different letters, numbers, and symbols can be represented.</p>
+                    <img src="images/louis-braille.jpg" alt="Portrait of Louis Braille" class="about-image">
+                    <h3>Why Learn Braille?</h3>
+                    <p>Learning braille promotes:</p>
+                    <ul>
+                        <li>Empathy and understanding for visually impaired people</li>
+                        <li>Cognitive development and pattern recognition</li>
+                        <li>Tactile sensitivity and fine motor skills</li>
+                        <li>Accessibility awareness from an early age</li>
+                    </ul>
+                    <p>BrailleBuddy aims to make learning braille fun and accessible for sighted children, fostering inclusivity and awareness.</p>
+                </div>
+            </section>
+        </main>
+        
+        <footer>
+            <p>&copy; 2025 BrailleBuddy | Created with ❤️ by Elevate Foundry</p>
+        </footer>
+    </div>
+    
+    <script src="js/script.js"></script>
+</body>
+</html>
