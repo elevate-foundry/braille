@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BBID Passwordless Login Demo</title>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2ecc71;
+            --accent-color: #f39c12;
+            --dark-color: #2c3e50;
+            --light-color: #ecf0f1;
+            --text-color: #333;
+            --background-color: #fff;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--background-color);
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background-color: var(--dark-color);
+            color: white;
+            padding: 1rem 0;
+            text-align: center;
+        }
+
+        nav {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        nav a:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .hero {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 3rem 2rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            border-radius: 0 0 10px 10px;
+        }
+
+        .section {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .section h2 {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--light-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .login-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+        }
+
+        .login-method {
+            flex: 1;
+            min-width: 300px;
+            padding: 1.5rem;
+            border: 1px solid var(--light-color);
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .login-method h3 {
+            margin-top: 0;
+            color: var(--dark-color);
+        }
+
+        .qr-container {
+            margin: 2rem auto;
+            width: 200px;
+            height: 200px;
+            background-color: var(--light-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+        }
+
+        .fingerprint-display {
+            background-color: var(--light-color);
+            padding: 1rem;
+            border-radius: 4px;
+            font-size: 1.5rem;
+            letter-spacing: 0.1rem;
+            margin: 1rem 0;
+            overflow-wrap: break-word;
+            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            margin: 0.5rem;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-secondary {
+            background-color: var(--light-color);
+            color: var(--dark-color);
+        }
+
+        .btn-success {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        .status-message {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 4px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .status-success {
+            background-color: rgba(39, 174, 96, 0.2);
+            color: var(--success-color);
+        }
+
+        .status-error {
+            background-color: rgba(231, 76, 60, 0.2);
+            color: var(--danger-color);
+        }
+
+        .status-warning {
+            background-color: rgba(243, 156, 18, 0.2);
+            color: var(--warning-color);
+        }
+
+        .haptic-feedback {
+            margin-top: 1rem;
+            text-align: center;
+        }
+
+        .haptic-mode {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+
+        .haptic-mode label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+        }
+
+        .login-steps {
+            text-align: left;
+            margin: 1.5rem 0;
+        }
+
+        .login-steps ol {
+            padding-left: 1.5rem;
+        }
+
+        .login-steps li {
+            margin-bottom: 0.5rem;
+        }
+
+        .device-info {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background-color: var(--light-color);
+            border-radius: 4px;
+            text-align: left;
+        }
+
+        .device-info h4 {
+            margin-top: 0;
+            color: var(--dark-color);
+        }
+
+        .device-info p {
+            margin: 0.5rem 0;
+            font-size: 0.9rem;
+        }
+
+        .demo-controls {
+            margin-top: 2rem;
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .login-container {
+                flex-direction: column;
+            }
+            
+            .login-method {
+                min-width: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <nav>
+                <a href="index.html">Home</a>
+                <a href="my-devices.html">My Devices</a>
+                <a href="bbid-login-demo.html">Login Demo</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="hero">
+        <div class="container">
+            <h1>BBID Passwordless Authentication Demo</h1>
+            <p>Experience the future of accessible, private, and secure authentication using Braille Binary Encoding Standard</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="section">
+            <h2>Passwordless Login Demo</h2>
+            <p>This demo showcases how BBID can be used for passwordless authentication across devices. The system verifies your device identity using your unique BBES fingerprint without requiring passwords or centralized identity providers.</p>
+            
+            <div class="login-container">
+                <div class="login-method">
+                    <h3>QR Code Login</h3>
+                    <p>Scan this QR code with your mobile device to authenticate</p>
+                    
+                    <div class="qr-container" id="qrCode">
+                        <!-- QR code will be generated here -->
+                    </div>
+                    
+                    <div class="login-steps">
+                        <h4>How it works:</h4>
+                        <ol>
+                            <li>Your device generates a unique BBID fingerprint</li>
+                            <li>The fingerprint is encoded in BBES format</li>
+                            <li>Scan the QR code with a device that has your BBID</li>
+                            <li>The system verifies the fingerprint match</li>
+                            <li>You're authenticated without passwords!</li>
+                        </ol>
+                    </div>
+                    
+                    <button class="btn btn-primary" id="generateQrBtn">Generate New QR Code</button>
+                </div>
+                
+                <div class="login-method">
+                    <h3>Haptic Verification</h3>
+                    <p>Feel your BBID fingerprint through haptic feedback</p>
+                    
+                    <div class="fingerprint-display" id="fingerprintDisplay">
+                        <!-- BBES fingerprint will be displayed here -->
+                    </div>
+                    
+                    <div class="haptic-feedback">
+                        <button class="btn btn-primary" id="playHapticBtn">Play Haptic Pattern</button>
+                        
+                        <div class="haptic-mode">
+                            <label>
+                                <input type="radio" name="hapticMode" value="standard" checked>
+                                Standard
+                            </label>
+                            <label>
+                                <input type="radio" name="hapticMode" value="rhythmic">
+                                Rhythmic
+                            </label>
+                            <label>
+                                <input type="radio" name="hapticMode" value="frequency">
+                                Frequency
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="device-info" id="deviceInfo">
+                        <h4>Current Device</h4>
+                        <p><strong>Name:</strong> <span id="deviceName">Unknown</span></p>
+                        <p><strong>Type:</strong> <span id="deviceType">Unknown</span></p>
+                        <p><strong>OS:</strong> <span id="deviceOS">Unknown</span></p>
+                        <p><strong>Last Seen:</strong> <span id="deviceLastSeen">Unknown</span></p>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="statusMessage" class="status-message" style="display: none;"></div>
+            
+            <div class="demo-controls">
+                <button class="btn btn-secondary" id="simulateLoginBtn">Simulate Login</button>
+                <button class="btn btn-success" id="verifyDeviceBtn">Verify This Device</button>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>About BBID Authentication</h2>
+            <p>BBID (BrailleBuddy Identity) is a revolutionary approach to device authentication that combines:</p>
+            
+            <ul>
+                <li><strong>Privacy-First Design:</strong> All identity data stays on your device - no central storage</li>
+                <li><strong>Accessibility:</strong> Fingerprints are encoded in Braille format and can be represented haptically</li>
+                <li><strong>Universal Compatibility:</strong> Works across platforms (desktop, mobile, web)</li>
+                <li><strong>Compact Representation:</strong> BBES encoding provides efficient compression of identity data</li>
+                <li><strong>Tamper Resistance:</strong> Cryptographically secure fingerprinting resistant to spoofing</li>
+            </ul>
+            
+            <p>This demo is part of the BrailleBuddy project, which aims to make digital experiences more accessible through innovative use of Braille and haptic technologies.</p>
+        </div>
+    </div>
+
+    <script src="js/device-fingerprint.js"></script>
+    <script src="js/bbid-manager.js"></script>
+    <script src="js/qrcode.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Elements
+            const qrCodeContainer = document.getElementById('qrCode');
+            const fingerprintDisplay = document.getElementById('fingerprintDisplay');
+            const generateQrBtn = document.getElementById('generateQrBtn');
+            const playHapticBtn = document.getElementById('playHapticBtn');
+            const simulateLoginBtn = document.getElementById('simulateLoginBtn');
+            const verifyDeviceBtn = document.getElementById('verifyDeviceBtn');
+            const statusMessage = document.getElementById('statusMessage');
+            const deviceNameEl = document.getElementById('deviceName');
+            const deviceTypeEl = document.getElementById('deviceType');
+            const deviceOSEl = document.getElementById('deviceOS');
+            const deviceLastSeenEl = document.getElementById('deviceLastSeen');
+            const hapticModeRadios = document.getElementsByName('hapticMode');
+            
+            // Initialize BBID Manager
+            let bbidManager = window.bbidManager;
+            let currentDevice = null;
+            
+            // Wait for BBID Manager to initialize
+            document.addEventListener('bbid:initialized', function(e) {
+                console.log('BBID Manager initialized', e.detail);
+                initializeDemo();
+            });
+            
+            // Initialize demo
+            async function initializeDemo() {
+                // Get current device
+                currentDevice = bbidManager.getCurrentDevice();
+                
+                // If no current device, create one
+                if (!currentDevice) {
+                    try {
+                        const deviceInfo = detectDeviceInfo();
+                        const deviceName = `${deviceInfo.os.charAt(0).toUpperCase() + deviceInfo.os.slice(1)} ${deviceInfo.type.charAt(0).toUpperCase() + deviceInfo.type.slice(1)}`;
+                        
+                        currentDevice = await bbidManager.generateBBID(deviceName, deviceInfo.type, deviceInfo.os);
+                        bbidManager.saveBBID(currentDevice);
+                        
+                        showStatus('New device identity created!', 'success');
+                    } catch (error) {
+                        console.error('Error creating device:', error);
+                        showStatus('Error creating device identity', 'error');
+                    }
+                }
+                
+                // Update UI with device info
+                updateDeviceInfo();
+                
+                // Generate initial QR code
+                generateQRCode();
+            }
+            
+            // Update device info display
+            function updateDeviceInfo() {
+                if (currentDevice) {
+                    deviceNameEl.textContent = currentDevice.metadata.name;
+                    deviceTypeEl.textContent = currentDevice.metadata.type;
+                    deviceOSEl.textContent = currentDevice.metadata.os;
+                    deviceLastSeenEl.textContent = formatDate(currentDevice.usage.lastSeen);
+                    
+                    // Display fingerprint
+                    fingerprintDisplay.textContent = truncateFingerprint(currentDevice.fingerprint.bbes);
+                }
+            }
+            
+            // Generate QR code for authentication
+            function generateQRCode() {
+                if (!currentDevice) return;
+                
+                // Clear previous QR code
+                qrCodeContainer.innerHTML = '';
+                
+                // Create authentication data
+                const authData = {
+                    type: 'bbid_auth',
+                    id: currentDevice.id,
+                    name: currentDevice.metadata.name,
+                    fingerprint: currentDevice.fingerprint.bbes.substring(0, 50),
+                    timestamp: new Date().toISOString()
+                };
+                
+                // Generate QR code
+                if (typeof QRCode !== 'undefined') {
+                    new QRCode(qrCodeContainer, {
+                        text: JSON.stringify(authData),
+                        width: 200,
+                        height: 200,
+                        colorDark: '#2c3e50',
+                        colorLight: '#ffffff',
+                        correctLevel: QRCode.CorrectLevel.H
+                    });
+                } else {
+                    qrCodeContainer.textContent = 'QR Code library not loaded';
+                }
+            }
+            
+            // Play haptic pattern for fingerprint
+            function playHapticPattern() {
+                if (!currentDevice) return;
+                
+                // Get selected haptic mode
+                let selectedMode = 'standard';
+                for (const radio of hapticModeRadios) {
+                    if (radio.checked) {
+                        selectedMode = radio.value;
+                        break;
+                    }
+                }
+                
+                // Set haptic mode
+                bbidManager.setHapticMode(selectedMode);
+                
+                // Play pattern
+                const success = bbidManager.playHapticPattern(currentDevice);
+                
+                if (!success) {
+                    showStatus('Haptic feedback not supported on this device', 'warning');
+                } else {
+                    showStatus('Playing haptic pattern...', 'success');
+                }
+            }
+            
+            // Simulate login process
+            function simulateLogin() {
+                if (!currentDevice) return;
+                
+                showStatus('Authenticating...', 'warning');
+                
+                // Simulate network delay
+                setTimeout(() => {
+                    // Simulate 90% success rate
+                    const success = Math.random() < 0.9;
+                    
+                    if (success) {
+                        showStatus('Authentication successful! Welcome back.', 'success');
+                        
+                        // Play haptic feedback on success
+                        bbidManager.playHapticPattern(currentDevice);
+                    } else {
+                        showStatus('Authentication failed. Please try again.', 'error');
+                    }
+                }, 1500);
+            }
+            
+            // Verify current device
+            function verifyDevice() {
+                if (!currentDevice) {
+                    showStatus('No device identity found', 'error');
+                    return;
+                }
+                
+                showStatus('Verifying device fingerprint...', 'warning');
+                
+                // Simulate verification process
+                setTimeout(() => {
+                    // Get current fingerprint
+                    const fingerprint = bbidManager.deviceFingerprint.getFingerprint();
+                    
+                    // Compare with stored fingerprint
+                    const match = fingerprint === currentDevice.fingerprint.bbes;
+                    
+                    if (match) {
+                        showStatus('Device verified! Fingerprint matches stored identity.', 'success');
+                        
+                        // Play haptic feedback on success
+                        bbidManager.playHapticPattern(currentDevice);
+                    } else {
+                        showStatus('Verification failed. Fingerprint does not match.', 'error');
+                    }
+                }, 1000);
+            }
+            
+            // Show status message
+            function showStatus(message, type) {
+                statusMessage.textContent = message;
+                statusMessage.className = 'status-message status-' + type;
+                statusMessage.style.display = 'block';
+                
+                // Hide after 5 seconds
+                setTimeout(() => {
+                    statusMessage.style.display = 'none';
+                }, 5000);
+            }
+            
+            // Helper: Format date
+            function formatDate(dateString) {
+                if (!dateString) return 'Never';
+                
+                const date = new Date(dateString);
+                return date.toLocaleString();
+            }
+            
+            // Helper: Truncate fingerprint for display
+            function truncateFingerprint(fingerprint) {
+                if (!fingerprint) return '';
+                
+                const length = fingerprint.length;
+                if (length <= 20) return fingerprint;
+                
+                return fingerprint.substring(0, 10) + '...' + fingerprint.substring(length - 10);
+            }
+            
+            // Helper: Detect device info
+            function detectDeviceInfo() {
+                const userAgent = navigator.userAgent.toLowerCase();
+                let type = 'other';
+                let os = 'other';
+                
+                // Detect device type
+                if (/mobile|android|iphone|ipod|silk|blackberry|opera mini|iemobile/i.test(userAgent)) {
+                    type = 'phone';
+                } else if (/ipad|tablet|playbook|silk/i.test(userAgent)) {
+                    type = 'tablet';
+                } else {
+                    // Assume desktop/laptop
+                    type = 'desktop';
+                    
+                    // Try to distinguish between desktop and laptop
+                    if (/macbook|thinkpad|notebook|laptop/i.test(userAgent)) {
+                        type = 'laptop';
+                    }
+                }
+                
+                // Detect OS
+                if (/windows/i.test(userAgent)) {
+                    os = 'windows';
+                } else if (/macintosh|mac os x/i.test(userAgent)) {
+                    os = 'macos';
+                } else if (/linux/i.test(userAgent)) {
+                    os = 'linux';
+                } else if (/android/i.test(userAgent)) {
+                    os = 'android';
+                } else if (/iphone|ipad|ipod/i.test(userAgent)) {
+                    os = 'ios';
+                }
+                
+                return { type, os };
+            }
+            
+            // Event listeners
+            generateQrBtn.addEventListener('click', generateQRCode);
+            playHapticBtn.addEventListener('click', playHapticPattern);
+            simulateLoginBtn.addEventListener('click', simulateLogin);
+            verifyDeviceBtn.addEventListener('click', verifyDevice);
+            
+            // Click on fingerprint to play haptic pattern
+            fingerprintDisplay.addEventListener('click', playHapticPattern);
+            
+            // Initialize if BBID Manager is already ready
+            if (bbidManager && bbidManager.initialized) {
+                initializeDemo();
+            }
+        });
+    </script>
+</body>
+</html>

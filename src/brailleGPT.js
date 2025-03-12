@@ -4,8 +4,9 @@
  * This module implements a prototype of BrailleGPT, which uses machine learning
  * techniques to optimize Braille contractions and compression for maximum efficiency.
  * 
- * It integrates with device fingerprinting using BBES (Braille Binary Encoding Standard)
- * to provide personalized experiences without requiring user login.
+ * It integrates with BBID (BrailleBuddy Identity) for secure device fingerprinting
+ * using BBES (Braille Binary Encoding Standard) to provide personalized experiences
+ * without requiring traditional user login.
  */
 
 class BrailleGPT {
@@ -16,7 +17,10 @@ class BrailleGPT {
         this.initialized = false;
         this.bbesFormat = null;
         this.deviceId = null;
+        this.bbidDevice = null;
         this.userProfile = null;
+        this.lastGreetingTime = null;
+        this.greetingDisplayed = false;
         
         // Default language model parameters
         this.params = {
@@ -25,33 +29,57 @@ class BrailleGPT {
             minFrequency: 5,
             optimizationTarget: 'compression', // 'compression', 'readability', 'balanced'
             contextWindow: 5, // Words of context to consider
-            hapticFeedbackEnabled: true
+            hapticFeedbackEnabled: true,
+            autoGreet: true,
+            greetingDelay: 1500 // ms to wait before greeting
         };
         
         // Listen for device fingerprint events
-        this._setupDeviceFingerprinting();
+        this._setupDeviceIdentification();
     }
     
     /**
-     * Set up device fingerprinting integration
+     * Set up device identification using BBID
      * @private
      */
-    _setupDeviceFingerprinting() {
-        // Check if deviceFingerprint is available
+    _setupDeviceIdentification() {
+        // Check if we're in a browser environment
         if (typeof window !== 'undefined') {
-            // Listen for the fingerprint ready event
-            document.addEventListener('deviceFingerprint:ready', (event) => {
-                if (event.detail && event.detail.fingerprint) {
-                    this.deviceId = event.detail.fingerprint;
-                    console.log('BrailleGPT: Device fingerprint received');
+            // Listen for BBID initialization event
+            document.addEventListener('bbid:initialized', (event) => {
+                if (event.detail && event.detail.currentDevice) {
+                    this.bbidDevice = event.detail.currentDevice;
+                    this.deviceId = this.bbidDevice.fingerprint.bbes;
+                    console.log('BrailleGPT: BBID device identified');
                     this._loadUserProfile();
+                    
+                    // Schedule greeting if auto-greet is enabled
+                    if (this.params.autoGreet) {
+                        setTimeout(() => this._greetUser(), this.params.greetingDelay);
+                    }
                 }
             });
             
-            // Check if fingerprint is already available
-            if (typeof deviceFingerprint !== 'undefined' && deviceFingerprint.getFingerprint()) {
+            // Check if BBID manager is already available and initialized
+            if (typeof window.bbidManager !== 'undefined' && window.bbidManager.initialized) {
+                const currentDevice = window.bbidManager.getCurrentDevice();
+                if (currentDevice) {
+                    this.bbidDevice = currentDevice;
+                    this.deviceId = currentDevice.fingerprint.bbes;
+                    console.log('BrailleGPT: Using existing BBID device');
+                    this._loadUserProfile();
+                    
+                    // Schedule greeting if auto-greet is enabled
+                    if (this.params.autoGreet) {
+                        setTimeout(() => this._greetUser(), this.params.greetingDelay);
+                    }
+                }
+            }
+            
+            // Fallback to legacy device fingerprinting if BBID is not available
+            else if (typeof deviceFingerprint !== 'undefined' && deviceFingerprint.getFingerprint()) {
                 this.deviceId = deviceFingerprint.getFingerprint();
-                console.log('BrailleGPT: Using existing device fingerprint');
+                console.log('BrailleGPT: Using legacy device fingerprint');
                 this._loadUserProfile();
             }
         }
@@ -71,6 +99,19 @@ class BrailleGPT {
             try {
                 this.userProfile = JSON.parse(savedProfile);
                 console.log('BrailleGPT: Loaded user profile');
+                
+                // Update visit count and last access time
+                this.userProfile.visitCount = (this.userProfile.visitCount || 0) + 1;
+                this.userProfile.lastAccess = new Date().toISOString();
+                
+                // Update device info if we have BBID data
+                if (this.bbidDevice && this.bbidDevice.metadata) {
+                    this.userProfile.deviceName = this.bbidDevice.metadata.name || this.userProfile.deviceName;
+                    this.userProfile.deviceType = this.bbidDevice.metadata.type || this.userProfile.deviceType;
+                    this.userProfile.deviceOS = this.bbidDevice.metadata.os || this.userProfile.deviceOS;
+                }
+                
+                this._saveUserProfile();
             } catch (error) {
                 console.error('BrailleGPT: Error loading user profile', error);
                 this._initializeUserProfile();
@@ -85,13 +126,29 @@ class BrailleGPT {
      * @private
      */
     _initializeUserProfile() {
+        // Get device info from BBID if available
+        let deviceName = 'Unknown Device';
+        let deviceType = 'unknown';
+        let deviceOS = 'unknown';
+        
+        if (this.bbidDevice && this.bbidDevice.metadata) {
+            deviceName = this.bbidDevice.metadata.name || deviceName;
+            deviceType = this.bbidDevice.metadata.type || deviceType;
+            deviceOS = this.bbidDevice.metadata.os || deviceOS;
+        }
+        
         this.userProfile = {
             deviceId: this.deviceId,
+            deviceName: deviceName,
+            deviceType: deviceType,
+            deviceOS: deviceOS,
             created: new Date().toISOString(),
             lastAccess: new Date().toISOString(),
+            visitCount: 1,
             preferences: {
                 optimizationTarget: this.params.optimizationTarget,
-                hapticFeedbackEnabled: this.params.hapticFeedbackEnabled
+                hapticFeedbackEnabled: this.params.hapticFeedbackEnabled,
+                autoGreet: this.params.autoGreet
             },
             learningData: {
                 analyzedTexts: 0,
@@ -102,6 +159,10 @@ class BrailleGPT {
                 totalTextCompressed: 0,
                 averageCompressionRatio: 0,
                 bestCompressionRatio: 0
+            },
+            greetings: {
+                lastGreeting: null,
+                greetingCount: 0
             }
         };
         
@@ -687,6 +748,208 @@ class BrailleGPT {
         return true;
     }
 }
+
+    /**
+     * Greet the user based on their profile
+     * @private
+     */
+    _greetUser() {
+        if (!this.userProfile || this.greetingDisplayed) return;
+        
+        // Don't greet again if we've greeted recently (within 1 hour)
+        const now = new Date();
+        if (this.userProfile.greetings && this.userProfile.greetings.lastGreeting) {
+            const lastGreeting = new Date(this.userProfile.greetings.lastGreeting);
+            const hoursSinceLastGreeting = (now - lastGreeting) / (1000 * 60 * 60);
+            
+            if (hoursSinceLastGreeting < 1) {
+                console.log('BrailleGPT: Skipping greeting, greeted recently');
+                return;
+            }
+        }
+        
+        // Mark as greeted
+        this.greetingDisplayed = true;
+        
+        // Update greeting stats
+        if (!this.userProfile.greetings) {
+            this.userProfile.greetings = { greetingCount: 0 };
+        }
+        
+        this.userProfile.greetings.lastGreeting = now.toISOString();
+        this.userProfile.greetings.greetingCount = (this.userProfile.greetings.greetingCount || 0) + 1;
+        this._saveUserProfile();
+        
+        // Generate appropriate greeting
+        let greeting = '';
+        const visitCount = this.userProfile.visitCount || 1;
+        const deviceName = this.userProfile.deviceName || 'your device';
+        
+        if (visitCount === 1) {
+            greeting = `Welcome to BrailleGPT! I've registered ${deviceName} with a unique BBID fingerprint.`;
+        } else if (visitCount < 5) {
+            greeting = `Welcome back! I recognize ${deviceName} by its BBID fingerprint.`;
+        } else {
+            const lastAccess = new Date(this.userProfile.lastAccess);
+            const daysSinceLastAccess = Math.floor((now - lastAccess) / (1000 * 60 * 60 * 24));
+            
+            if (daysSinceLastAccess > 7) {
+                greeting = `Great to see you again after ${daysSinceLastAccess} days! Your ${deviceName} has been missed.`;
+            } else {
+                greeting = `Welcome back! Your ${deviceName} has been recognized through its unique BBID fingerprint.`;
+            }
+        }
+        
+        // Display greeting
+        this._displayGreeting(greeting);
+        
+        // Play haptic pattern if enabled
+        if (this.userProfile.preferences.hapticFeedbackEnabled && 
+            typeof window.bbidManager !== 'undefined' && 
+            window.bbidManager.initialized) {
+            
+            window.bbidManager.playHapticPattern(this.deviceId);
+        }
+    }
+    
+    /**
+     * Display greeting to the user
+     * @private
+     */
+    _displayGreeting(message) {
+        // Check if we have a greeting container
+        let greetingContainer = document.getElementById('brailleGPT-greeting');
+        
+        // Create one if it doesn't exist
+        if (!greetingContainer) {
+            greetingContainer = document.createElement('div');
+            greetingContainer.id = 'brailleGPT-greeting';
+            greetingContainer.style.position = 'fixed';
+            greetingContainer.style.bottom = '20px';
+            greetingContainer.style.right = '20px';
+            greetingContainer.style.backgroundColor = '#2c3e50';
+            greetingContainer.style.color = 'white';
+            greetingContainer.style.padding = '15px 20px';
+            greetingContainer.style.borderRadius = '8px';
+            greetingContainer.style.boxShadow = '0 4px 10px rgba(0,0,0,0.2)';
+            greetingContainer.style.zIndex = '1000';
+            greetingContainer.style.maxWidth = '300px';
+            greetingContainer.style.transition = 'opacity 0.5s, transform 0.5s';
+            greetingContainer.style.opacity = '0';
+            greetingContainer.style.transform = 'translateY(20px)';
+            document.body.appendChild(greetingContainer);
+            
+            // Add close button
+            const closeBtn = document.createElement('button');
+            closeBtn.innerHTML = '&times;';
+            closeBtn.style.position = 'absolute';
+            closeBtn.style.top = '5px';
+            closeBtn.style.right = '5px';
+            closeBtn.style.background = 'none';
+            closeBtn.style.border = 'none';
+            closeBtn.style.color = 'white';
+            closeBtn.style.fontSize = '20px';
+            closeBtn.style.cursor = 'pointer';
+            closeBtn.onclick = () => {
+                greetingContainer.style.opacity = '0';
+                greetingContainer.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    if (greetingContainer.parentNode) {
+                        greetingContainer.parentNode.removeChild(greetingContainer);
+                    }
+                }, 500);
+            };
+            greetingContainer.appendChild(closeBtn);
+        }
+        
+        // Add BrailleGPT logo/icon
+        const iconContainer = document.createElement('div');
+        iconContainer.style.display = 'flex';
+        iconContainer.style.alignItems = 'center';
+        iconContainer.style.marginBottom = '10px';
+        
+        const icon = document.createElement('div');
+        icon.innerHTML = '⠃⠛⠏⠞'; // BGPT in braille
+        icon.style.fontSize = '24px';
+        icon.style.marginRight = '10px';
+        
+        const title = document.createElement('div');
+        title.textContent = 'BrailleGPT';
+        title.style.fontWeight = 'bold';
+        
+        iconContainer.appendChild(icon);
+        iconContainer.appendChild(title);
+        
+        // Set message
+        const messageElement = document.createElement('div');
+        messageElement.textContent = message;
+        messageElement.style.marginTop = '5px';
+        
+        // Clear previous content
+        greetingContainer.innerHTML = '';
+        greetingContainer.appendChild(iconContainer);
+        greetingContainer.appendChild(messageElement);
+        
+        // Add close button again (since we cleared the content)
+        const closeBtn = document.createElement('button');
+        closeBtn.innerHTML = '&times;';
+        closeBtn.style.position = 'absolute';
+        closeBtn.style.top = '5px';
+        closeBtn.style.right = '5px';
+        closeBtn.style.background = 'none';
+        closeBtn.style.border = 'none';
+        closeBtn.style.color = 'white';
+        closeBtn.style.fontSize = '20px';
+        closeBtn.style.cursor = 'pointer';
+        closeBtn.onclick = () => {
+            greetingContainer.style.opacity = '0';
+            greetingContainer.style.transform = 'translateY(20px)';
+            setTimeout(() => {
+                if (greetingContainer.parentNode) {
+                    greetingContainer.parentNode.removeChild(greetingContainer);
+                }
+            }, 500);
+        };
+        greetingContainer.appendChild(closeBtn);
+        
+        // Show the greeting with animation
+        setTimeout(() => {
+            greetingContainer.style.opacity = '1';
+            greetingContainer.style.transform = 'translateY(0)';
+        }, 100);
+        
+        // Auto-hide after 10 seconds
+        setTimeout(() => {
+            if (greetingContainer.parentNode) {
+                greetingContainer.style.opacity = '0';
+                greetingContainer.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    if (greetingContainer.parentNode) {
+                        greetingContainer.parentNode.removeChild(greetingContainer);
+                    }
+                }, 500);
+            }
+        }, 10000);
+    }
+    
+    /**
+     * Manually trigger a greeting (for testing)
+     */
+    triggerGreeting() {
+        this._greetUser();
+    }
+    
+    /**
+     * Set whether auto-greeting is enabled
+     */
+    setAutoGreet(enabled) {
+        this.params.autoGreet = enabled;
+        
+        if (this.userProfile && this.userProfile.preferences) {
+            this.userProfile.preferences.autoGreet = enabled;
+            this._saveUserProfile();
+        }
+    }
 
 // Export the BrailleGPT class
 if (typeof module !== 'undefined' && module.exports) {

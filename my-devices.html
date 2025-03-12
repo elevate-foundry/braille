@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Devices - BBES Fingerprints</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2ecc71;
+            --accent-color: #f39c12;
+            --dark-color: #2c3e50;
+            --light-color: #ecf0f1;
+            --text-color: #333;
+            --background-color: #fff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--background-color);
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background-color: var(--dark-color);
+            color: white;
+            padding: 1rem 0;
+            text-align: center;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 3rem 2rem;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .section {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .section h2 {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--light-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .device-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .device-card {
+            border: 1px solid var(--light-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+        }
+
+        .device-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .device-card.current {
+            border: 2px solid var(--accent-color);
+        }
+
+        .current-badge {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background-color: var(--accent-color);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .device-type {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .device-icon {
+            font-size: 2rem;
+            margin-right: 1rem;
+        }
+
+        .device-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .device-details {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 1rem;
+        }
+
+        .fingerprint-display {
+            background-color: var(--light-color);
+            padding: 1rem;
+            border-radius: 4px;
+            font-size: 1.5rem;
+            letter-spacing: 0.1rem;
+            margin: 1rem 0;
+            overflow-wrap: break-word;
+            text-align: center;
+        }
+
+        .device-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-secondary {
+            background-color: var(--light-color);
+            color: var(--dark-color);
+        }
+
+        .btn-danger {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        .add-device {
+            background-color: var(--light-color);
+            border: 2px dashed #ccc;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .add-device:hover {
+            background-color: #dfe6e9;
+        }
+
+        .add-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #95a5a6;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .qr-code {
+            text-align: center;
+            margin: 1rem 0;
+        }
+
+        footer {
+            background-color: var(--dark-color);
+            color: white;
+            text-align: center;
+            padding: 1.5rem 0;
+            margin-top: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .device-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <nav>
+                <a href="index.html">Home</a> |
+                <a href="bbes-fingerprint-demo.html">BBES Fingerprint Demo</a> |
+                <a href="bbes-standard.html">BBES Standard</a> |
+                <a href="my-devices.html">My Devices</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="hero">
+        <div class="container">
+            <h1>My BBES-Fingerprinted Devices</h1>
+            <p>View and manage all your devices with unique BBES fingerprints</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="section">
+            <h2>My Registered Devices</h2>
+            <div class="device-grid" id="device-grid">
+                <!-- Devices will be loaded here dynamically -->
+                
+                <!-- Add Device Card -->
+                <div class="add-device" id="add-device-btn">
+                    <div class="add-icon">+</div>
+                    <h3>Add New Device</h3>
+                    <p>Scan QR code or enter fingerprint manually</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>About Device Fingerprinting</h2>
+            <p>Each of your devices has a unique fingerprint based on its hardware and software configuration. These fingerprints are encoded using the BBES (Braille Binary Encoding Standard) to make them compact, accessible, and secure.</p>
+            <p>Your device fingerprints are stored locally and can be used to:</p>
+            <ul>
+                <li>Identify your devices without requiring login</li>
+                <li>Sync your preferences across devices</li>
+                <li>Provide personalized experiences based on device capabilities</li>
+                <li>Enable haptic authentication through Braille patterns</li>
+            </ul>
+            <p><a href="bbes-standard.html">Learn more about BBES</a></p>
+        </div>
+    </div>
+
+    <!-- Add Device Modal -->
+    <div class="modal" id="add-device-modal">
+        <div class="modal-content">
+            <span class="close-modal" id="close-modal">&times;</span>
+            <h2>Add New Device</h2>
+            <div class="form-group">
+                <label for="device-name">Device Name</label>
+                <input type="text" id="device-name" placeholder="e.g., My Linux Laptop">
+            </div>
+            <div class="form-group">
+                <label for="device-type">Device Type</label>
+                <select id="device-type">
+                    <option value="desktop">Desktop Computer</option>
+                    <option value="laptop">Laptop</option>
+                    <option value="tablet">Tablet</option>
+                    <option value="phone">Smartphone</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="device-os">Operating System</label>
+                <select id="device-os">
+                    <option value="windows">Windows</option>
+                    <option value="macos">macOS</option>
+                    <option value="linux">Linux</option>
+                    <option value="ios">iOS</option>
+                    <option value="android">Android</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="fingerprint-input">BBES Fingerprint</label>
+                <input type="text" id="fingerprint-input" placeholder="Enter BBES fingerprint or scan QR code">
+            </div>
+            <div class="qr-code">
+                <p>Or scan this QR code on your device:</p>
+                <div id="qr-code-display">
+                    <!-- QR code will be generated here -->
+                    <img src="https://via.placeholder.com/150" alt="QR Code Placeholder">
+                </div>
+            </div>
+            <button class="btn btn-primary" id="save-device-btn">Save Device</button>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>BBES: Braille Binary Encoding Standard</p>
+            <p>© 2025 Elevate Foundry. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="js/device-fingerprint.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize device fingerprint
+            let currentFingerprint = '';
+            if (typeof DeviceFingerprint !== 'undefined') {
+                window.deviceFingerprint = new DeviceFingerprint();
+                deviceFingerprint.initialize().then(fingerprint => {
+                    currentFingerprint = fingerprint;
+                    loadDevices();
+                });
+            } else {
+                loadDevices();
+            }
+
+            // Modal functionality
+            const addDeviceBtn = document.getElementById('add-device-btn');
+            const modal = document.getElementById('add-device-modal');
+            const closeModal = document.getElementById('close-modal');
+            const saveDeviceBtn = document.getElementById('save-device-btn');
+            const deviceNameInput = document.getElementById('device-name');
+            const deviceTypeSelect = document.getElementById('device-type');
+            const deviceOsSelect = document.getElementById('device-os');
+            const fingerprintInput = document.getElementById('fingerprint-input');
+
+            addDeviceBtn.addEventListener('click', function() {
+                // Pre-fill with current device info if available
+                if (currentFingerprint) {
+                    fingerprintInput.value = currentFingerprint;
+                    
+                    // Detect OS
+                    const userAgent = navigator.userAgent.toLowerCase();
+                    if (userAgent.indexOf('mac') !== -1) {
+                        deviceOsSelect.value = 'macos';
+                    } else if (userAgent.indexOf('linux') !== -1) {
+                        deviceOsSelect.value = 'linux';
+                    } else if (userAgent.indexOf('win') !== -1) {
+                        deviceOsSelect.value = 'windows';
+                    } else if (userAgent.indexOf('android') !== -1) {
+                        deviceOsSelect.value = 'android';
+                        deviceTypeSelect.value = 'phone';
+                    } else if (userAgent.indexOf('iphone') !== -1 || userAgent.indexOf('ipad') !== -1) {
+                        deviceOsSelect.value = 'ios';
+                        deviceTypeSelect.value = userAgent.indexOf('ipad') !== -1 ? 'tablet' : 'phone';
+                    }
+                    
+                    // Suggest a name
+                    const osName = deviceOsSelect.options[deviceOsSelect.selectedIndex].text;
+                    const deviceType = deviceTypeSelect.options[deviceTypeSelect.selectedIndex].text;
+                    deviceNameInput.value = `My ${osName} ${deviceType}`;
+                }
+                
+                modal.style.display = 'flex';
+            });
+
+            closeModal.addEventListener('click', function() {
+                modal.style.display = 'none';
+            });
+
+            window.addEventListener('click', function(event) {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+
+            saveDeviceBtn.addEventListener('click', function() {
+                const deviceName = deviceNameInput.value;
+                const deviceType = deviceTypeSelect.value;
+                const deviceOs = deviceOsSelect.value;
+                const fingerprint = fingerprintInput.value || currentFingerprint;
+                
+                if (!deviceName || !fingerprint) {
+                    alert('Please enter a device name and fingerprint');
+                    return;
+                }
+                
+                // Save device
+                saveDevice({
+                    id: generateDeviceId(),
+                    name: deviceName,
+                    type: deviceType,
+                    os: deviceOs,
+                    fingerprint: fingerprint,
+                    dateAdded: new Date().toISOString(),
+                    lastSeen: new Date().toISOString()
+                });
+                
+                // Close modal and refresh device list
+                modal.style.display = 'none';
+                loadDevices();
+            });
+
+            // Device management functions
+            function loadDevices() {
+                const deviceGrid = document.getElementById('device-grid');
+                const devices = getDevices();
+                const addDeviceBtn = document.getElementById('add-device-btn');
+                
+                // Clear existing devices (except the add button)
+                while (deviceGrid.firstChild && deviceGrid.firstChild !== addDeviceBtn) {
+                    deviceGrid.removeChild(deviceGrid.firstChild);
+                }
+                
+                // Add devices to grid
+                devices.forEach(device => {
+                    const deviceCard = createDeviceCard(device);
+                    deviceGrid.insertBefore(deviceCard, addDeviceBtn);
+                });
+                
+                // If no devices, show a message
+                if (devices.length === 0) {
+                    const noDevicesMsg = document.createElement('div');
+                    noDevicesMsg.className = 'device-card';
+                    noDevicesMsg.innerHTML = `
+                        <h3>No Devices Found</h3>
+                        <p>You haven't added any devices yet. Click "Add New Device" to get started.</p>
+                    `;
+                    deviceGrid.insertBefore(noDevicesMsg, addDeviceBtn);
+                }
+            }
+
+            function createDeviceCard(device) {
+                const isCurrentDevice = device.fingerprint === currentFingerprint;
+                
+                const deviceCard = document.createElement('div');
+                deviceCard.className = `device-card ${isCurrentDevice ? 'current' : ''}`;
+                
+                let deviceIcon = '💻';
+                if (device.type === 'phone') deviceIcon = '📱';
+                if (device.type === 'tablet') deviceIcon = '📱';
+                if (device.type === 'desktop') deviceIcon = '🖥️';
+                
+                let osIcon = '';
+                if (device.os === 'windows') osIcon = 'Windows';
+                if (device.os === 'macos') osIcon = 'macOS';
+                if (device.os === 'linux') osIcon = 'Linux';
+                if (device.os === 'ios') osIcon = 'iOS';
+                if (device.os === 'android') osIcon = 'Android';
+                
+                deviceCard.innerHTML = `
+                    ${isCurrentDevice ? '<div class="current-badge">Current Device</div>' : ''}
+                    <div class="device-type">
+                        <span class="device-icon">${deviceIcon}</span>
+                        <div>
+                            <div class="device-name">${device.name}</div>
+                            <div class="device-details">${osIcon} • Added ${formatDate(device.dateAdded)}</div>
+                        </div>
+                    </div>
+                    <div class="fingerprint-display">${truncateFingerprint(device.fingerprint)}</div>
+                    <div class="device-actions">
+                        <button class="btn btn-secondary view-btn" data-id="${device.id}">View Details</button>
+                        <button class="btn btn-danger remove-btn" data-id="${device.id}">Remove</button>
+                    </div>
+                `;
+                
+                // Add event listeners
+                setTimeout(() => {
+                    const viewBtn = deviceCard.querySelector('.view-btn');
+                    const removeBtn = deviceCard.querySelector('.remove-btn');
+                    
+                    viewBtn.addEventListener('click', function() {
+                        alert(`Device ID: ${device.id}\nFingerprint: ${device.fingerprint}\nLast seen: ${formatDate(device.lastSeen)}`);
+                    });
+                    
+                    removeBtn.addEventListener('click', function() {
+                        if (confirm(`Are you sure you want to remove "${device.name}"?`)) {
+                            removeDevice(device.id);
+                            loadDevices();
+                        }
+                    });
+                }, 0);
+                
+                return deviceCard;
+            }
+
+            function getDevices() {
+                const devicesJson = localStorage.getItem('bbes_devices');
+                return devicesJson ? JSON.parse(devicesJson) : [];
+            }
+
+            function saveDevice(device) {
+                const devices = getDevices();
+                
+                // Check if device already exists (by fingerprint)
+                const existingIndex = devices.findIndex(d => d.fingerprint === device.fingerprint);
+                
+                if (existingIndex !== -1) {
+                    // Update existing device
+                    devices[existingIndex] = {
+                        ...devices[existingIndex],
+                        name: device.name,
+                        type: device.type,
+                        os: device.os,
+                        lastSeen: new Date().toISOString()
+                    };
+                } else {
+                    // Add new device
+                    devices.push(device);
+                }
+                
+                localStorage.setItem('bbes_devices', JSON.stringify(devices));
+            }
+
+            function removeDevice(deviceId) {
+                let devices = getDevices();
+                devices = devices.filter(d => d.id !== deviceId);
+                localStorage.setItem('bbes_devices', JSON.stringify(devices));
+            }
+
+            function generateDeviceId() {
+                return 'dev_' + Math.random().toString(36).substring(2, 15);
+            }
+
+            function truncateFingerprint(fingerprint) {
+                if (fingerprint.length > 20) {
+                    return fingerprint.substring(0, 8) + '...' + fingerprint.substring(fingerprint.length - 8);
+                }
+                return fingerprint;
+            }
+
+            function formatDate(dateString) {
+                const date = new Date(dateString);
+                return date.toLocaleDateString();
+            }
+
+            // Update current device if it exists
+            if (currentFingerprint) {
+                const devices = getDevices();
+                const currentDevice = devices.find(d => d.fingerprint === currentFingerprint);
+                
+                if (currentDevice) {
+                    currentDevice.lastSeen = new Date().toISOString();
+                    localStorage.setItem('bbes_devices', JSON.stringify(devices));
+                }
+            }
+        });
+    </script>
+</body>
+</html>
