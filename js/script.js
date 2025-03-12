@@ -8,6 +8,17 @@ document.addEventListener('DOMContentLoaded', function() {
     if (window.adaptiveLearning) {
         adaptiveLearning.initialize();
     }
+    
+    // Initialize braille grade preference
+    if (!window.userSettings) {
+        window.userSettings = {
+            brailleGrade: '1', // Default to Grade 1 (uncontracted)
+            showContractions: true // Show contractions in learn mode
+        };
+    }
+    
+    // Load settings from local storage
+    loadUserSettings();
     // Braille alphabet mapping
     const brailleAlphabet = {
         'a': [1, 0, 0, 0, 0, 0],
@@ -110,6 +121,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Populate braille grid
     function populateBrailleGrid() {
+        // Clear existing grid
+        if (brailleGrid) {
+            brailleGrid.innerHTML = '';
+        }
+        
+        // Add alphabet letters
         Object.keys(brailleAlphabet).forEach(letter => {
             const letterElement = document.createElement('div');
             letterElement.className = 'braille-letter';
@@ -130,6 +147,45 @@ document.addEventListener('DOMContentLoaded', function() {
                 displayBrailleLetter(letter);
             });
         });
+        
+        // Add common contractions if Grade 2 is enabled and brailleContractions module is available
+        if (window.userSettings && window.userSettings.brailleGrade === '2' && 
+            window.userSettings.showContractions && window.brailleContractions) {
+            
+            // Add a section header for contractions
+            const sectionHeader = document.createElement('div');
+            sectionHeader.className = 'grid-section-header';
+            sectionHeader.innerHTML = '<h3>Common Contractions</h3>';
+            sectionHeader.style.gridColumn = '1 / -1'; // Span all columns
+            brailleGrid.appendChild(sectionHeader);
+            
+            // Add common contractions
+            const commonContractions = ['th', 'ch', 'sh', 'wh', 'ou', 'st', 'and', 'for', 'of', 'the', 'with'];
+            
+            commonContractions.forEach(contraction => {
+                // Check if this contraction exists in our braille contractions module
+                if (window.brailleContractions.isContraction(contraction)) {
+                    const contractionElement = document.createElement('div');
+                    contractionElement.className = 'braille-letter contraction';
+                    contractionElement.setAttribute('data-contraction', contraction);
+                    
+                    const contractionSpan = document.createElement('span');
+                    contractionSpan.className = 'letter';
+                    contractionSpan.textContent = contraction;
+                    
+                    contractionElement.appendChild(contractionSpan);
+                    brailleGrid.appendChild(contractionElement);
+                    
+                    contractionElement.addEventListener('click', () => {
+                        document.querySelectorAll('.braille-letter').forEach(el => {
+                            el.classList.remove('active');
+                        });
+                        contractionElement.classList.add('active');
+                        displayBrailleContraction(contraction);
+                    });
+                }
+            });
+        }
     }
 
     // Display braille representation of a letter
@@ -159,6 +215,48 @@ document.addEventListener('DOMContentLoaded', function() {
         // Record that this letter has been learned
         if (window.progressTracker) {
             progressTracker.recordLetterLearned(letter);
+            checkForNewAchievements();
+        }
+    }
+    
+    // Display braille representation of a contraction
+    function displayBrailleContraction(contraction) {
+        if (!window.brailleContractions) {
+            console.error('Braille contractions module not loaded');
+            return;
+        }
+        
+        // Get the pattern for this contraction
+        const pattern = window.brailleContractions.getContractionPattern(contraction);
+        
+        if (!pattern) {
+            console.error(`No pattern found for contraction: ${contraction}`);
+            return;
+        }
+        
+        // Update dots
+        dots.forEach((dot, index) => {
+            if (pattern[index] === 1) {
+                dot.classList.add('active');
+            } else {
+                dot.classList.remove('active');
+            }
+        });
+        
+        // Update info
+        currentLetter.textContent = contraction;
+        letterDescription.textContent = window.brailleContractions.getContractionDescription(contraction);
+        
+        // Provide haptic feedback for the contraction
+        if (window.hapticFeedback && 
+            window.progressTracker && 
+            window.progressTracker.userData.settings.hapticFeedback !== false) {
+            window.hapticFeedback.provideFeedback(contraction);
+        }
+        
+        // Record that this contraction has been learned
+        if (window.progressTracker) {
+            progressTracker.recordContractionLearned(contraction);
             checkForNewAchievements();
         }
     }
@@ -324,6 +422,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize the app
     populateBrailleGrid();
     setupPractice();
+    
+    // Already loaded at the beginning of the document
+    
+    // Set up braille grade settings listeners
+    setupBrailleGradeSettings();
     
     // Display first letter by default
     displayBrailleLetter('a');
@@ -661,4 +764,132 @@ function showAchievementNotification(name, description) {
     setTimeout(function() {
         notification.classList.remove('show');
     }, 5000);
+}
+
+/**
+ * Set up Braille grade settings and UI elements
+ */
+function setupBrailleGradeSettings() {
+    // Get settings elements
+    const brailleGradeSelect = document.getElementById('braille-grade-select');
+    const showContractionsSetting = document.getElementById('show-contractions-setting');
+    
+    // Set up grade selector in the contractions section
+    const gradeButtons = document.querySelectorAll('.grade-button');
+    if (gradeButtons.length > 0) {
+        gradeButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const grade = this.getAttribute('data-grade');
+                setActiveGrade(grade);
+            });
+        });
+    }
+    
+    // Set up settings listeners
+    if (brailleGradeSelect) {
+        brailleGradeSelect.addEventListener('change', function() {
+            window.userSettings.brailleGrade = this.value;
+            saveUserSettings();
+            updateBrailleGradeUI();
+        });
+    }
+    
+    if (showContractionsSetting) {
+        showContractionsSetting.addEventListener('change', function() {
+            window.userSettings.showContractions = this.checked;
+            saveUserSettings();
+            updateBrailleGradeUI();
+        });
+    }
+    
+    // Initialize UI based on current settings
+    updateBrailleGradeUI();
+}
+
+/**
+ * Set the active grade in the contractions section and update UI
+ * @param {string} grade - The grade to set active ('1' or '2')
+ */
+function setActiveGrade(grade) {
+    if (!window.userSettings) {
+        window.userSettings = {};
+    }
+    
+    window.userSettings.brailleGrade = grade;
+    saveUserSettings();
+    
+    // Update button states in the contractions section
+    const gradeButtons = document.querySelectorAll('.grade-button');
+    if (gradeButtons.length > 0) {
+        gradeButtons.forEach(button => {
+            if (button.getAttribute('data-grade') === grade) {
+                button.classList.add('active');
+            } else {
+                button.classList.remove('active');
+            }
+        });
+    }
+    
+    // Update the grade select in settings if it exists
+    const brailleGradeSelect = document.getElementById('braille-grade-select');
+    if (brailleGradeSelect) {
+        brailleGradeSelect.value = grade;
+    }
+    
+    // Update the braille grid to show/hide contractions
+    updateBrailleGradeUI();
+}
+
+/**
+ * Update UI elements based on braille grade settings
+ */
+function updateBrailleGradeUI() {
+    // Re-populate the braille grid to include/exclude contractions
+    populateBrailleGrid();
+    
+    // Update the contractions section visibility if we're in that section
+    const contractionsSection = document.getElementById('contractions');
+    if (contractionsSection && !contractionsSection.classList.contains('hidden-section')) {
+        // If we're in the contractions section, trigger the category buttons to refresh
+        const activeCategory = document.querySelector('.category-button.active');
+        if (activeCategory) {
+            activeCategory.click();
+        }
+    }
+}
+
+/**
+ * Save user settings to local storage
+ */
+function saveUserSettings() {
+    if (window.userSettings) {
+        localStorage.setItem('brailleBuddySettings', JSON.stringify(window.userSettings));
+    }
+}
+
+/**
+ * Load user settings from local storage
+ */
+function loadUserSettings() {
+    const savedSettings = localStorage.getItem('brailleBuddySettings');
+    if (savedSettings) {
+        try {
+            const parsedSettings = JSON.parse(savedSettings);
+            window.userSettings = { ...window.userSettings, ...parsedSettings };
+            
+            // Apply settings to UI elements
+            if (document.getElementById('braille-grade-select')) {
+                document.getElementById('braille-grade-select').value = 
+                    window.userSettings.brailleGrade || '1';
+            }
+            
+            if (document.getElementById('show-contractions-setting')) {
+                document.getElementById('show-contractions-setting').checked = 
+                    window.userSettings.showContractions !== undefined ? 
+                    window.userSettings.showContractions : true;
+            }
+        } catch (e) {
+            console.error('Error parsing saved settings:', e);
+        }
+    }
 }

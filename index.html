@@ -24,6 +24,7 @@
         <nav>
             <ul>
                 <li><a href="#" class="active" data-section="learn">Learn</a></li>
+                <li><a href="#" data-section="contractions">Contractions</a></li>
                 <li><a href="#" data-section="practice">Practice</a></li>
                 <li><a href="#" data-section="games">Games</a></li>
                 <li><a href="#" data-section="about">About</a></li>
@@ -49,6 +50,45 @@
                         <h3 id="current-letter">Select a letter</h3>
                         <p id="letter-description">Click on a letter to see its braille representation</p>
                     </div>
+                </div>
+            </section>
+            
+            <section id="contractions" class="hidden-section">
+                <h2>Learn Braille Contractions</h2>
+                <div class="grade-selector">
+                    <button class="grade-button active" data-grade="1">Grade 1 (Uncontracted)</button>
+                    <button class="grade-button" data-grade="2">Grade 2 (Contracted)</button>
+                </div>
+                <div class="contractions-info">
+                    <p>Grade 2 Braille uses contractions to make reading and writing more efficient. Learn these common contractions below:</p>
+                </div>
+                <div class="contractions-categories">
+                    <button class="category-button active" data-category="two-letter">Two-Letter</button>
+                    <button class="category-button" data-category="whole-word">Whole-Word</button>
+                    <button class="category-button" data-category="partial">Partial Word</button>
+                    <button class="category-button" data-category="prefix-suffix">Prefix/Suffix</button>
+                </div>
+                <div class="contractions-grid">
+                    <!-- Contractions will be dynamically loaded here -->
+                </div>
+                <div class="braille-display">
+                    <div class="braille-cell">
+                        <div class="dot" id="contraction-dot1"></div>
+                        <div class="dot" id="contraction-dot2"></div>
+                        <div class="dot" id="contraction-dot3"></div>
+                        <div class="dot" id="contraction-dot4"></div>
+                        <div class="dot" id="contraction-dot5"></div>
+                        <div class="dot" id="contraction-dot6"></div>
+                    </div>
+                    <div class="braille-info">
+                        <h3 id="current-contraction">Select a contraction</h3>
+                        <p id="contraction-description">Click on a contraction to see its braille representation</p>
+                    </div>
+                </div>
+                <div class="grade-info">
+                    <h3>About Grade 2 Braille</h3>
+                    <p>Grade 2 Braille is a more advanced form of braille that uses contractions to represent common letter combinations and words. This makes braille reading faster and reduces the size of braille books.</p>
+                    <p>For example, the word "the" can be written with a single character instead of three separate letters.</p>
                 </div>
             </section>
             
@@ -175,6 +215,19 @@
                         <option value="custom">Custom</option>
                     </select>
                 </div>
+                
+                <h3 class="settings-section-title">Braille Settings</h3>
+                <div class="setting-group">
+                    <label for="braille-grade-select">Default Braille Grade:</label>
+                    <select id="braille-grade-select">
+                        <option value="1">Grade 1 (Uncontracted)</option>
+                        <option value="2">Grade 2 (Contracted)</option>
+                    </select>
+                </div>
+                <div class="setting-group checkbox">
+                    <input type="checkbox" id="show-contractions-setting" checked>
+                    <label for="show-contractions-setting">Show Contractions in Learn Mode</label>
+                </div>
                 <div class="setting-group">
                     <label for="haptic-intensity">Vibration Intensity:</label>
                     <input type="range" id="haptic-intensity" min="1" max="10" value="5">
@@ -210,6 +263,8 @@
     <script src="js/haptic-feedback.js"></script>
     <script src="js/mobile-optimization.js"></script>
     <script src="js/games.js"></script>
+    <script src="js/braille-contractions.js"></script>
+    <script src="js/contractions-handler.js"></script>
     <script src="js/script.js"></script>
 </body>
 </html>

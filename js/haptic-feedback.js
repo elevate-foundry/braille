@@ -4,7 +4,8 @@
  * This module provides haptic feedback for braille characters using:
  * 1. Web Vibration API for mobile browsers
  * 2. Custom vibration patterns for each braille character
- * 3. Experimental haptic encoding options
+ * 3. Support for Grade 1 and Grade 2 Braille (contractions)
+ * 4. Experimental haptic encoding options
  */
 
 class HapticFeedback {
@@ -62,7 +63,7 @@ class HapticFeedback {
         // Frequency patterns - using different vibration intensities
         this.frequencyPatterns = {};
         
-        // Braille alphabet
+        // Get braille alphabet patterns
         const brailleAlphabet = {
             'a': [1, 0, 0, 0, 0, 0],
             'b': [1, 1, 0, 0, 0, 0],
@@ -91,6 +92,21 @@ class HapticFeedback {
             'y': [1, 0, 1, 1, 1, 1],
             'z': [1, 0, 1, 0, 1, 1]
         };
+        
+        // Add contractions if available
+        if (window.brailleContractions) {
+            // Get two-letter contractions
+            const twoLetterContractions = window.brailleContractions.getTwoLetterContractions();
+            for (const [contraction, pattern] of Object.entries(twoLetterContractions)) {
+                brailleAlphabet[contraction] = pattern;
+            }
+            
+            // Get whole-word contractions
+            const wholeWordContractions = window.brailleContractions.getWholeWordContractions();
+            for (const [contraction, pattern] of Object.entries(wholeWordContractions)) {
+                brailleAlphabet[contraction] = pattern;
+            }
+        }
         
         // Generate patterns for each letter
         for (const [letter, pattern] of Object.entries(brailleAlphabet)) {
@@ -213,29 +229,37 @@ class HapticFeedback {
     }
     
     /**
-     * Provide haptic feedback for a braille character
+     * Provide haptic feedback for a braille character or contraction
+     * @param {string} character - The character or contraction to provide feedback for
      */
-    provideFeedback(letter) {
-        letter = letter.toLowerCase();
+    provideFeedback(character) {
+        character = character.toLowerCase();
         let pattern;
+        let isContraction = false;
         
-        // Get the appropriate pattern based on the current mode
+        // Check if this is a contraction
+        if (character.length > 1 && window.brailleContractions && window.brailleContractions.isContraction(character)) {
+            isContraction = true;
+        }
+        
+        // Get the appropriate pattern based on haptic mode
         switch (this.userPreferences.mode) {
             case 'rhythmic':
-                pattern = this.rhythmicPatterns[letter];
+                pattern = isContraction ? this.getContractionRhythmicPattern(character) : this.rhythmicPatterns[character];
                 break;
             case 'frequency':
-                pattern = this.frequencyPatterns[letter];
+                pattern = isContraction ? this.getContractionFrequencyPattern(character) : this.frequencyPatterns[character];
                 break;
             case 'custom':
-                pattern = this.userPreferences.customPatterns[letter] || this.standardPatterns[letter];
+                pattern = this.userPreferences.customPatterns[character] || 
+                         (isContraction ? this.getContractionStandardPattern(character) : this.standardPatterns[character]);
                 break;
             default:
-                pattern = this.standardPatterns[letter];
+                pattern = isContraction ? this.getContractionStandardPattern(character) : this.standardPatterns[character];
         }
         
         // Adjust pattern based on user intensity preference
-        if (this.userPreferences.intensity !== 5) {
+        if (this.userPreferences.intensity !== 5 && pattern) {
             const intensityFactor = this.userPreferences.intensity / 5;
             pattern = pattern.map(duration => {
                 return duration > 0 ? Math.round(duration * intensityFactor) : 0;
@@ -336,6 +360,139 @@ class HapticFeedback {
      */
     isSupported() {
         return this.isVibrationSupported;
+    }
+    
+    /**
+     * Generate standard vibration pattern for a contraction
+     * @param {string} contraction - The contraction text
+     * @returns {Array} - Vibration pattern for the contraction
+     */
+    getContractionStandardPattern(contraction) {
+        // Get the contraction pattern from the brailleContractions module
+        const dotPattern = window.brailleContractions ? 
+                          window.brailleContractions.getContractionPattern(contraction) : null;
+        
+        if (!dotPattern) return null;
+        
+        const pattern = [];
+        
+        // Special intro vibration to indicate this is a contraction
+        pattern.push(this.baseDuration * 2); // Longer initial vibration
+        pattern.push(this.gapDuration);
+        pattern.push(this.baseDuration);
+        pattern.push(this.gapDuration * 2);
+        
+        // For each dot in the pattern
+        for (let i = 0; i < dotPattern.length; i++) {
+            if (dotPattern[i] === 1) {
+                // Vibrate for raised dot
+                pattern.push(this.baseDuration * this.intensity / 5);
+            } else {
+                // No vibration for non-raised dot
+                pattern.push(0);
+            }
+            
+            // Add gap between dots (except after the last one)
+            if (i < dotPattern.length - 1) {
+                pattern.push(this.gapDuration);
+            }
+        }
+        
+        return pattern;
+    }
+    
+    /**
+     * Generate rhythmic vibration pattern for a contraction
+     * @param {string} contraction - The contraction text
+     * @returns {Array} - Vibration pattern for the contraction
+     */
+    getContractionRhythmicPattern(contraction) {
+        // Get the contraction pattern from the brailleContractions module
+        const dotPattern = window.brailleContractions ? 
+                          window.brailleContractions.getContractionPattern(contraction) : null;
+        
+        if (!dotPattern) return null;
+        
+        const pattern = [];
+        
+        // Special intro rhythm to indicate this is a contraction
+        pattern.push(this.baseDuration);
+        pattern.push(this.gapDuration / 2);
+        pattern.push(this.baseDuration);
+        pattern.push(this.gapDuration / 2);
+        pattern.push(this.baseDuration * 2);
+        pattern.push(this.gapDuration * 2);
+        
+        // Left column (dots 1, 2, 3)
+        if (dotPattern[0] || dotPattern[1] || dotPattern[2]) {
+            // Vibrate for left column
+            const leftDuration = this.baseDuration * 2;
+            pattern.push(leftDuration);
+            pattern.push(this.gapDuration * 2);
+        }
+        
+        // Right column (dots 4, 5, 6)
+        if (dotPattern[3] || dotPattern[4] || dotPattern[5]) {
+            // Vibrate for right column
+            const rightDuration = this.baseDuration * 2;
+            pattern.push(rightDuration);
+            pattern.push(this.gapDuration * 2);
+        }
+        
+        // Individual dots with short pulses
+        for (let i = 0; i < dotPattern.length; i++) {
+            if (dotPattern[i] === 1) {
+                pattern.push(this.baseDuration);
+                pattern.push(this.gapDuration);
+            }
+        }
+        
+        return pattern;
+    }
+    
+    /**
+     * Generate frequency-based vibration pattern for a contraction
+     * @param {string} contraction - The contraction text
+     * @returns {Array} - Vibration pattern for the contraction
+     */
+    getContractionFrequencyPattern(contraction) {
+        // Get the contraction pattern from the brailleContractions module
+        const dotPattern = window.brailleContractions ? 
+                          window.brailleContractions.getContractionPattern(contraction) : null;
+        
+        if (!dotPattern) return null;
+        
+        const pattern = [];
+        
+        // Special frequency pattern to indicate this is a contraction
+        // Increasing intensity vibrations
+        pattern.push(this.baseDuration * 0.5);
+        pattern.push(this.gapDuration);
+        pattern.push(this.baseDuration * 1.0);
+        pattern.push(this.gapDuration);
+        pattern.push(this.baseDuration * 1.5);
+        pattern.push(this.gapDuration * 2);
+        
+        // For each dot in the pattern
+        for (let i = 0; i < dotPattern.length; i++) {
+            if (dotPattern[i] === 1) {
+                // Calculate intensity based on position
+                // Top dots are stronger, bottom dots are weaker
+                const positionIntensity = 1 - (this.dotPositions[i][1] / 2); // 1.0, 0.5, or 0.0
+                const duration = this.baseDuration * (1 + positionIntensity);
+                
+                pattern.push(Math.round(duration));
+            } else {
+                pattern.push(0);
+            }
+            
+            // Add gap between dots
+            if (i < dotPattern.length - 1) {
+                pattern.push(this.gapDuration);
+            }
+        }
+        
+        return pattern;
     }
 }
 

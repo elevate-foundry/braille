@@ -172,14 +172,14 @@ section h2 {
 }
 
 /* Braille Grid Styles */
-.braille-grid {
+.braille-grid, .contractions-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
     gap: 15px;
     margin-bottom: 30px;
 }
 
-.braille-letter {
+.braille-letter, .contraction-item {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -190,13 +190,13 @@ section h2 {
     background-color: #f0f0f0;
 }
 
-.braille-letter:hover {
+.braille-letter:hover, .contraction-item:hover {
     background-color: var(--accent-color);
     color: white;
     transform: translateY(-5px);
 }
 
-.braille-letter.active {
+.braille-letter.active, .contraction-item.active {
     background-color: var(--primary-color);
     color: white;
 }
@@ -256,6 +256,76 @@ section h2 {
     font-size: 2rem;
     margin-bottom: 10px;
     color: var(--primary-color);
+}
+
+/* Contractions Styles */
+.grade-selector, .contractions-categories {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.grade-button, .category-button {
+    background-color: #f0f0f0;
+    border: none;
+    padding: 10px 20px;
+    margin: 0 10px 10px 0;
+    border-radius: 20px;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.grade-button:hover, .category-button:hover {
+    background-color: var(--accent-color);
+    color: white;
+}
+
+.grade-button.active, .category-button.active {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.contractions-info {
+    text-align: center;
+    margin-bottom: 20px;
+    padding: 0 20px;
+}
+
+.contraction-item {
+    position: relative;
+}
+
+.contraction-text {
+    font-weight: bold;
+    font-size: 1.2rem;
+    margin-bottom: 5px;
+}
+
+.contraction-type {
+    font-size: 0.8rem;
+    color: var(--accent-color);
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 2px 5px;
+    border-radius: 10px;
+}
+
+.grade-info {
+    background-color: #f9f9f9;
+    padding: 20px;
+    border-radius: 10px;
+    margin-top: 30px;
+    border-left: 5px solid var(--primary-color);
+}
+
+.grade-info h3 {
+    color: var(--primary-color);
+    margin-bottom: 10px;
 }
 
 /* Practice Area Styles */
