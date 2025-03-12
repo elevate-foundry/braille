@@ -13,41 +13,64 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!window.userSettings) {
         window.userSettings = {
             brailleGrade: '1', // Default to Grade 1 (uncontracted)
-            showContractions: true // Show contractions in learn mode
+            showContractions: true, // Show contractions in learn mode
+            language: 'en', // Default language (English)
+            brailleCode: 'ueb' // Default braille code (Unified English Braille)
         };
+    }
+    
+    // Initialize language manager if available
+    if (window.brailleLanguageManager) {
+        // Set the language based on user settings
+        if (window.userSettings.language && window.userSettings.brailleCode) {
+            window.brailleLanguageManager.setLanguage(
+                window.userSettings.language,
+                window.userSettings.brailleCode
+            );
+        }
     }
     
     // Load settings from local storage
     loadUserSettings();
-    // Braille alphabet mapping
-    const brailleAlphabet = {
-        'a': [1, 0, 0, 0, 0, 0],
-        'b': [1, 1, 0, 0, 0, 0],
-        'c': [1, 0, 0, 1, 0, 0],
-        'd': [1, 0, 0, 1, 1, 0],
-        'e': [1, 0, 0, 0, 1, 0],
-        'f': [1, 1, 0, 1, 0, 0],
-        'g': [1, 1, 0, 1, 1, 0],
-        'h': [1, 1, 0, 0, 1, 0],
-        'i': [0, 1, 0, 1, 0, 0],
-        'j': [0, 1, 0, 1, 1, 0],
-        'k': [1, 0, 1, 0, 0, 0],
-        'l': [1, 1, 1, 0, 0, 0],
-        'm': [1, 0, 1, 1, 0, 0],
-        'n': [1, 0, 1, 1, 1, 0],
-        'o': [1, 0, 1, 0, 1, 0],
-        'p': [1, 1, 1, 1, 0, 0],
-        'q': [1, 1, 1, 1, 1, 0],
-        'r': [1, 1, 1, 0, 1, 0],
-        's': [0, 1, 1, 1, 0, 0],
-        't': [0, 1, 1, 1, 1, 0],
-        'u': [1, 0, 1, 0, 0, 1],
-        'v': [1, 1, 1, 0, 0, 1],
-        'w': [0, 1, 0, 1, 1, 1],
-        'x': [1, 0, 1, 1, 0, 1],
-        'y': [1, 0, 1, 1, 1, 1],
-        'z': [1, 0, 1, 0, 1, 1]
-    };
+    // Get braille alphabet mapping from language manager or use default
+    function getBrailleAlphabet() {
+        if (window.brailleLanguageManager) {
+            return window.brailleLanguageManager.getCurrentAlphabet();
+        } else {
+            // Fallback to default UEB alphabet
+            return {
+                'a': [1, 0, 0, 0, 0, 0],
+                'b': [1, 1, 0, 0, 0, 0],
+                'c': [1, 0, 0, 1, 0, 0],
+                'd': [1, 0, 0, 1, 1, 0],
+                'e': [1, 0, 0, 0, 1, 0],
+                'f': [1, 1, 0, 1, 0, 0],
+                'g': [1, 1, 0, 1, 1, 0],
+                'h': [1, 1, 0, 0, 1, 0],
+                'i': [0, 1, 0, 1, 0, 0],
+                'j': [0, 1, 0, 1, 1, 0],
+                'k': [1, 0, 1, 0, 0, 0],
+                'l': [1, 1, 1, 0, 0, 0],
+                'm': [1, 0, 1, 1, 0, 0],
+                'n': [1, 0, 1, 1, 1, 0],
+                'o': [1, 0, 1, 0, 1, 0],
+                'p': [1, 1, 1, 1, 0, 0],
+                'q': [1, 1, 1, 1, 1, 0],
+                'r': [1, 1, 1, 0, 1, 0],
+                's': [0, 1, 1, 1, 0, 0],
+                't': [0, 1, 1, 1, 1, 0],
+                'u': [1, 0, 1, 0, 0, 1],
+                'v': [1, 1, 1, 0, 0, 1],
+                'w': [0, 1, 0, 1, 1, 1],
+                'x': [1, 0, 1, 1, 0, 1],
+                'y': [1, 0, 1, 1, 1, 1],
+                'z': [1, 0, 1, 0, 1, 1]
+            };
+        }
+    }
+    
+    // Get current braille alphabet
+    const brailleAlphabet = getBrailleAlphabet();
 
     // Letter descriptions for additional context
     const letterDescriptions = {
@@ -126,8 +149,11 @@ document.addEventListener('DOMContentLoaded', function() {
             brailleGrid.innerHTML = '';
         }
         
+        // Get current alphabet (may have changed if language was switched)
+        const currentAlphabet = getBrailleAlphabet();
+        
         // Add alphabet letters
-        Object.keys(brailleAlphabet).forEach(letter => {
+        Object.keys(currentAlphabet).forEach(letter => {
             const letterElement = document.createElement('div');
             letterElement.className = 'braille-letter';
             letterElement.setAttribute('data-letter', letter);
@@ -190,7 +216,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Display braille representation of a letter
     function displayBrailleLetter(letter) {
-        const pattern = brailleAlphabet[letter.toLowerCase()];
+        let pattern;
+        
+        // Try to get pattern from language manager first
+        if (window.brailleLanguageManager) {
+            pattern = window.brailleLanguageManager.getBraillePattern(letter.toLowerCase());
+        }
+        
+        // Fallback to local alphabet if needed
+        if (!pattern) {
+            const currentAlphabet = getBrailleAlphabet();
+            pattern = currentAlphabet[letter.toLowerCase()];
+        }
         
         // Update dots
         dots.forEach((dot, index) => {
@@ -226,8 +263,17 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        // Get the pattern for this contraction
-        const pattern = window.brailleContractions.getContractionPattern(contraction);
+        let pattern;
+        
+        // Try to get pattern from language manager first if it's a letter in another language
+        if (window.brailleLanguageManager) {
+            pattern = window.brailleLanguageManager.getBraillePattern(contraction);
+        }
+        
+        // Fallback to braille contractions if needed
+        if (!pattern) {
+            pattern = window.brailleContractions.getContractionPattern(contraction);
+        }
         
         if (!pattern) {
             console.error(`No pattern found for contraction: ${contraction}`);
@@ -276,6 +322,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function generatePracticeLetter() {
+        // Get current alphabet (may have changed if language was switched)
+        const currentAlphabet = getBrailleAlphabet();
+        
         // Use adaptive learning if available to get recommended letters
         if (window.adaptiveLearning && window.progressTracker && 
             progressTracker.userData.settings.adaptiveLearning) {
@@ -286,16 +335,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 currentPracticeLetter = recommendedLetters[Math.floor(Math.random() * recommendedLetters.length)];
             } else {
                 // Fallback to random letter if no recommendations
-                const letters = Object.keys(brailleAlphabet);
+                const letters = Object.keys(currentAlphabet);
                 currentPracticeLetter = letters[Math.floor(Math.random() * letters.length)];
             }
         } else {
             // Default random selection
-            const letters = Object.keys(brailleAlphabet);
+            const letters = Object.keys(currentAlphabet);
             currentPracticeLetter = letters[Math.floor(Math.random() * letters.length)];
         }
         
-        const pattern = brailleAlphabet[currentPracticeLetter];
+        // Get pattern from language manager if available
+        let pattern;
+        if (window.brailleLanguageManager) {
+            pattern = window.brailleLanguageManager.getBraillePattern(currentPracticeLetter);
+        }
+        
+        // Fallback to current alphabet if needed
+        if (!pattern) {
+            pattern = currentAlphabet[currentPracticeLetter];
+        }
         
         // Update practice dots
         practiceDots.forEach((dot, index) => {
@@ -895,6 +953,12 @@ function updateBrailleGradeUI() {
  */
 function saveUserSettings() {
     if (window.userSettings) {
+        // Save language settings if language manager exists
+        if (window.brailleLanguageManager) {
+            window.userSettings.language = window.brailleLanguageManager.getCurrentLanguage();
+            window.userSettings.brailleCode = window.brailleLanguageManager.getCurrentBrailleCode();
+        }
+        
         localStorage.setItem('brailleBuddySettings', JSON.stringify(window.userSettings));
     }
 }
@@ -908,6 +972,16 @@ function loadUserSettings() {
         try {
             const parsedSettings = JSON.parse(savedSettings);
             window.userSettings = { ...window.userSettings, ...parsedSettings };
+            
+            // Apply language settings if language manager exists
+            if (window.brailleLanguageManager && 
+                window.userSettings.language && 
+                window.userSettings.brailleCode) {
+                window.brailleLanguageManager.setLanguage(
+                    window.userSettings.language,
+                    window.userSettings.brailleCode
+                );
+            }
             
             // Apply settings to UI elements
             if (document.getElementById('braille-grade-select')) {
