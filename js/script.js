@@ -259,13 +259,18 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     function loadMemoryGame() {
-        gameArea.innerHTML = `
-            <h3>Braille Memory Match</h3>
-            <p>Match the letters with their braille patterns. Click on cards to flip them and find matching pairs.</p>
-            <div class="memory-game">
-                <p>Coming soon!</p>
-            </div>
-        `;
+        // Use the BrailleGames class to initialize the Memory Match game
+        if (window.brailleGames) {
+            brailleGames.initMemoryMatch(gameArea);
+        } else {
+            gameArea.innerHTML = `
+                <h3>Braille Memory Match</h3>
+                <p>Match the letters with their braille patterns. Click on cards to flip them and find matching pairs.</p>
+                <div class="memory-game">
+                    <p>Game loading error. Please refresh the page and try again.</p>
+                </div>
+            `;
+        }
     }
 
     function loadWordBuilderGame() {
