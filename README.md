@@ -23,6 +23,12 @@ Learning braille offers several benefits for sighted children:
 
 ## Getting Started
 
+### Live Demo
+
+Try BrailleBuddy now: [https://braillebuddy-ckk4n0ntj-elevate-foundry1s-projects.vercel.app/](https://braillebuddy-ckk4n0ntj-elevate-foundry1s-projects.vercel.app/)
+
+### Local Development
+
 1. Clone this repository
 2. Open `index.html` in your web browser
 3. Start exploring and learning braille!
