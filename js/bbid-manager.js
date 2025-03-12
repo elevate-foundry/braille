@@ -51,13 +51,16 @@ class BBIDManager {
     }
     
     /**
-     * Generate a new BBID for the current device
+     * Generate a new BBID for the current device with enhanced information
      * @param {string} deviceName - User-friendly name for the device
      * @param {string} deviceType - Type of device (desktop, laptop, tablet, phone, other)
      * @param {string} deviceOS - Operating system (windows, macos, linux, ios, android, other)
+     * @param {Object} enhancedInfo - Optional enhanced device information object
      * @returns {Object} - The generated BBID object
      */
-    async generateBBID(deviceName, deviceType = 'other', deviceOS = 'other') {
+    async generateBBID(deviceName, deviceType = 'other', deviceOS = 'other', enhancedInfo = null) {
+        console.log('DEBUG [BBID-GEN-1]: Generating new BBID for device:', deviceName);
+        
         if (!this.initialized || !this.deviceFingerprint) {
             throw new Error('BBID Manager not initialized. Call initialize() first.');
         }
@@ -65,14 +68,60 @@ class BBIDManager {
         const rawFingerprint = this.deviceFingerprint.getRawFingerprint();
         const bbesFingerprint = this.deviceFingerprint.getFingerprint();
         
-        // Auto-detect device type and OS if not provided
-        if (deviceType === 'other' || deviceOS === 'other') {
-            const detectedInfo = this.detectDeviceInfo();
-            deviceType = deviceType === 'other' ? detectedInfo.type : deviceType;
-            deviceOS = deviceOS === 'other' ? detectedInfo.os : deviceOS;
+        // Get detailed device information
+        const detectedInfo = this.detectDeviceInfo();
+        
+        // Use provided values, enhanced info, or detected values
+        deviceType = deviceType === 'other' ? detectedInfo.type : deviceType;
+        deviceOS = deviceOS === 'other' ? detectedInfo.os : deviceOS;
+        
+        // Merge enhanced info with detected info if provided
+        const mergedInfo = enhancedInfo ? { ...detectedInfo, ...enhancedInfo } : detectedInfo;
+        console.log('DEBUG [BBID-GEN-ENHANCED]: Using merged device info:', mergedInfo);
+        
+        // Try to get location information if available and not already provided in enhanced info
+        let locationInfo = mergedInfo.location || null;
+        
+        // Only try to get location if not already provided
+        if (!locationInfo) {
+            try {
+                if (navigator.geolocation) {
+                    console.log('DEBUG [BBID-GEN-2]: Attempting to get location for BBID');
+                    const position = await new Promise((resolve, reject) => {
+                        navigator.geolocation.getCurrentPosition(resolve, reject, {
+                            enableHighAccuracy: false,
+                            timeout: 5000,
+                            maximumAge: 600000 // 10 minutes
+                        });
+                    });
+                    
+                    // For privacy reasons, we'll just use approximate location (city level)
+                    const latitude = position.coords.latitude;
+                    const longitude = position.coords.longitude;
+                    
+                    // Use a simple approximation for Salt Lake City area
+                    if (latitude >= 40.5 && latitude <= 41.0 && longitude >= -112.1 && longitude <= -111.7) {
+                        locationInfo = {
+                            city: 'Salt Lake City',
+                            region: 'UT',
+                            country: 'USA',
+                            coordinates: {
+                                latitude: Math.round(latitude * 100) / 100, // Round to 2 decimal places for privacy
+                                longitude: Math.round(longitude * 100) / 100
+                            }
+                        };
+                    }
+                    
+                    console.log('DEBUG [BBID-GEN-3]: Got location info for BBID', locationInfo);
+                }
+            } catch (error) {
+                console.warn('DEBUG [BBID-GEN-ERROR]: Error getting location for BBID', error);
+            }
+        } else {
+            console.log('DEBUG [BBID-GEN-4]: Using provided location info', locationInfo);
         }
         
-        // Create BBID structure
+        // Create enhanced BBID structure
         const bbid = {
             version: "1.0.0",
             id: this.generateDeviceId(),
@@ -82,6 +131,14 @@ class BBIDManager {
                 name: deviceName,
                 type: deviceType,
                 os: deviceOS,
+                osVersion: mergedInfo.osVersion,
+                browser: mergedInfo.browser,
+                browserVersion: mergedInfo.browserVersion,
+                processor: mergedInfo.processor,
+                screen: mergedInfo.screen,
+                language: mergedInfo.language || navigator.language,
+                timezone: mergedInfo.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
+                location: locationInfo,
                 userAgent: navigator.userAgent
             },
             fingerprint: {
@@ -94,10 +151,22 @@ class BBIDManager {
                 lastSeen: new Date().toISOString(),
                 visitCount: 1,
                 totalTimeSpent: 0,
-                features: []
+                features: [],
+                mcpCompatible: true // Model Context Protocol compatibility flag
+            },
+            preferences: {
+                hapticFeedback: true,
+                voiceAssistant: true,
+                theme: 'system',
+                accessibility: {
+                    highContrast: false,
+                    largeText: false,
+                    screenReader: false
+                }
             }
         };
         
+        console.log('DEBUG [BBID-GEN-4]: Generated BBID with enhanced information');
         return bbid;
     }
     
@@ -559,62 +628,230 @@ class BBIDManager {
      * @private
      */
     identifyCurrentDevice() {
-        if (!this.deviceFingerprint) return;
+        console.log('DEBUG [BBID-1]: Starting device identification');
+        
+        if (!this.deviceFingerprint) {
+            console.warn('DEBUG [BBID-ERROR]: Device fingerprint not available for identification');
+            return;
+        }
         
         const rawFingerprint = this.deviceFingerprint.getRawFingerprint();
+        console.log('DEBUG [BBID-2]: Current device fingerprint:', rawFingerprint?.substring(0, 20) + '...');
+        console.log('DEBUG [BBID-3]: Number of saved devices:', this.devices.length);
         
         // Look for exact match
         let device = this.devices.find(d => d.fingerprint.raw === rawFingerprint);
         
         if (device) {
+            console.log('DEBUG [BBID-4]: Device identified:', device.metadata?.name);
             // Update last seen timestamp
             device.usage.lastSeen = new Date().toISOString();
             device.usage.visitCount = (device.usage.visitCount || 0) + 1;
             this.currentDevice = device;
             this.saveDevices();
+        } else {
+            console.warn('DEBUG [BBID-5]: No matching device found in saved devices');
+            // Log fingerprints of saved devices for comparison
+            if (this.devices.length > 0) {
+                console.log('DEBUG [BBID-6]: Saved device fingerprints:');
+                this.devices.forEach((d, index) => {
+                    console.log(`Device ${index + 1} (${d.metadata?.name}):`, 
+                                d.fingerprint.raw?.substring(0, 20) + '...');
+                });
+            }
         }
     }
     
     /**
-     * Detect device type and OS based on user agent
+     * Detect detailed device information based on user agent and available APIs
      * @private
-     * @returns {Object} - Object with type and os properties
+     * @returns {Object} - Object with detailed device information
      */
     detectDeviceInfo() {
-        const userAgent = navigator.userAgent.toLowerCase();
-        let type = 'other';
-        let os = 'other';
+        console.log('DEBUG [BBID-DETECT-1]: Detecting detailed device information');
+        const userAgent = navigator.userAgent;
+        const deviceInfo = {
+            type: 'other',
+            os: 'other',
+            osVersion: 'unknown',
+            browser: 'unknown',
+            browserVersion: 'unknown',
+            processor: 'unknown',
+            screen: {
+                width: window.screen.width,
+                height: window.screen.height,
+                colorDepth: window.screen.colorDepth
+            },
+            language: navigator.language || 'en-US',
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'unknown',
+            touchSupport: 'ontouchstart' in window,
+            cpuCores: navigator.hardwareConcurrency || 'unknown',
+            memory: navigator.deviceMemory || 'unknown',
+            connection: navigator.connection ? {
+                type: navigator.connection.effectiveType || 'unknown',
+                downlink: navigator.connection.downlink || 'unknown'
+            } : 'unknown'
+        };
         
-        // Detect device type
-        if (/mobile|android|iphone|ipod|silk|blackberry|opera mini|iemobile/i.test(userAgent)) {
-            type = 'phone';
-        } else if (/ipad|tablet|playbook|silk/i.test(userAgent)) {
-            type = 'tablet';
+        // Detect device type with more detail
+        if (/mobile|android|iphone|ipod|silk|blackberry|opera mini|iemobile/i.test(userAgent.toLowerCase())) {
+            deviceInfo.type = 'phone';
+            
+            // Try to detect specific phone models
+            if (/iphone/i.test(userAgent)) {
+                deviceInfo.type = 'iPhone';
+                // Try to detect iPhone model
+                if (/iPhone1[3-9]/i.test(userAgent)) {
+                    deviceInfo.type = 'iPhone 13+';
+                } else if (/iPhone1[0-2]/i.test(userAgent)) {
+                    deviceInfo.type = 'iPhone X/11/12';
+                }
+            } else if (/pixel/i.test(userAgent)) {
+                deviceInfo.type = 'Google Pixel';
+            } else if (/samsung|galaxy/i.test(userAgent)) {
+                deviceInfo.type = 'Samsung Galaxy';
+            }
+        } else if (/ipad|tablet|playbook|silk/i.test(userAgent.toLowerCase())) {
+            deviceInfo.type = 'tablet';
+            
+            // Try to detect specific tablet models
+            if (/ipad/i.test(userAgent)) {
+                deviceInfo.type = 'iPad';
+                if (/iPad Pro/i.test(userAgent)) {
+                    deviceInfo.type = 'iPad Pro';
+                }
+            } else if (/surface/i.test(userAgent)) {
+                deviceInfo.type = 'Surface Tablet';
+            }
         } else {
             // Assume desktop/laptop
-            type = 'desktop';
+            deviceInfo.type = 'desktop';
             
-            // Try to distinguish between desktop and laptop
-            // This is not 100% reliable but can provide a best guess
-            if (/macbook|thinkpad|notebook|laptop/i.test(userAgent)) {
-                type = 'laptop';
+            // Try to distinguish between desktop and laptop with more detail
+            if (/macbook/i.test(userAgent.toLowerCase())) {
+                deviceInfo.type = 'MacBook';
+                if (/macbook pro/i.test(userAgent.toLowerCase())) {
+                    deviceInfo.type = 'MacBook Pro';
+                } else if (/macbook air/i.test(userAgent.toLowerCase())) {
+                    deviceInfo.type = 'MacBook Air';
+                }
+            } else if (/thinkpad/i.test(userAgent.toLowerCase())) {
+                deviceInfo.type = 'ThinkPad Laptop';
+            } else if (/surface/i.test(userAgent.toLowerCase())) {
+                deviceInfo.type = 'Surface Laptop';
+            } else if (/notebook|laptop/i.test(userAgent.toLowerCase())) {
+                deviceInfo.type = 'laptop';
+            } else if (/imac/i.test(userAgent.toLowerCase())) {
+                deviceInfo.type = 'iMac';
+            } else if (/mac mini/i.test(userAgent.toLowerCase())) {
+                deviceInfo.type = 'Mac Mini';
             }
         }
         
-        // Detect OS
-        if (/windows/i.test(userAgent)) {
-            os = 'windows';
-        } else if (/macintosh|mac os x/i.test(userAgent)) {
-            os = 'macos';
-        } else if (/linux/i.test(userAgent)) {
-            os = 'linux';
-        } else if (/android/i.test(userAgent)) {
-            os = 'android';
-        } else if (/iphone|ipad|ipod/i.test(userAgent)) {
-            os = 'ios';
+        // Detect OS with more detail
+        if (/Windows NT 10.0/i.test(userAgent)) {
+            deviceInfo.os = 'Windows';
+            deviceInfo.osVersion = '10';
+        } else if (/Windows NT 6.3/i.test(userAgent)) {
+            deviceInfo.os = 'Windows';
+            deviceInfo.osVersion = '8.1';
+        } else if (/Windows NT 6.2/i.test(userAgent)) {
+            deviceInfo.os = 'Windows';
+            deviceInfo.osVersion = '8';
+        } else if (/Windows NT 6.1/i.test(userAgent)) {
+            deviceInfo.os = 'Windows';
+            deviceInfo.osVersion = '7';
+        } else if (/Mac OS X/i.test(userAgent)) {
+            deviceInfo.os = 'macOS';
+            
+            // Try to extract macOS version
+            const macVersionMatch = userAgent.match(/Mac OS X (\d+[._]\d+[._]?\d*)/i);
+            if (macVersionMatch) {
+                deviceInfo.osVersion = macVersionMatch[1].replace(/_/g, '.');
+            }
+            
+            // Try to detect Mac model
+            if (/Intel Mac OS X/i.test(userAgent)) {
+                deviceInfo.processor = 'Intel';
+            } else if (/Mac OS X.*AppleWebKit/i.test(userAgent)) {
+                deviceInfo.processor = 'Apple Silicon';
+                if (/Mac OS X.*AppleWebKit.*Safari/i.test(userAgent)) {
+                    deviceInfo.processor = 'M1/M2';
+                }
+            }
+        } else if (/Android/i.test(userAgent)) {
+            deviceInfo.os = 'Android';
+            const match = userAgent.match(/Android (\d+(\.\d+)*)/i);
+            if (match) {
+                deviceInfo.osVersion = match[1];
+            }
+        } else if (/iPhone|iPad|iPod/i.test(userAgent)) {
+            deviceInfo.os = 'iOS';
+            const match = userAgent.match(/OS (\d+[_\d]*)/i);
+            if (match) {
+                deviceInfo.osVersion = match[1].replace(/_/g, '.');
+            }
+        } else if (/Linux/i.test(userAgent)) {
+            deviceInfo.os = 'Linux';
+            if (/Ubuntu/i.test(userAgent)) {
+                deviceInfo.osVersion = 'Ubuntu';
+            } else if (/Fedora/i.test(userAgent)) {
+                deviceInfo.osVersion = 'Fedora';
+            } else if (/Debian/i.test(userAgent)) {
+                deviceInfo.osVersion = 'Debian';
+            }
+        } else if (/CrOS/i.test(userAgent)) {
+            deviceInfo.os = 'Chrome OS';
         }
         
-        return { type, os };
+        // Detect browser with more detail
+        if (/Chrome/i.test(userAgent) && !/Chromium|Edge|OPR|Brave/i.test(userAgent)) {
+            deviceInfo.browser = 'Chrome';
+            const match = userAgent.match(/Chrome\/(\d+(\.\d+)*)/i);
+            if (match) {
+                deviceInfo.browserVersion = match[1];
+            }
+        } else if (/Firefox/i.test(userAgent)) {
+            deviceInfo.browser = 'Firefox';
+            const match = userAgent.match(/Firefox\/(\d+(\.\d+)*)/i);
+            if (match) {
+                deviceInfo.browserVersion = match[1];
+            }
+        } else if (/Safari/i.test(userAgent) && !/Chrome|Chromium|Edge|OPR|Brave/i.test(userAgent)) {
+            deviceInfo.browser = 'Safari';
+            const match = userAgent.match(/Version\/(\d+(\.\d+)*)/i);
+            if (match) {
+                deviceInfo.browserVersion = match[1];
+            }
+        } else if (/Edge/i.test(userAgent)) {
+            deviceInfo.browser = 'Edge';
+            const match = userAgent.match(/Edge\/(\d+(\.\d+)*)/i) || userAgent.match(/Edg\/(\d+(\.\d+)*)/i);
+            if (match) {
+                deviceInfo.browserVersion = match[1];
+            }
+        } else if (/OPR/i.test(userAgent)) {
+            deviceInfo.browser = 'Opera';
+            const match = userAgent.match(/OPR\/(\d+(\.\d+)*)/i);
+            if (match) {
+                deviceInfo.browserVersion = match[1];
+            }
+        } else if (/Brave/i.test(userAgent)) {
+            deviceInfo.browser = 'Brave';
+        }
+        
+        // Try to get more processor information
+        if (deviceInfo.processor === 'unknown') {
+            if (/Intel/i.test(userAgent)) {
+                deviceInfo.processor = 'Intel';
+            } else if (/ARM/i.test(userAgent)) {
+                deviceInfo.processor = 'ARM';
+            } else if (/AppleWebKit/i.test(userAgent) && /Mac/i.test(userAgent) && !/Intel/i.test(userAgent)) {
+                deviceInfo.processor = 'Apple Silicon';
+            }
+        }
+        
+        console.log('DEBUG [BBID-DETECT-2]: Detected device info:', deviceInfo);
+        return deviceInfo;
     }
     
     /**

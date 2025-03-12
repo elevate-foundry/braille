@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sal Assistant Test Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #2196F3;
+            margin-top: 0;
+        }
+        .test-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+        }
+        .test-section h2 {
+            margin-top: 0;
+            color: #4CAF50;
+        }
+        button {
+            padding: 8px 16px;
+            margin: 5px;
+            border: none;
+            border-radius: 4px;
+            background-color: #2196F3;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #0b7dda;
+        }
+        .log-container {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f8f8f8;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+        }
+        .log-entry {
+            margin: 5px 0;
+            padding: 3px 6px;
+            border-bottom: 1px solid #eee;
+        }
+        .log-entry.info {
+            color: #2196F3;
+        }
+        .log-entry.error {
+            color: #F44336;
+        }
+        .log-entry.success {
+            color: #4CAF50;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Sal Assistant Test Page</h1>
+        
+        <div class="test-section">
+            <h2>Sal Assistant Status</h2>
+            <button id="check-status">Check Status</button>
+            <button id="test-greeting">Test Greeting</button>
+            <button id="test-identification">Test Identification</button>
+            <button id="reset-sal">Reset Sal</button>
+        </div>
+        
+        <div class="test-section">
+            <h2>Device Information</h2>
+            <button id="show-device-info">Show Device Info</button>
+            <button id="create-test-device">Create Test Device</button>
+            <div id="device-info-display" style="margin-top: 10px; font-size: 14px;"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>BBID Management</h2>
+            <button id="list-devices">List Devices</button>
+            <button id="export-current-device">Export Current Device</button>
+            <div id="devices-list" style="margin-top: 10px; font-size: 14px;"></div>
+        </div>
+        
+        <div class="log-container" id="log-container">
+            <div class="log-entry info">Test console initialized. Logs will appear here.</div>
+        </div>
+    </div>
+
+    <!-- Load the BBID Manager first -->
+    <script src="js/bbid-manager.js"></script>
+    
+    <!-- Then load Sal Assistant -->
+    <script src="js/sal-assistant.js"></script>
+    
+    <script>
+        // Custom logging to display in the page
+        const logContainer = document.getElementById('log-container');
+        
+        function logToPage(message, type = 'info') {
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry ${type}`;
+            logEntry.textContent = message;
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+            
+            // Also log to console
+            if (type === 'error') {
+                console.error(message);
+            } else if (type === 'success') {
+                console.log('%c' + message, 'color: green');
+            } else {
+                console.log(message);
+            }
+        }
+        
+        // Override console.log for our test page
+        const originalConsoleLog = console.log;
+        const originalConsoleError = console.error;
+        const originalConsoleWarn = console.warn;
+        
+        console.log = function() {
+            originalConsoleLog.apply(console, arguments);
+            const message = Array.from(arguments).map(arg => 
+                typeof arg === 'object' ? JSON.stringify(arg) : arg
+            ).join(' ');
+            logToPage(message, 'info');
+        };
+        
+        console.error = function() {
+            originalConsoleError.apply(console, arguments);
+            const message = Array.from(arguments).map(arg => 
+                typeof arg === 'object' ? JSON.stringify(arg) : arg
+            ).join(' ');
+            logToPage(message, 'error');
+        };
+        
+        console.warn = function() {
+            originalConsoleWarn.apply(console, arguments);
+            const message = Array.from(arguments).map(arg => 
+                typeof arg === 'object' ? JSON.stringify(arg) : arg
+            ).join(' ');
+            logToPage(message, 'info');
+        };
+        
+        // Wait for Sal to initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            logToPage('DOM loaded, waiting for Sal to initialize...', 'info');
+            
+            // Check if Sal is available every 500ms
+            const checkSalInterval = setInterval(() => {
+                if (window.salAssistant && window.salAssistant.initialized) {
+                    clearInterval(checkSalInterval);
+                    logToPage('Sal Assistant initialized successfully!', 'success');
+                    setupEventListeners();
+                }
+            }, 500);
+            
+            // Timeout after 10 seconds
+            setTimeout(() => {
+                clearInterval(checkSalInterval);
+                if (!window.salAssistant || !window.salAssistant.initialized) {
+                    logToPage('Sal Assistant initialization timed out. Check console for errors.', 'error');
+                }
+            }, 10000);
+        });
+        
+        function setupEventListeners() {
+            // Status section
+            document.getElementById('check-status').addEventListener('click', () => {
+                logToPage('Checking Sal status...', 'info');
+                debugSalAdvanced('status');
+            });
+            
+            document.getElementById('test-greeting').addEventListener('click', () => {
+                logToPage('Testing greeting...', 'info');
+                debugSalAdvanced('greet');
+            });
+            
+            document.getElementById('test-identification').addEventListener('click', () => {
+                logToPage('Testing identification...', 'info');
+                debugSalAdvanced('identify');
+            });
+            
+            document.getElementById('reset-sal').addEventListener('click', () => {
+                logToPage('Resetting Sal...', 'info');
+                debugSalAdvanced('reset');
+            });
+            
+            // Device info section
+            document.getElementById('show-device-info').addEventListener('click', async () => {
+                logToPage('Getting device info...', 'info');
+                const deviceInfoDisplay = document.getElementById('device-info-display');
+                
+                try {
+                    const deviceInfo = await window.salAssistant._getDeviceInfo();
+                    deviceInfoDisplay.innerHTML = '<pre>' + JSON.stringify(deviceInfo, null, 2) + '</pre>';
+                    logToPage('Device info retrieved successfully', 'success');
+                } catch (error) {
+                    logToPage('Error getting device info: ' + error.message, 'error');
+                }
+            });
+            
+            document.getElementById('create-test-device').addEventListener('click', async () => {
+                logToPage('Creating test device...', 'info');
+                const deviceName = prompt('Enter a name for this test device:', 'Test User');
+                
+                if (deviceName) {
+                    try {
+                        const result = await window.salAssistant.createTestBBID(deviceName);
+                        if (result) {
+                            logToPage(`Test device "${deviceName}" created successfully!`, 'success');
+                        } else {
+                            logToPage('Failed to create test device', 'error');
+                        }
+                    } catch (error) {
+                        logToPage('Error creating test device: ' + error.message, 'error');
+                    }
+                }
+            });
+            
+            // BBID Management section
+            document.getElementById('list-devices').addEventListener('click', () => {
+                logToPage('Listing devices...', 'info');
+                const devicesList = document.getElementById('devices-list');
+                
+                if (window.salAssistant.bbidManager) {
+                    const devices = window.salAssistant.bbidManager.getDevices();
+                    
+                    if (devices && devices.length > 0) {
+                        let html = '<ul>';
+                        devices.forEach(device => {
+                            const isCurrent = window.salAssistant.currentBBID && 
+                                             window.salAssistant.currentBBID.id === device.id;
+                            
+                            html += `<li>
+                                <strong>${device.metadata.name}</strong> (${device.metadata.type})
+                                ${isCurrent ? ' - <em>Current Device</em>' : ''}
+                                <br>
+                                <small>ID: ${device.id}</small>
+                                <br>
+                                <small>OS: ${device.metadata.os} ${device.metadata.osVersion || ''}</small>
+                                <br>
+                                <small>Browser: ${device.metadata.browser} ${device.metadata.browserVersion || ''}</small>
+                                ${device.metadata.location ? 
+                                    `<br><small>Location: ${device.metadata.location.city || ''}, 
+                                    ${device.metadata.location.region || ''}, 
+                                    ${device.metadata.location.country || ''}</small>` : ''}
+                            </li>`;
+                        });
+                        html += '</ul>';
+                        devicesList.innerHTML = html;
+                        logToPage(`Found ${devices.length} device(s)`, 'success');
+                    } else {
+                        devicesList.innerHTML = '<p>No devices found</p>';
+                        logToPage('No devices found', 'info');
+                    }
+                } else {
+                    devicesList.innerHTML = '<p>BBID Manager not available</p>';
+                    logToPage('BBID Manager not available', 'error');
+                }
+            });
+            
+            document.getElementById('export-current-device').addEventListener('click', () => {
+                logToPage('Exporting current device...', 'info');
+                
+                if (window.salAssistant.bbidManager && window.salAssistant.currentBBID) {
+                    try {
+                        const result = window.salAssistant.bbidManager.exportBBID(window.salAssistant.currentBBID);
+                        if (result) {
+                            logToPage('Current device exported successfully!', 'success');
+                        } else {
+                            logToPage('Failed to export current device', 'error');
+                        }
+                    } catch (error) {
+                        logToPage('Error exporting current device: ' + error.message, 'error');
+                    }
+                } else {
+                    logToPage('No current device identified or BBID Manager not available', 'error');
+                }
+            });
+        }
+    </script>
+</body>
+</html>
