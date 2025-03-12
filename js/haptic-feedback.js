@@ -5,7 +5,7 @@
  * 1. Web Vibration API for mobile browsers
  * 2. Custom vibration patterns for each braille character
  * 3. Support for Grade 1 and Grade 2 Braille (contractions)
- * 4. Experimental haptic encoding options
+ * 4. Multiple haptic encoding options including biological contraction patterns
  */
 
 class HapticFeedback {
@@ -14,7 +14,7 @@ class HapticFeedback {
         this.isVibrationSupported = 'vibrate' in navigator;
         
         // Default haptic mode
-        this.hapticMode = 'standard'; // 'standard', 'rhythmic', 'frequency'
+        this.hapticMode = 'standard'; // 'standard', 'rhythmic', 'frequency', 'biological'
         
         // Vibration intensity (1-10)
         this.intensity = 5;
@@ -62,6 +62,9 @@ class HapticFeedback {
         
         // Frequency patterns - using different vibration intensities
         this.frequencyPatterns = {};
+        
+        // Biological patterns - inspired by physiological contractions
+        this.biologicalPatterns = {};
         
         // Get braille alphabet patterns
         const brailleAlphabet = {
@@ -118,6 +121,9 @@ class HapticFeedback {
             
             // Frequency pattern: use different intensities for different positions
             this.frequencyPatterns[letter] = this.generateFrequencyPattern(pattern);
+            
+            // Biological pattern: inspired by physiological contractions
+            this.biologicalPatterns[letter] = this.generateBiologicalPattern(pattern);
         }
     }
     
@@ -250,6 +256,9 @@ class HapticFeedback {
             case 'frequency':
                 pattern = isContraction ? this.getContractionFrequencyPattern(character) : this.frequencyPatterns[character];
                 break;
+            case 'biological':
+                pattern = isContraction ? this.getContractionBiologicalPattern(character) : this.biologicalPatterns[character];
+                break;
             case 'custom':
                 pattern = this.userPreferences.customPatterns[character] || 
                          (isContraction ? this.getContractionStandardPattern(character) : this.standardPatterns[character]);
@@ -285,7 +294,7 @@ class HapticFeedback {
      * Set the haptic mode
      */
     setMode(mode) {
-        if (['standard', 'rhythmic', 'frequency', 'custom'].includes(mode)) {
+        if (['standard', 'rhythmic', 'frequency', 'biological', 'custom'].includes(mode)) {
             this.userPreferences.mode = mode;
             this.savePreferences();
             return true;
@@ -489,6 +498,104 @@ class HapticFeedback {
             // Add gap between dots
             if (i < dotPattern.length - 1) {
                 pattern.push(this.gapDuration);
+            }
+        }
+        
+        return pattern;
+    }
+    
+    /**
+     * Generate biological vibration pattern inspired by physiological contractions
+     * Uses a waveform that mimics the building, peaking, and tapering pattern of biological contractions
+     * @param {Array} dotPattern - The braille dot pattern
+     * @returns {Array} - Vibration pattern
+     */
+    generateBiologicalPattern(dotPattern) {
+        const pattern = [];
+        
+        // Count the number of active dots to determine contraction intensity
+        const activeDots = dotPattern.filter(dot => dot === 1).length;
+        
+        // Skip if no active dots
+        if (activeDots === 0) return [0];
+        
+        // Base duration for the biological pattern
+        const baseBioDuration = this.baseDuration * 1.5;
+        
+        // Create a contraction-like pattern (build-up, peak, taper-off)
+        // The more dots, the more intense the contraction
+        const intensityFactor = Math.min(1 + (activeDots / 6), 2.0);
+        
+        // Build-up phase (gradually increasing vibrations)
+        for (let i = 1; i <= 3; i++) {
+            const intensity = i / 3 * intensityFactor;
+            pattern.push(Math.round(baseBioDuration * intensity));
+            pattern.push(this.gapDuration);
+        }
+        
+        // Peak phase (maximum vibration)
+        pattern.push(Math.round(baseBioDuration * intensityFactor));
+        pattern.push(this.gapDuration);
+        
+        // Taper-off phase (gradually decreasing vibrations)
+        for (let i = 2; i >= 0; i--) {
+            const intensity = i / 3 * intensityFactor;
+            pattern.push(Math.round(baseBioDuration * intensity));
+            pattern.push(this.gapDuration);
+        }
+        
+        return pattern;
+    }
+    
+    /**
+     * Generate biological contraction pattern for a braille contraction
+     * @param {string} contraction - The contraction text
+     * @returns {Array} - Vibration pattern for the contraction
+     */
+    getContractionBiologicalPattern(contraction) {
+        // Get the contraction pattern from the brailleContractions module
+        const dotPattern = window.brailleContractions ? 
+                          window.brailleContractions.getContractionPattern(contraction) : null;
+        
+        if (!dotPattern) return null;
+        
+        // For contractions, we create a more complex biological pattern
+        // that mimics labor contractions or orgasmic contractions
+        const pattern = [];
+        
+        // Count active dots to determine intensity
+        const activeDots = dotPattern.filter(dot => dot === 1).length;
+        const contractionIntensity = Math.min(1 + (activeDots / 6), 2.0);
+        
+        // Base duration for the biological pattern
+        const baseBioDuration = this.baseDuration * 2;
+        
+        // Create a series of 3 contractions with increasing intensity
+        // to represent the contraction nature of braille contractions
+        for (let wave = 1; wave <= 3; wave++) {
+            const waveIntensity = (wave / 3) * contractionIntensity;
+            
+            // Build-up phase (gradually increasing vibrations)
+            for (let i = 1; i <= 3; i++) {
+                const phaseIntensity = (i / 3) * waveIntensity;
+                pattern.push(Math.round(baseBioDuration * phaseIntensity));
+                pattern.push(this.gapDuration);
+            }
+            
+            // Peak phase (maximum vibration for this wave)
+            pattern.push(Math.round(baseBioDuration * waveIntensity));
+            pattern.push(this.gapDuration);
+            
+            // Taper-off phase (gradually decreasing vibrations)
+            for (let i = 2; i >= 0; i--) {
+                const phaseIntensity = (i / 3) * waveIntensity;
+                pattern.push(Math.round(baseBioDuration * phaseIntensity));
+                pattern.push(this.gapDuration);
+            }
+            
+            // Add a longer gap between contraction waves
+            if (wave < 3) {
+                pattern.push(this.gapDuration * 3);
             }
         }
         

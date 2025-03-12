@@ -569,6 +569,23 @@ function setupSettingsUI() {
         });
     }
     
+    // Update haptic mode description when mode changes
+    if (hapticModeSelect) {
+        hapticModeSelect.addEventListener('change', function() {
+            // Hide all descriptions
+            document.querySelectorAll('#haptic-mode-description .setting-description').forEach(desc => {
+                desc.style.display = 'none';
+            });
+            
+            // Show the selected mode description
+            const selectedMode = this.value;
+            const selectedDesc = document.getElementById(`${selectedMode}-description`);
+            if (selectedDesc) {
+                selectedDesc.style.display = 'block';
+            }
+        });
+    }
+    
     // Test haptic feedback button
     if (testHapticButton && window.hapticFeedback) {
         testHapticButton.addEventListener('click', function() {
@@ -648,6 +665,21 @@ function applySettings() {
         window.hapticFeedback.setEnabled(settings.hapticFeedback !== false);
         if (settings.hapticMode) {
             window.hapticFeedback.setMode(settings.hapticMode);
+            
+            // Update the haptic mode description in settings
+            const hapticModeDescriptions = document.querySelectorAll('#haptic-mode-description .setting-description');
+            if (hapticModeDescriptions.length > 0) {
+                // Hide all descriptions
+                hapticModeDescriptions.forEach(desc => {
+                    desc.style.display = 'none';
+                });
+                
+                // Show the selected mode description
+                const selectedDesc = document.getElementById(`${settings.hapticMode}-description`);
+                if (selectedDesc) {
+                    selectedDesc.style.display = 'block';
+                }
+            }
         }
         if (settings.hapticIntensity) {
             window.hapticFeedback.setIntensity(settings.hapticIntensity);

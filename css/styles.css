@@ -3,6 +3,7 @@
     --primary-color: #4a6fa5;
     --secondary-color: #ff9e6d;
     --accent-color: #6daedb;
+    --haptic-color: #9c27b0;
     --background-color: #f9f9f9;
     --text-color: #333;
     --success-color: #4CAF50;
@@ -583,6 +584,20 @@ footer {
 
 .save-settings-btn:hover {
     background-color: #3a5a8c;
+}
+
+.setting-info {
+    margin-bottom: 20px;
+    padding: 10px;
+    background-color: rgba(156, 39, 176, 0.1); /* Light purple using haptic-color with transparency */
+    border-left: 3px solid var(--haptic-color);
+    border-radius: 5px;
+}
+
+.setting-description {
+    font-size: 0.9rem;
+    color: #666;
+    line-height: 1.4;
 }
 
 /* Achievement Notification */

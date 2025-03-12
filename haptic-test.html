@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BrailleBuddy - Haptic Feedback Test</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .test-section {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .test-item {
+            background-color: #f0f0f0;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .test-item:hover {
+            background-color: var(--accent-color);
+            color: white;
+            transform: translateY(-3px);
+        }
+        
+        .test-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .mode-button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            background-color: #f0f0f0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .mode-button.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .test-feedback {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            border-left: 3px solid var(--haptic-color);
+        }
+        
+        .intensity-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .intensity-control input {
+            flex: 1;
+        }
+        
+        .biological-info {
+            background-color: rgba(156, 39, 176, 0.1);
+            border-left: 3px solid var(--haptic-color);
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <header>
+            <h1>BrailleBuddy</h1>
+            <p class="tagline">Haptic Feedback Test</p>
+        </header>
+        
+        <div class="test-section">
+            <h2>Test Haptic Feedback Modes</h2>
+            <p>Select a haptic feedback mode below and then click on a letter or contraction to feel the pattern.</p>
+            
+            <div class="test-controls">
+                <button class="mode-button active" data-mode="standard">Standard</button>
+                <button class="mode-button" data-mode="rhythmic">Rhythmic</button>
+                <button class="mode-button" data-mode="frequency">Frequency</button>
+                <button class="mode-button" data-mode="biological">Biological</button>
+            </div>
+            
+            <div class="intensity-control">
+                <label for="test-intensity">Vibration Intensity:</label>
+                <input type="range" id="test-intensity" min="1" max="10" value="5">
+                <span id="intensity-value">5</span>
+            </div>
+            
+            <h3>Letters</h3>
+            <div class="test-grid" id="letter-grid">
+                <!-- Letters will be added here dynamically -->
+            </div>
+            
+            <h3>Contractions</h3>
+            <div class="test-grid" id="contraction-grid">
+                <!-- Contractions will be added here dynamically -->
+            </div>
+            
+            <div class="test-feedback">
+                <h3>Current Mode: <span id="current-mode">Standard</span></h3>
+                <p>Last tested: <span id="last-tested">None</span></p>
+            </div>
+            
+            <div class="biological-info">
+                <h3>About Biological Haptic Mode</h3>
+                <p>The Biological Contractions mode mimics the rhythmic patterns of physiological contractions, making braille contractions more intuitive to learn through haptic feedback.</p>
+                <p>This mode creates a wave-like pattern that builds up, peaks, and tapers off - similar to natural biological contractions. For braille contractions, it uses a series of three waves with increasing intensity to emphasize the contraction nature.</p>
+            </div>
+        </div>
+        
+        <footer>
+            <p>&copy; 2025 BrailleBuddy | Created with ❤️ by Elevate Foundry</p>
+        </footer>
+    </div>
+    
+    <script src="js/haptic-feedback.js"></script>
+    <script src="js/braille-contractions.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Braille alphabet
+            const brailleAlphabet = {
+                'a': [1, 0, 0, 0, 0, 0],
+                'b': [1, 1, 0, 0, 0, 0],
+                'c': [1, 0, 0, 1, 0, 0],
+                'd': [1, 0, 0, 1, 1, 0],
+                'e': [1, 0, 0, 0, 1, 0],
+                'f': [1, 1, 0, 1, 0, 0],
+                'g': [1, 1, 0, 1, 1, 0],
+                'h': [1, 1, 0, 0, 1, 0],
+                'i': [0, 1, 0, 1, 0, 0],
+                'j': [0, 1, 0, 1, 1, 0]
+            };
+            
+            // Common contractions to test
+            const contractions = ['th', 'ch', 'sh', 'wh', 'ou', 'and', 'for', 'of', 'the', 'with'];
+            
+            // DOM elements
+            const letterGrid = document.getElementById('letter-grid');
+            const contractionGrid = document.getElementById('contraction-grid');
+            const modeButtons = document.querySelectorAll('.mode-button');
+            const currentModeDisplay = document.getElementById('current-mode');
+            const lastTestedDisplay = document.getElementById('last-tested');
+            const intensitySlider = document.getElementById('test-intensity');
+            const intensityValue = document.getElementById('intensity-value');
+            
+            // Current haptic mode
+            let currentMode = 'standard';
+            
+            // Populate letter grid
+            for (const letter in brailleAlphabet) {
+                const letterElement = document.createElement('div');
+                letterElement.className = 'test-item';
+                letterElement.textContent = letter.toUpperCase();
+                letterElement.setAttribute('data-letter', letter);
+                
+                letterElement.addEventListener('click', function() {
+                    const letter = this.getAttribute('data-letter');
+                    testHapticFeedback(letter);
+                });
+                
+                letterGrid.appendChild(letterElement);
+            }
+            
+            // Populate contraction grid
+            for (const contraction of contractions) {
+                // Check if contraction is available in our module
+                if (window.brailleContractions && window.brailleContractions.isContraction(contraction)) {
+                    const contractionElement = document.createElement('div');
+                    contractionElement.className = 'test-item';
+                    contractionElement.textContent = contraction;
+                    contractionElement.setAttribute('data-contraction', contraction);
+                    
+                    contractionElement.addEventListener('click', function() {
+                        const contraction = this.getAttribute('data-contraction');
+                        testHapticFeedback(contraction);
+                    });
+                    
+                    contractionGrid.appendChild(contractionElement);
+                }
+            }
+            
+            // Mode button click handlers
+            modeButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Update active button
+                    modeButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Set current mode
+                    currentMode = this.getAttribute('data-mode');
+                    currentModeDisplay.textContent = currentMode.charAt(0).toUpperCase() + currentMode.slice(1);
+                    
+                    // Update haptic feedback mode
+                    if (window.hapticFeedback) {
+                        window.hapticFeedback.setMode(currentMode);
+                    }
+                });
+            });
+            
+            // Intensity slider handler
+            intensitySlider.addEventListener('input', function() {
+                intensityValue.textContent = this.value;
+                
+                // Update haptic feedback intensity
+                if (window.hapticFeedback) {
+                    window.hapticFeedback.setIntensity(parseInt(this.value, 10));
+                }
+            });
+            
+            // Test haptic feedback
+            function testHapticFeedback(character) {
+                if (window.hapticFeedback) {
+                    window.hapticFeedback.provideFeedback(character);
+                    lastTestedDisplay.textContent = character;
+                } else {
+                    console.error('Haptic feedback module not available');
+                    lastTestedDisplay.textContent = 'Error: Haptic feedback not available';
+                }
+            }
+        });
+    </script>
+</body>
+</html>
