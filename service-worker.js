@@ -64,6 +64,13 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   console.log('[ServiceWorker] Fetch', event.request.url);
   
+  // Handle missing screenshot images gracefully
+  if (event.request.url.includes('screenshot1.png') || 
+      event.request.url.includes('screenshot2.png')) {
+    console.log('[ServiceWorker] Ignoring request for missing screenshot:', event.request.url);
+    return;
+  }
+  
   // Skip cross-origin requests
   if (event.request.mode === 'navigate') {
     event.respondWith(
