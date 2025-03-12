@@ -25,7 +25,11 @@
     
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
-    <link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.svg">
+    
+    <!-- PWA Support -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4a6fa5">
     
     <!-- Stylesheets -->
     <link rel="stylesheet" href="css/styles.css">
@@ -298,5 +302,32 @@
     <script src="js/braille-contractions.js"></script>
     <script src="js/contractions-handler.js"></script>
     <script src="js/script.js"></script>
+    <script src="js/service-worker-registration.js"></script>
+    <script src="js/url-handler.js"></script>
+    
+    <!-- Offline mode notification -->
+    <div id="offline-notification" class="offline-notification">
+        <div class="offline-content">
+            <p>You are currently offline. Some features may be limited.</p>
+        </div>
+    </div>
+    
+    <script>
+        // Check if the user is offline and show notification
+        function updateOnlineStatus() {
+            const offlineNotification = document.getElementById('offline-notification');
+            if (!navigator.onLine) {
+                offlineNotification.classList.add('show');
+            } else {
+                offlineNotification.classList.remove('show');
+            }
+        }
+
+        window.addEventListener('online', updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
+        
+        // Initial check
+        updateOnlineStatus();
+    </script>
 </body>
 </html>

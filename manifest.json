@@ -1,0 +1,68 @@
+{
+  "name": "BrailleBuddy",
+  "short_name": "BrailleBuddy",
+  "description": "Learn braille through play with haptic feedback and interactive games",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#4a6fa5",
+  "theme_color": "#4a6fa5",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "images/favicon.svg",
+      "sizes": "32x32",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "images/apple-touch-icon.svg",
+      "sizes": "180x180",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "images/pwa-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "images/pwa-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "images/screenshot1.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "BrailleBuddy Learn Mode"
+    },
+    {
+      "src": "images/screenshot2.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "BrailleBuddy Practice Mode"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Learn Braille",
+      "url": "/index.html?section=learn",
+      "description": "Start learning braille characters"
+    },
+    {
+      "name": "Practice Mode",
+      "url": "/index.html?section=practice",
+      "description": "Practice identifying braille characters"
+    },
+    {
+      "name": "Play Games",
+      "url": "/index.html?section=games",
+      "description": "Play braille learning games"
+    }
+  ],
+  "categories": ["education", "kids", "accessibility"],
+  "lang": "en-US",
+  "dir": "ltr"
+}
