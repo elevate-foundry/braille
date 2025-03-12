@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "BBID MCP Schema",
-  "description": "Model Context Protocol schema for BrailleBuddy Identity (BBID)",
+  "description": "Model Context Protocol schema for BrailleBuddy Identity (BBID) with universal braille accessibility support",
   "type": "object",
   "required": ["entity", "version", "id", "metadata", "fingerprint"],
   "properties": {
@@ -39,12 +39,12 @@
         },
         "type": {
           "type": "string",
-          "enum": ["desktop", "laptop", "tablet", "phone", "other"],
+          "enum": ["desktop", "laptop", "tablet", "phone", "wearable", "braille-display", "other"],
           "description": "Type of device"
         },
         "os": {
           "type": "string",
-          "enum": ["windows", "macos", "linux", "ios", "android", "other"],
+          "enum": ["windows", "macos", "linux", "ios", "android", "chromeos", "other"],
           "description": "Operating system of the device"
         },
         "userAgent": {
@@ -54,6 +54,32 @@
         "publicKey": {
           "type": "string",
           "description": "Base64-encoded public key for identity verification"
+        },
+        "language": {
+          "type": "object",
+          "description": "Language settings for this device",
+          "properties": {
+            "primary": {
+              "type": "string",
+              "description": "Primary language code (BCP 47 format, e.g., 'en-US', 'fr-FR')"
+            },
+            "secondary": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Secondary language codes in order of preference"
+            },
+            "brailleCode": {
+              "type": "string",
+              "enum": [
+                "ueb", "ebae", "nemeth", "french", "german", "spanish", "italian", 
+                "portuguese", "russian", "arabic", "chinese", "japanese", "korean", 
+                "vietnamese", "hindi", "bengali", "universal", "other"
+              ],
+              "description": "Preferred braille code for this device/user"
+            }
+          }
         }
       }
     },
@@ -71,13 +97,47 @@
         },
         "algorithm": {
           "type": "string",
-          "enum": ["sha256", "sha512", "blake2b", "argon2id"],
+          "enum": ["sha256", "sha512", "blake2b", "argon2id", "brailleFST"],
           "description": "Hashing algorithm used for the fingerprint"
         },
         "components": {
           "type": "object",
           "description": "Device-specific components used in fingerprinting",
           "additionalProperties": true
+        },
+        "hapticPatterns": {
+          "type": "object",
+          "description": "Haptic vibration patterns for this fingerprint",
+          "properties": {
+            "standard": {
+              "type": "array",
+              "items": {
+                "type": "integer"
+              },
+              "description": "Standard dot-by-dot vibration pattern"
+            },
+            "rhythmic": {
+              "type": "array",
+              "items": {
+                "type": "integer"
+              },
+              "description": "Rhythmic vibration pattern"
+            },
+            "frequency": {
+              "type": "array",
+              "items": {
+                "type": "integer"
+              },
+              "description": "Frequency-based vibration pattern"
+            },
+            "custom": {
+              "type": "array",
+              "items": {
+                "type": "integer"
+              },
+              "description": "Custom vibration pattern"
+            }
+          }
         }
       }
     },
@@ -107,6 +167,13 @@
             "neural": {
               "type": "string",
               "description": "Neural-compressed braille representation"
+            },
+            "multilingual": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              },
+              "description": "Braille representations in different language codes (key is BCP 47 language code)"
             }
           }
         },
@@ -135,6 +202,25 @@
               "type": "integer",
               "minimum": 0,
               "description": "Number of completed learning sessions"
+            },
+            "languageSpecific": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "properties": {
+                  "level": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 5
+                  },
+                  "accuracy": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  }
+                }
+              },
+              "description": "Language-specific learning progress (key is BCP 47 language code)"
             }
           }
         }
@@ -164,6 +250,130 @@
             "type": "string"
           },
           "description": "Features or capabilities used on this device"
+        },
+        "mcpCompatible": {
+          "type": "boolean",
+          "description": "Whether this device supports Model Context Protocol"
+        },
+        "brailleCapabilities": {
+          "type": "object",
+          "properties": {
+            "input": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": ["six-key", "eight-key", "display", "touch", "camera", "none"]
+              },
+              "description": "Braille input capabilities of this device"
+            },
+            "output": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": ["display", "haptic", "audio", "none"]
+              },
+              "description": "Braille output capabilities of this device"
+            },
+            "supportedCodes": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Braille codes supported by this device"
+            }
+          }
+        }
+      }
+    },
+    "preferences": {
+      "type": "object",
+      "description": "User preferences for this device",
+      "properties": {
+        "hapticFeedback": {
+          "type": "boolean",
+          "description": "Whether haptic feedback is enabled"
+        },
+        "voiceAssistant": {
+          "type": "boolean",
+          "description": "Whether voice assistant is enabled"
+        },
+        "theme": {
+          "type": "string",
+          "enum": ["light", "dark", "system", "high-contrast"],
+          "description": "UI theme preference"
+        },
+        "accessibility": {
+          "type": "object",
+          "properties": {
+            "highContrast": {
+              "type": "boolean",
+              "description": "High contrast mode"
+            },
+            "largeText": {
+              "type": "boolean",
+              "description": "Large text mode"
+            },
+            "screenReader": {
+              "type": "boolean",
+              "description": "Screen reader compatibility mode"
+            },
+            "brailleDisplay": {
+              "type": "boolean",
+              "description": "Braille display compatibility mode"
+            },
+            "reduceMotion": {
+              "type": "boolean",
+              "description": "Reduce motion in UI animations"
+            }
+          }
+        },
+        "braillePreferences": {
+          "type": "object",
+          "properties": {
+            "primaryCode": {
+              "type": "string",
+              "description": "Primary braille code preference"
+            },
+            "contractionLevel": {
+              "type": "string",
+              "enum": ["uncontracted", "grade1", "grade2", "grade3", "neural"],
+              "description": "Preferred contraction level"
+            },
+            "displayDots": {
+              "type": "integer",
+              "enum": [6, 8],
+              "description": "Number of dots in braille display (6 or 8)"
+            },
+            "inputMethod": {
+              "type": "string",
+              "enum": ["six-key", "eight-key", "touch", "qwerty", "custom"],
+              "description": "Preferred braille input method"
+            }
+          }
+        },
+        "languagePreferences": {
+          "type": "object",
+          "properties": {
+            "primaryLanguage": {
+              "type": "string",
+              "description": "Primary language code (BCP 47)"
+            },
+            "secondaryLanguages": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Secondary language codes in order of preference"
+            },
+            "translationEnabled": {
+              "type": "boolean",
+              "description": "Whether automatic translation is enabled"
+            },
+            "voiceLanguage": {
+              "type": "string",
+              "description": "Preferred language for voice assistant"
+            }
+          }
         }
       }
     },
@@ -190,6 +400,160 @@
             "type": "string"
           },
           "description": "Entities allowed to share this BBID"
+        },
+        "dataSharing": {
+          "type": "object",
+          "properties": {
+            "analytics": {
+              "type": "boolean",
+              "description": "Whether analytics data can be collected"
+            },
+            "research": {
+              "type": "boolean",
+              "description": "Whether data can be used for research purposes"
+            },
+            "thirdParty": {
+              "type": "boolean",
+              "description": "Whether data can be shared with third parties"
+            },
+            "personalIdentifiers": {
+              "type": "boolean",
+              "description": "Whether personal identifiers can be shared"
+            }
+          }
+        }
+      }
+    },
+    "brailleFST": {
+      "type": "object",
+      "description": "BrailleFST (Finite State Transducer) configuration for this device",
+      "properties": {
+        "version": {
+          "type": "string",
+          "description": "Version of the BrailleFST implementation"
+        },
+        "supportedLanguages": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Languages supported by this BrailleFST implementation"
+        },
+        "compressionRatio": {
+          "type": "number",
+          "description": "Average compression ratio achieved by BrailleFST"
+        },
+        "customRules": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "pattern": {
+                "type": "string"
+              },
+              "replacement": {
+                "type": "string"
+              },
+              "context": {
+                "type": "string",
+                "enum": ["global", "word-initial", "word-medial", "word-final"]
+              },
+              "language": {
+                "type": "string"
+              }
+            }
+          },
+          "description": "Custom transduction rules for this device"
+        }
+      }
+    },
+    "brailleAE": {
+      "type": "object",
+      "description": "BrailleAE (Autoencoder) configuration for neural compression",
+      "properties": {
+        "version": {
+          "type": "string",
+          "description": "Version of the BrailleAE implementation"
+        },
+        "modelSize": {
+          "type": "string",
+          "enum": ["tiny", "small", "medium", "large"],
+          "description": "Size of the neural model"
+        },
+        "compressionRatio": {
+          "type": "number",
+          "description": "Average compression ratio achieved by BrailleAE"
+        },
+        "supportedLanguages": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Languages supported by this BrailleAE implementation"
+        },
+        "lastUpdated": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the neural model was last updated"
+        }
+      }
+    },
+    "hapticBBES": {
+      "type": "object",
+      "description": "HapticBBES configuration for haptic feedback optimization",
+      "properties": {
+        "version": {
+          "type": "string",
+          "description": "Version of the HapticBBES implementation"
+        },
+        "deviceCapabilities": {
+          "type": "object",
+          "properties": {
+            "intensityLevels": {
+              "type": "integer",
+              "description": "Number of vibration intensity levels supported"
+            },
+            "patternComplexity": {
+              "type": "string",
+              "enum": ["basic", "standard", "advanced"],
+              "description": "Complexity of vibration patterns supported"
+            },
+            "multiPoint": {
+              "type": "boolean",
+              "description": "Whether multi-point haptic feedback is supported"
+            }
+          }
+        },
+        "patterns": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "description": "Named haptic patterns for this device"
+        },
+        "userCalibration": {
+          "type": "object",
+          "properties": {
+            "sensitivity": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "description": "User's haptic sensitivity calibration (0-1)"
+            },
+            "preferredIntensity": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "description": "User's preferred haptic intensity (0-1)"
+            },
+            "preferredDuration": {
+              "type": "integer",
+              "description": "User's preferred haptic duration in milliseconds"
+            }
+          }
         }
       }
     }

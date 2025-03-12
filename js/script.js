@@ -311,14 +311,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 const currentAlphabet = getBrailleAlphabet();
                 const numberSignPattern = currentAlphabet['#'];
                 if (numberSignPattern) {
-                    const numberSignDots = document.querySelectorAll('#number-sign-container .dot');
-                    numberSignDots.forEach((dot, index) => {
-                        if (numberSignPattern[index] === 1) {
-                            dot.classList.add('active');
-                        } else {
-                            dot.classList.remove('active');
-                        }
-                    });
+                    // Make sure we're activating the correct dots for the number sign
+                    // The number sign pattern is [0, 0, 1, 1, 1, 1] (dots 3, 4, 5, 6)
+                    document.getElementById('number-sign-dot1').classList.remove('active');
+                    document.getElementById('number-sign-dot2').classList.remove('active');
+                    document.getElementById('number-sign-dot3').classList.add('active');
+                    document.getElementById('number-sign-dot4').classList.add('active');
+                    document.getElementById('number-sign-dot5').classList.add('active');
+                    document.getElementById('number-sign-dot6').classList.add('active');
                 }
             }
         } else {

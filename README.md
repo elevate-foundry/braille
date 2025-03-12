@@ -32,8 +32,10 @@ Try BrailleBuddy now: [https://braillebuddy.vercel.app/](https://braillebuddy.ve
 ### Local Development
 
 1. Clone this repository
-2. Open `index.html` in your web browser
-3. Start exploring and learning braille!
+2. Run the setup script: `./setup.sh`
+3. Start the local server: `python -m http.server 8000`
+4. Open `http://localhost:8000` in your web browser
+5. Start exploring and learning braille!
 
 ## Technical Details
 
@@ -44,8 +46,21 @@ BrailleBuddy is built using:
 - Web Vibration API for haptic feedback
 - Web Bluetooth API for hardware integration
 - BrailleCore technology stack
+- BBID MCP (Model Context Protocol) for universal braille accessibility
 
 ### Core Technologies
+
+#### BBID MCP Schema
+
+The BrailleBuddy Identity (BBID) Model Context Protocol schema provides a standardized, portable identity system that works across devices while preserving privacy:
+
+- **Universal Braille Support**: Beyond just English/UEB, supporting multiple braille codes worldwide
+- **Multilingual Capabilities**: Language-specific braille representations and learning progress tracking
+- **Privacy-Preserving Fingerprinting**: Secure identity recognition using braille-encoded fingerprints
+- **Cross-Device Synchronization**: MCP-compatible API for seamless experience across devices
+- **BrailleCore Integration**: Full support for BrailleFST, BrailleAE, and HapticBBES components
+- **Haptic Optimization**: Enhanced haptic pattern support with multiple pattern types
+- **Device Capabilities**: Support for various braille input/output methods (six-key, eight-key, display)
 
 #### BrailleCore
 
