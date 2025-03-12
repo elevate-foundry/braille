@@ -145,6 +145,7 @@
             <div class="button-row">
                 <button class="button" id="start-demo-button">Start Interactive Demo</button>
                 <button class="button secondary" id="learn-more-button">Learn More About Braille</button>
+                <button class="button" id="bzp-demo-button">Try BZip Compression</button>
             </div>
         </div>
         
@@ -170,6 +171,14 @@
                 <p>
                     Our haptic engine takes compression further by encoding words as
                     unique vibration patterns inspired by biological rhythms.
+                </p>
+            </div>
+            
+            <div class="fact-card">
+                <h3>BZip: True Compression</h3>
+                <p>
+                    We've developed BZip, a true file compression format based on Braille's 6-bit encoding,
+                    achieving up to 30-50% smaller file sizes for text documents.
                 </p>
             </div>
         </div>
@@ -206,6 +215,15 @@
             if (learnMoreButton) {
                 learnMoreButton.addEventListener('click', function() {
                     alert('Braille was invented by Louis Braille in 1824. It revolutionized reading and writing for blind people by creating a tactile system that could be read with fingertips.');
+                });
+            }
+            
+            // BZip demo button
+            const bzpDemoButton = document.getElementById('bzp-demo-button');
+            if (bzpDemoButton) {
+                bzpDemoButton.addEventListener('click', function() {
+                    // Open the BZip demo in a new tab
+                    window.open('bzip-demo.html', '_blank');
                 });
             }
         });

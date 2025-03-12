@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BZip - Braille-Based File Compression</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+        }
+        
+        header {
+            background-color: #3498db;
+            color: white;
+            padding: 1rem 0;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+        }
+        
+        .subtitle {
+            font-style: italic;
+            margin-top: 0.5rem;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .intro {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+        }
+        
+        .intro h2 {
+            color: #2c3e50;
+            margin-top: 0;
+        }
+        
+        .intro p {
+            font-size: 1.1rem;
+        }
+        
+        .highlight {
+            background-color: #f1c40f;
+            padding: 0 5px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        
+        .demo-section {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+        }
+        
+        .demo-section h2 {
+            color: #2c3e50;
+            margin-top: 0;
+        }
+        
+        .input-section {
+            margin-bottom: 2rem;
+        }
+        
+        textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .button-row {
+            display: flex;
+            gap: 1rem;
+            margin: 1.5rem 0;
+            flex-wrap: wrap;
+        }
+        
+        .button {
+            display: inline-block;
+            background-color: #3498db;
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background-color 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .button:hover {
+            background-color: #2980b9;
+        }
+        
+        .button.secondary {
+            background-color: #95a5a6;
+        }
+        
+        .button.secondary:hover {
+            background-color: #7f8c8d;
+        }
+        
+        .results-section {
+            margin-top: 2rem;
+        }
+        
+        .results-card {
+            background-color: #f8f9fa;
+            border-left: 5px solid #3498db;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border-radius: 4px;
+        }
+        
+        .results-title {
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            color: #2c3e50;
+        }
+        
+        .results-content {
+            font-family: monospace;
+            white-space: pre-wrap;
+            background-color: #f1f1f1;
+            padding: 1rem;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        
+        .compression-stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .stat-card {
+            flex: 1 1 200px;
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #3498db;
+            margin: 0.5rem 0;
+        }
+        
+        .stat-label {
+            font-size: 1rem;
+            color: #7f8c8d;
+        }
+        
+        .comparison-chart {
+            height: 300px;
+            margin: 2rem 0;
+            position: relative;
+        }
+        
+        .chart-bar {
+            position: absolute;
+            bottom: 0;
+            width: 80px;
+            background-color: #3498db;
+            border-radius: 4px 4px 0 0;
+            transition: height 1s ease-in-out;
+        }
+        
+        .chart-bar:nth-child(2) {
+            background-color: #e74c3c;
+            left: 100px;
+        }
+        
+        .chart-bar:nth-child(3) {
+            background-color: #2ecc71;
+            left: 200px;
+        }
+        
+        .chart-bar:nth-child(4) {
+            background-color: #f1c40f;
+            left: 300px;
+        }
+        
+        .chart-label {
+            position: absolute;
+            bottom: -30px;
+            text-align: center;
+            width: 80px;
+            font-size: 0.9rem;
+        }
+        
+        .chart-value {
+            position: absolute;
+            top: -25px;
+            width: 80px;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        footer {
+            background-color: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 1.5rem 0;
+            margin-top: 3rem;
+        }
+        
+        .binary-visualization {
+            font-family: monospace;
+            overflow-x: auto;
+            white-space: nowrap;
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            padding: 1rem;
+            border-radius: 4px;
+            margin: 1rem 0;
+        }
+        
+        .binary-bit {
+            display: inline-block;
+            width: 10px;
+            height: 20px;
+            text-align: center;
+            margin: 0 1px;
+        }
+        
+        .binary-bit.one {
+            color: #2ecc71;
+            font-weight: bold;
+        }
+        
+        .binary-bit.zero {
+            color: #7f8c8d;
+        }
+        
+        .binary-byte {
+            display: inline-block;
+            margin: 0 5px;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .button-row {
+                flex-direction: column;
+            }
+            
+            .button {
+                width: 100%;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>BZip</h1>
+        <div class="subtitle">Braille-Based File Compression</div>
+    </header>
+    
+    <div class="container">
+        <div class="intro">
+            <h2>The World's First Braille-Based Compression Format</h2>
+            <p>
+                BZip is an experimental file compression format that leverages the efficiency of Braille's 
+                <span class="highlight">6-bit encoding</span> and <span class="highlight">contraction system</span>
+                to compress text more efficiently than traditional methods.
+            </p>
+            <p>
+                Unlike storing Braille as Unicode characters (which actually increases file size), BZip stores Braille
+                patterns directly as 6-bit binary values, achieving compression rates that can outperform
+                standard compression algorithms for certain types of text.
+            </p>
+            
+            <div class="button-row">
+                <button class="button" id="run-demo-button">Run Compression Demo</button>
+                <button class="button secondary" id="back-to-app-button">Back to BrailleBuddy</button>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2>Compression Demo</h2>
+            <div class="input-section">
+                <label for="input-text">Enter text to compress:</label>
+                <textarea id="input-text" placeholder="Type or paste text here...">The quick brown fox jumps over the lazy dog. Braille is a tactile writing system used by people who are blind or visually impaired. It was invented by Louis Braille in 1824, who was blind himself. Each braille character or "cell" is made up of 6 dots arranged in a 2×3 grid. By raising different combinations of these dots, different letters, numbers, and symbols can be represented.</textarea>
+                
+                <div class="button-row">
+                    <button class="button" id="compress-button">Compress Text</button>
+                    <button class="button secondary" id="reset-button">Reset</button>
+                    <button class="button" id="download-bzp-button">Download as .bzp</button>
+                </div>
+            </div>
+            
+            <div class="results-section" id="results-section" style="display: none;">
+                <h3>Compression Results</h3>
+                
+                <div class="compression-stats">
+                    <div class="stat-card">
+                        <div class="stat-label">Original Size</div>
+                        <div class="stat-value" id="original-size">0</div>
+                        <div class="stat-label">bytes</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-label">BZip Size</div>
+                        <div class="stat-value" id="bzp-size">0</div>
+                        <div class="stat-label">bytes</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-label">Compression Ratio</div>
+                        <div class="stat-value" id="compression-ratio">0%</div>
+                        <div class="stat-label">smaller</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-label">Contractions Used</div>
+                        <div class="stat-value" id="contractions-used">0</div>
+                        <div class="stat-label">replacements</div>
+                    </div>
+                </div>
+                
+                <h3>Compression Comparison</h3>
+                <div class="comparison-chart" id="comparison-chart">
+                    <div class="chart-bar" style="left: 0; height: 0%;">
+                        <div class="chart-value">0 B</div>
+                        <div class="chart-label">ASCII</div>
+                    </div>
+                    <div class="chart-bar" style="left: 100px; height: 0%;">
+                        <div class="chart-value">0 B</div>
+                        <div class="chart-label">UTF-8</div>
+                    </div>
+                    <div class="chart-bar" style="left: 200px; height: 0%;">
+                        <div class="chart-value">0 B</div>
+                        <div class="chart-label">BZip</div>
+                    </div>
+                    <div class="chart-bar" style="left: 300px; height: 0%;">
+                        <div class="chart-value">0 B</div>
+                        <div class="chart-label">Gzip</div>
+                    </div>
+                </div>
+                
+                <h3>Compressed Text Representation</h3>
+                <div class="results-card">
+                    <div class="results-title">Braille Representation</div>
+                    <div class="results-content" id="braille-output"></div>
+                </div>
+                
+                <h3>Binary Representation (6-bit encoding)</h3>
+                <div class="binary-visualization" id="binary-visualization">
+                    <!-- Binary visualization will be generated here -->
+                </div>
+                
+                <h3>Decompressed Text</h3>
+                <div class="results-card">
+                    <div class="results-title">Decompressed Output</div>
+                    <div class="results-content" id="decompressed-output"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2>How BZip Works</h2>
+            <p>BZip uses a two-stage compression process:</p>
+            
+            <ol>
+                <li>
+                    <strong>Linguistic Compression:</strong> Text is compressed using Grade 2 Braille contractions,
+                    where common words and letter combinations are replaced with single Braille cells.
+                </li>
+                <li>
+                    <strong>Binary Encoding:</strong> Each Braille cell is stored as a 6-bit binary value instead of
+                    a full Unicode character or ASCII byte, reducing storage requirements by 25% compared to ASCII.
+                </li>
+            </ol>
+            
+            <p>
+                For example, the word "the" becomes a single Braille cell (⠮), which is then encoded as the 6-bit
+                binary value <code>101110</code> instead of three separate ASCII bytes.
+            </p>
+            
+            <p>
+                This approach is particularly effective for natural language text, where common words and patterns
+                can be efficiently compressed using Braille's contraction system.
+            </p>
+            
+            <h3>Future Enhancements</h3>
+            <p>
+                Future versions of BZip could incorporate AI-driven optimization to create custom contractions
+                based on the specific text being compressed, potentially achieving even higher compression rates.
+            </p>
+        </div>
+    </div>
+    
+    <footer>
+        <p>BZip - Part of the BrailleBuddy Project | Created with ❤️ by Elevate Foundry</p>
+    </footer>
+    
+    <!-- Load scripts -->
+    <script src="src/hapticEngine.js"></script>
+    <script src="src/brailleLanguageManager.js"></script>
+    <script src="src/brailleCompression.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize UI elements
+            const inputText = document.getElementById('input-text');
+            const compressButton = document.getElementById('compress-button');
+            const resetButton = document.getElementById('reset-button');
+            const downloadButton = document.getElementById('download-bzp-button');
+            const resultsSection = document.getElementById('results-section');
+            const brailleOutput = document.getElementById('braille-output');
+            const decompressedOutput = document.getElementById('decompressed-output');
+            const binaryVisualization = document.getElementById('binary-visualization');
+            const backToAppButton = document.getElementById('back-to-app-button');
+            const runDemoButton = document.getElementById('run-demo-button');
+            
+            // Stats elements
+            const originalSizeEl = document.getElementById('original-size');
+            const bzpSizeEl = document.getElementById('bzp-size');
+            const compressionRatioEl = document.getElementById('compression-ratio');
+            const contractionsUsedEl = document.getElementById('contractions-used');
+            
+            // Chart elements
+            const chartBars = document.querySelectorAll('.chart-bar');
+            const chartValues = document.querySelectorAll('.chart-value');
+            
+            // Make sure brailleCompression is initialized
+            if (!window.brailleCompression) {
+                window.brailleCompression = new BrailleCompression();
+            }
+            
+            // Compress button click handler
+            compressButton.addEventListener('click', function() {
+                const text = inputText.value;
+                
+                if (!text) {
+                    alert('Please enter some text to compress');
+                    return;
+                }
+                
+                // Analyze compression
+                const stats = window.brailleCompression.analyzeCompression(text);
+                
+                // Update stats display
+                originalSizeEl.textContent = stats.asciiSize;
+                bzpSizeEl.textContent = stats.binaryBrailleSize;
+                compressionRatioEl.textContent = Math.round(stats.savingsPercent.binaryBraille) + '%';
+                
+                // Get compression results
+                const compressionResult = window.brailleCompression.compress(text);
+                contractionsUsedEl.textContent = compressionResult.replacements;
+                
+                // Update output displays
+                brailleOutput.textContent = compressionResult.compressed;
+                decompressedOutput.textContent = window.brailleCompression.decompress(compressionResult.compressed);
+                
+                // Generate binary visualization
+                generateBinaryVisualization(window.brailleCompression.toBinary(text));
+                
+                // Update chart
+                updateCompressionChart(stats);
+                
+                // Show results section
+                resultsSection.style.display = 'block';
+            });
+            
+            // Reset button click handler
+            resetButton.addEventListener('click', function() {
+                inputText.value = '';
+                resultsSection.style.display = 'none';
+            });
+            
+            // Download button click handler
+            downloadButton.addEventListener('click', function() {
+                const text = inputText.value;
+                
+                if (!text) {
+                    alert('Please enter some text to compress');
+                    return;
+                }
+                
+                // Create BZip file
+                window.brailleCompression.createBZipFile(text, 'compressed.bzp');
+            });
+            
+            // Back to app button click handler
+            backToAppButton.addEventListener('click', function() {
+                window.location.href = 'index.html';
+            });
+            
+            // Run demo button click handler
+            runDemoButton.addEventListener('click', function() {
+                // Scroll to demo section
+                document.querySelector('.demo-section').scrollIntoView({ behavior: 'smooth' });
+                
+                // Trigger compression
+                compressButton.click();
+            });
+            
+            // Generate binary visualization
+            function generateBinaryVisualization(binary) {
+                binaryVisualization.innerHTML = '';
+                
+                // Create a representation of the binary data
+                for (let i = 0; i < Math.min(binary.length, 20); i++) { // Limit to first 20 bytes
+                    const byte = binary[i];
+                    const byteEl = document.createElement('div');
+                    byteEl.className = 'binary-byte';
+                    
+                    // Convert byte to binary string
+                    const bits = byte.toString(2).padStart(8, '0');
+                    
+                    // Create elements for each bit
+                    for (let j = 0; j < 8; j++) {
+                        const bitEl = document.createElement('span');
+                        bitEl.className = 'binary-bit ' + (bits[j] === '1' ? 'one' : 'zero');
+                        bitEl.textContent = bits[j];
+                        byteEl.appendChild(bitEl);
+                    }
+                    
+                    binaryVisualization.appendChild(byteEl);
+                }
+                
+                // Add ellipsis if there are more bytes
+                if (binary.length > 20) {
+                    const ellipsis = document.createElement('span');
+                    ellipsis.textContent = ' ... ' + (binary.length - 20) + ' more bytes';
+                    binaryVisualization.appendChild(ellipsis);
+                }
+            }
+            
+            // Update compression chart
+            function updateCompressionChart(stats) {
+                // Calculate max size for scaling
+                const maxSize = Math.max(stats.asciiSize, stats.utf8Size, stats.binaryBrailleSize, stats.gzipEstimatedSize);
+                
+                // Update chart bars
+                const sizes = [stats.asciiSize, stats.utf8Size, stats.binaryBrailleSize, stats.gzipEstimatedSize];
+                const maxHeight = 250; // Maximum height in pixels
+                
+                for (let i = 0; i < chartBars.length; i++) {
+                    const height = (sizes[i] / maxSize) * maxHeight;
+                    chartBars[i].style.height = height + 'px';
+                    chartValues[i].textContent = sizes[i] + ' B';
+                }
+            }
+            
+            // Run demo automatically if URL has a parameter
+            if (window.location.search.includes('autorun')) {
+                setTimeout(function() {
+                    runDemoButton.click();
+                }, 500);
+            }
+        });
+    </script>
+</body>
+</html>
