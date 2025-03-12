@@ -1,0 +1,394 @@
+{
+  "processingTime": {
+    "al-fatiha": {
+      "traditional": 0.9180919999489561,
+      "motl": 1.3605150000657886,
+      "improvement": 0.6748121115199474
+    },
+    "al-baqarah": {
+      "traditional": 1.2451580000342801,
+      "motl": 1.084519000025466,
+      "improvement": 1.148120042161587
+    },
+    "al-imran": {
+      "traditional": 1.270898999995552,
+      "motl": 0.7370110000483692,
+      "improvement": 1.724396243627496
+    },
+    "an-nisa": {
+      "traditional": 0.4707090000156313,
+      "motl": 0.5336419999366626,
+      "improvement": 0.8820688777710511
+    },
+    "al-maida": {
+      "traditional": 0.46452300006058067,
+      "motl": 0.9510199999203905,
+      "improvement": 0.4884471410690266
+    },
+    "al-ikhlas": {
+      "traditional": 0.46709499997086823,
+      "motl": 0.595007999916561,
+      "improvement": 0.7850230585746238
+    },
+    "al-falaq": {
+      "traditional": 0.40796900005079806,
+      "motl": 0.4749569999985397,
+      "improvement": 0.8589598638446267
+    },
+    "an-nas": {
+      "traditional": 0.45889999996870756,
+      "motl": 0.6160639999434352,
+      "improvement": 0.7448901413016215
+    }
+  },
+  "compressionRatio": {
+    "al-fatiha": {
+      "traditional": 0.7708333333333334,
+      "motl": 6.2,
+      "improvement": 8.043243243243243
+    },
+    "al-baqarah": {
+      "traditional": 0.7777777777777778,
+      "motl": 6.266666666666667,
+      "improvement": 8.057142857142857
+    },
+    "al-imran": {
+      "traditional": 0.7731958762886598,
+      "motl": 6.222222222222222,
+      "improvement": 8.047407407407407
+    },
+    "an-nisa": {
+      "traditional": 0.7708333333333334,
+      "motl": 6.2,
+      "improvement": 8.043243243243243
+    },
+    "al-maida": {
+      "traditional": 0.7708333333333334,
+      "motl": 6.2,
+      "improvement": 8.043243243243243
+    },
+    "al-ikhlas": {
+      "traditional": 0.7684210526315789,
+      "motl": 6.177777777777778,
+      "improvement": 8.03957382039574
+    },
+    "al-falaq": {
+      "traditional": 0.7659574468085106,
+      "motl": 6.155555555555556,
+      "improvement": 8.03641975308642
+    },
+    "an-nas": {
+      "traditional": 0.7608695652173914,
+      "motl": 6.111111111111111,
+      "improvement": 8.03174603174603
+    }
+  },
+  "semanticDensity": {
+    "al-fatiha": {
+      "traditional": 76.8,
+      "motl": 1440,
+      "improvement": 18.75
+    },
+    "al-baqarah": {
+      "traditional": 79.2,
+      "motl": 1440,
+      "improvement": 18.18181818181818
+    },
+    "al-imran": {
+      "traditional": 77.6,
+      "motl": 1440,
+      "improvement": 18.556701030927837
+    },
+    "an-nisa": {
+      "traditional": 76.8,
+      "motl": 1440,
+      "improvement": 18.75
+    },
+    "al-maida": {
+      "traditional": 76.8,
+      "motl": 1440,
+      "improvement": 18.75
+    },
+    "al-ikhlas": {
+      "traditional": 76,
+      "motl": 1440,
+      "improvement": 18.94736842105263
+    },
+    "al-falaq": {
+      "traditional": 75.2,
+      "motl": 1440,
+      "improvement": 19.148936170212764
+    },
+    "an-nas": {
+      "traditional": 73.6,
+      "motl": 1440,
+      "improvement": 19.565217391304348
+    }
+  },
+  "theologicalConcepts": {
+    "al-fatiha": {
+      "conceptOccurrences": {
+        "tawhid": 0,
+        "risalah": 0,
+        "akhirah": 0,
+        "iman": 0,
+        "taqwa": 0,
+        "ibadah": 0,
+        "adl": 0,
+        "rahmah": 0
+      },
+      "conceptCooccurrences": {
+        "tawhid": {},
+        "risalah": {},
+        "akhirah": {},
+        "iman": {},
+        "taqwa": {},
+        "ibadah": {},
+        "adl": {},
+        "rahmah": {}
+      },
+      "conceptDistribution": {
+        "tawhid": 0,
+        "risalah": 0,
+        "akhirah": 0,
+        "iman": 0,
+        "taqwa": 0,
+        "ibadah": 0,
+        "adl": 0,
+        "rahmah": 0
+      },
+      "verseHighlights": []
+    },
+    "al-baqarah": {
+      "conceptOccurrences": {
+        "tawhid": 0,
+        "risalah": 0,
+        "akhirah": 0,
+        "iman": 0,
+        "taqwa": 0,
+        "ibadah": 0,
+        "adl": 0,
+        "rahmah": 0
+      },
+      "conceptCooccurrences": {
+        "tawhid": {},
+        "risalah": {},
+        "akhirah": {},
+        "iman": {},
+        "taqwa": {},
+        "ibadah": {},
+        "adl": {},
+        "rahmah": {}
+      },
+      "conceptDistribution": {
+        "tawhid": 0,
+        "risalah": 0,
+        "akhirah": 0,
+        "iman": 0,
+        "taqwa": 0,
+        "ibadah": 0,
+        "adl": 0,
+        "rahmah": 0
+      },
+      "verseHighlights": []
+    },
+    "al-imran": {
+      "conceptOccurrences": {
+        "tawhid": 0,
+        "risalah": 0,
+        "akhirah": 0,
+        "iman": 0,
+        "taqwa": 0,
+        "ibadah": 0,
+        "adl": 0,
+        "rahmah": 0
+      },
+      "conceptCooccurrences": {
+        "tawhid": {},
+        "risalah": {},
+        "akhirah": {},
+        "iman": {},
+        "taqwa": {},
+        "ibadah": {},
+        "adl": {},
+        "rahmah": {}
+      },
+      "conceptDistribution": {
+        "tawhid": 0,
+        "risalah": 0,
+        "akhirah": 0,
+        "iman": 0,
+        "taqwa": 0,
+        "ibadah": 0,
+        "adl": 0,
+        "rahmah": 0
+      },
+      "verseHighlights": []
+    },
+    "an-nisa": {
+      "conceptOccurrences": {
+        "tawhid": 0,
+        "risalah": 0,
+        "akhirah": 0,
+        "iman": 0,
+        "taqwa": 0,
+        "ibadah": 0,
+        "adl": 0,
+        "rahmah": 0
+      },
+      "conceptCooccurrences": {
+        "tawhid": {},
+        "risalah": {},
+        "akhirah": {},
+        "iman": {},
+        "taqwa": {},
+        "ibadah": {},
+        "adl": {},
+        "rahmah": {}
+      },
+      "conceptDistribution": {
+        "tawhid": 0,
+        "risalah": 0,
+        "akhirah": 0,
+        "iman": 0,
+        "taqwa": 0,
+        "ibadah": 0,
+        "adl": 0,
+        "rahmah": 0
+      },
+      "verseHighlights": []
+    },
+    "al-maida": {
+      "conceptOccurrences": {
+        "tawhid": 0,
+        "risalah": 0,
+        "akhirah": 0,
+        "iman": 0,
+        "taqwa": 0,
+        "ibadah": 0,
+        "adl": 0,
+        "rahmah": 0
+      },
+      "conceptCooccurrences": {
+        "tawhid": {},
+        "risalah": {},
+        "akhirah": {},
+        "iman": {},
+        "taqwa": {},
+        "ibadah": {},
+        "adl": {},
+        "rahmah": {}
+      },
+      "conceptDistribution": {
+        "tawhid": 0,
+        "risalah": 0,
+        "akhirah": 0,
+        "iman": 0,
+        "taqwa": 0,
+        "ibadah": 0,
+        "adl": 0,
+        "rahmah": 0
+      },
+      "verseHighlights": []
+    },
+    "al-ikhlas": {
+      "conceptOccurrences": {
+        "tawhid": 0,
+        "risalah": 0,
+        "akhirah": 0,
+        "iman": 0,
+        "taqwa": 0,
+        "ibadah": 0,
+        "adl": 0,
+        "rahmah": 0
+      },
+      "conceptCooccurrences": {
+        "tawhid": {},
+        "risalah": {},
+        "akhirah": {},
+        "iman": {},
+        "taqwa": {},
+        "ibadah": {},
+        "adl": {},
+        "rahmah": {}
+      },
+      "conceptDistribution": {
+        "tawhid": 0,
+        "risalah": 0,
+        "akhirah": 0,
+        "iman": 0,
+        "taqwa": 0,
+        "ibadah": 0,
+        "adl": 0,
+        "rahmah": 0
+      },
+      "verseHighlights": []
+    },
+    "al-falaq": {
+      "conceptOccurrences": {
+        "tawhid": 0,
+        "risalah": 0,
+        "akhirah": 0,
+        "iman": 0,
+        "taqwa": 0,
+        "ibadah": 0,
+        "adl": 0,
+        "rahmah": 0
+      },
+      "conceptCooccurrences": {
+        "tawhid": {},
+        "risalah": {},
+        "akhirah": {},
+        "iman": {},
+        "taqwa": {},
+        "ibadah": {},
+        "adl": {},
+        "rahmah": {}
+      },
+      "conceptDistribution": {
+        "tawhid": 0,
+        "risalah": 0,
+        "akhirah": 0,
+        "iman": 0,
+        "taqwa": 0,
+        "ibadah": 0,
+        "adl": 0,
+        "rahmah": 0
+      },
+      "verseHighlights": []
+    },
+    "an-nas": {
+      "conceptOccurrences": {
+        "tawhid": 0,
+        "risalah": 0,
+        "akhirah": 0,
+        "iman": 0,
+        "taqwa": 0,
+        "ibadah": 0,
+        "adl": 0,
+        "rahmah": 0
+      },
+      "conceptCooccurrences": {
+        "tawhid": {},
+        "risalah": {},
+        "akhirah": {},
+        "iman": {},
+        "taqwa": {},
+        "ibadah": {},
+        "adl": {},
+        "rahmah": {}
+      },
+      "conceptDistribution": {
+        "tawhid": 0,
+        "risalah": 0,
+        "akhirah": 0,
+        "iman": 0,
+        "taqwa": 0,
+        "ibadah": 0,
+        "adl": 0,
+        "rahmah": 0
+      },
+      "verseHighlights": []
+    }
+  }
+}

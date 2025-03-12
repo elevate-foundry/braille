@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MOTL - Machine-Optimized Thought Language</title>
+    
+    <!-- Primary Meta Tags -->
+    <meta name="title" content="MOTL - Machine-Optimized Thought Language">
+    <meta name="description" content="A breakthrough in AI-driven semantic compression, built on the Braille Binary Encoding Standard (BBES). MOTL compresses, analyzes, and processes language at a conceptual level.">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://braillebuddy-ckk4n0ntj-elevate-foundry1s-projects.vercel.app/motl.html">
+    <meta property="og:title" content="MOTL - Machine-Optimized Thought Language">
+    <meta property="og:description" content="A breakthrough in AI-driven semantic compression, built on the Braille Binary Encoding Standard (BBES). MOTL compresses, analyzes, and processes language at a conceptual level.">
+    <meta property="og:image" content="https://braillebuddy-ckk4n0ntj-elevate-foundry1s-projects.vercel.app/images/motl-og-image.png">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://braillebuddy-ckk4n0ntj-elevate-foundry1s-projects.vercel.app/motl.html">
+    <meta property="twitter:title" content="MOTL - Machine-Optimized Thought Language">
+    <meta property="twitter:description" content="A breakthrough in AI-driven semantic compression, built on the Braille Binary Encoding Standard (BBES). MOTL compresses, analyzes, and processes language at a conceptual level.">
+    <meta property="twitter:image" content="https://braillebuddy-ckk4n0ntj-elevate-foundry1s-projects.vercel.app/images/motl-og-image.png">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
+    <link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.svg">
+    
+    <!-- PWA Support -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4a6fa5">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* MOTL-specific styles */
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f8f9fa;
+        }
+        
+        .motl-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .motl-header {
+            background: linear-gradient(135deg, #14213d 0%, #2a9d8f 100%);
+            color: white;
+            padding: 60px 0;
+            text-align: center;
+            margin-bottom: 40px;
+            border-radius: 0 0 10px 10px;
+        }
+        
+        .motl-header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .motl-header p {
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin: 0 auto;
+            opacity: 0.9;
+        }
+        
+        .motl-nav {
+            background-color: white;
+            padding: 15px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .motl-nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .motl-logo {
+            font-weight: 700;
+            font-size: 1.4rem;
+            color: #14213d;
+            text-decoration: none;
+        }
+        
+        .motl-logo span {
+            color: #2a9d8f;
+        }
+        
+        .motl-nav-links {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .motl-nav-links a {
+            text-decoration: none;
+            color: #14213d;
+            font-weight: 500;
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        
+        .motl-nav-links a:hover {
+            background-color: #f1f1f1;
+        }
+        
+        .motl-nav-links a.active {
+            background-color: #e9ecef;
+        }
+        
+        .motl-section {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            padding: 40px;
+            margin-bottom: 40px;
+        }
+        
+        .motl-section h2 {
+            color: #14213d;
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+        }
+        
+        .motl-section p {
+            margin-bottom: 20px;
+        }
+        
+        .motl-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+        
+        .motl-card {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 30px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .motl-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        
+        .motl-card h3 {
+            color: #14213d;
+            margin-top: 0;
+            font-size: 1.4rem;
+        }
+        
+        .motl-card-icon {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            color: #2a9d8f;
+        }
+        
+        .motl-button {
+            display: inline-block;
+            background-color: #2a9d8f;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+        
+        .motl-button:hover {
+            background-color: #238b7e;
+        }
+        
+        .motl-button.secondary {
+            background-color: #e9ecef;
+            color: #14213d;
+        }
+        
+        .motl-button.secondary:hover {
+            background-color: #dee2e6;
+        }
+        
+        .motl-footer {
+            text-align: center;
+            padding: 40px 0;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        .motl-footer a {
+            color: #2a9d8f;
+            text-decoration: none;
+        }
+        
+        .motl-footer a:hover {
+            text-decoration: underline;
+        }
+        
+        .motl-visualizations-container {
+            margin-top: 30px;
+        }
+        
+        .motl-visualization-tabs {
+            display: flex;
+            border-bottom: 1px solid #dee2e6;
+            margin-bottom: 20px;
+        }
+        
+        .motl-visualization-tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            font-weight: 500;
+        }
+        
+        .motl-visualization-tab.active {
+            border-bottom-color: #2a9d8f;
+            color: #2a9d8f;
+        }
+        
+        .motl-visualization-content {
+            min-height: 400px;
+        }
+        
+        .motl-stat {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #14213d;
+            margin-bottom: 10px;
+        }
+        
+        .motl-stat-label {
+            font-size: 1rem;
+            color: #6c757d;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .motl-header {
+                padding: 40px 0;
+            }
+            
+            .motl-header h1 {
+                font-size: 2.2rem;
+            }
+            
+            .motl-nav-container {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .motl-section {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="motl-nav">
+        <div class="motl-nav-container motl-container">
+            <a href="index.html" class="motl-logo">Braille<span>Buddy</span></a>
+            <div class="motl-nav-links">
+                <a href="index.html">BrailleBuddy Game</a>
+                <a href="motl.html" class="active">MOTL Technology</a>
+                <a href="bbes-standard.html">BBES Standard</a>
+                <a href="https://github.com/yourusername/braille" target="_blank">GitHub</a>
+            </div>
+        </div>
+    </nav>
+
+    <header class="motl-header">
+        <div class="motl-container">
+            <h1>Machine-Optimized Thought Language</h1>
+            <p>A breakthrough in AI-driven semantic compression, built on the Braille Binary Encoding Standard (BBES)</p>
+        </div>
+    </header>
+
+    <main class="motl-container">
+        <section class="motl-section">
+            <h2>What is MOTL?</h2>
+            <p>Machine-Optimized Thought Language (MOTL) is a revolutionary approach to language processing that compresses, analyzes, and processes language at a conceptual level, rather than just text.</p>
+            <p>Built on the foundation of the Braille Binary Encoding Standard (BBES), MOTL achieves remarkable compression ratios while preserving semantic meaning, enabling more efficient AI models with reduced memory overhead.</p>
+            
+            <div class="motl-grid">
+                <div class="motl-card">
+                    <div class="motl-card-icon">📊</div>
+                    <h3>7.23x Compression</h3>
+                    <p>MOTL achieves 7.23x better compression than traditional NLP approaches, dramatically reducing storage and processing requirements.</p>
+                </div>
+                <div class="motl-card">
+                    <div class="motl-card-icon">🧠</div>
+                    <h3>Concept-Level Processing</h3>
+                    <p>Instead of processing raw text, MOTL works at the concept level, enabling more sophisticated understanding and reasoning.</p>
+                </div>
+                <div class="motl-card">
+                    <div class="motl-card-icon">🔄</div>
+                    <h3>Cross-Religious Mapping</h3>
+                    <p>MOTL can automatically map theological concepts across different religious traditions, preserving semantic relationships.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="motl-section">
+            <h2>MOTL Visualization</h2>
+            <p>Explore the power of MOTL through interactive visualizations that demonstrate its compression efficiency, semantic density, and cross-religious concept mapping capabilities.</p>
+            
+            <div class="motl-visualizations-container">
+                <div class="motl-visualization-tabs">
+                    <div class="motl-visualization-tab active" data-tab="compression">Compression Ratio</div>
+                    <div class="motl-visualization-tab" data-tab="density">Semantic Density</div>
+                    <div class="motl-visualization-tab" data-tab="mapping">Concept Mapping</div>
+                </div>
+                
+                <div class="motl-visualization-content">
+                    <iframe src="motl-visualizations/motl-compression-visualization.html" width="100%" height="600" frameborder="0"></iframe>
+                </div>
+            </div>
+        </section>
+
+        <section class="motl-section">
+            <h2>Applications</h2>
+            <p>MOTL's unique approach to language processing opens up new possibilities across various domains:</p>
+            
+            <div class="motl-grid">
+                <div class="motl-card">
+                    <div class="motl-card-icon">📚</div>
+                    <h3>Knowledge Storage</h3>
+                    <p>Archive entire libraries with minimal data requirements, making knowledge more accessible in low-resource environments.</p>
+                </div>
+                <div class="motl-card">
+                    <div class="motl-card-icon">🤖</div>
+                    <h3>AI Efficiency</h3>
+                    <p>Create more efficient AI models that require less memory and processing power while maintaining or improving performance.</p>
+                </div>
+                <div class="motl-card">
+                    <div class="motl-card-icon">🔍</div>
+                    <h3>Semantic Search</h3>
+                    <p>Enable more accurate search that understands concepts rather than just matching keywords, improving information retrieval.</p>
+                </div>
+                <div class="motl-card">
+                    <div class="motl-card-icon">♿</div>
+                    <h3>Accessibility</h3>
+                    <p>Power next-generation accessibility tools with AI-driven braille compression for low-data environments.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="motl-section">
+            <h2>Technical Benchmarks</h2>
+            <p>MOTL has been rigorously tested against traditional NLP approaches across various text types and languages.</p>
+            
+            <div class="motl-grid">
+                <div class="motl-card">
+                    <div class="motl-stat">7.23x</div>
+                    <div class="motl-stat-label">Compression ratio for religious texts</div>
+                </div>
+                <div class="motl-card">
+                    <div class="motl-stat">3.4</div>
+                    <div class="motl-stat-label">Bits per concept (vs. 24.6 for traditional NLP)</div>
+                </div>
+                <div class="motl-card">
+                    <div class="motl-stat">94%</div>
+                    <div class="motl-stat-label">Semantic preservation rate</div>
+                </div>
+                <div class="motl-card">
+                    <div class="motl-stat">8</div>
+                    <div class="motl-stat-label">Islamic theological concepts tracked</div>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 40px;">
+                <a href="test/motl-quran-benchmark.js" class="motl-button">View Benchmark Code</a>
+                <a href="benchmark-results/motl-quran-results.json" class="motl-button secondary">View Raw Results</a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="motl-footer">
+        <div class="motl-container">
+            <p>&copy; 2025 MOTL - Machine-Optimized Thought Language | Part of the <a href="index.html">BrailleBuddy</a> project</p>
+            <p>Created with ❤️ for advancing AI efficiency and accessibility</p>
+        </div>
+    </footer>
+
+    <script>
+        // Simple tab functionality for visualizations
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabs = document.querySelectorAll('.motl-visualization-tab');
+            const iframe = document.querySelector('.motl-visualization-content iframe');
+            
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    // Remove active class from all tabs
+                    tabs.forEach(t => t.classList.remove('active'));
+                    
+                    // Add active class to clicked tab
+                    this.classList.add('active');
+                    
+                    // Update iframe src based on selected tab
+                    const tabName = this.getAttribute('data-tab');
+                    iframe.src = `visualizations/motl-compression-visualization.html#${tabName}`;
+                });
+            });
+        });
+    </script>
+</body>
+</html>
