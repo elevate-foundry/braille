@@ -1,3 +1,6 @@
+// Global variable for braille grid
+let brailleGrid = null;
+
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize progress tracker and adaptive learning
     if (window.progressTracker) {
@@ -121,7 +124,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // DOM elements
     const navLinks = document.querySelectorAll('nav a');
     const sections = document.querySelectorAll('main section');
-    const brailleGrid = document.querySelector('.braille-grid');
+    // Set the brailleGrid reference
+    brailleGrid = document.querySelector('.braille-grid');
     const currentLetter = document.getElementById('current-letter');
     const letterDescription = document.getElementById('letter-description');
     const dots = Array.from({ length: 6 }, (_, i) => document.getElementById(`dot${i+1}`));
