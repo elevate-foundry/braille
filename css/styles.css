@@ -234,6 +234,11 @@ section h2 {
     height: 180px;
 }
 
+.braille-cell.large .dot {
+    width: 40px;
+    height: 40px;
+}
+
 .dot {
     width: 30px;
     height: 30px;
@@ -336,6 +341,35 @@ section h2 {
     text-align: center;
 }
 
+/* Practice Modes */
+.practice-modes {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.mode-button {
+    padding: 10px 20px;
+    background-color: #f0f0f0;
+    border: 2px solid transparent;
+    border-radius: 30px;
+    font-family: inherit;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.mode-button:hover {
+    background-color: #e0e0e0;
+}
+
+.mode-button.active {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
 .practice-prompt {
     margin-bottom: 30px;
 }
@@ -400,6 +434,121 @@ section h2 {
 }
 
 #next-practice:hover {
+    background-color: #ff8c5a;
+}
+
+/* Typing Mode */
+.hidden {
+    display: none;
+}
+
+.typing-target {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--primary-color);
+    background-color: #f0f0f0;
+    padding: 5px 15px;
+    border-radius: 10px;
+    margin: 0 5px;
+}
+
+.typing-instructions {
+    font-size: 0.9rem;
+    color: #666;
+    margin-top: 10px;
+    text-align: center;
+}
+
+.typing-cell .dot {
+    position: relative;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.typing-cell .dot::after {
+    content: attr(data-key);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 0.8rem;
+    font-weight: bold;
+    color: #666;
+    opacity: 0.7;
+}
+
+.typing-cell .dot:hover {
+    transform: scale(1.1);
+}
+
+.typing-cell .dot.active::after {
+    color: white;
+}
+
+.typing-controls {
+    display: flex;
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.typing-controls button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#submit-typing {
+    background-color: var(--accent-color);
+    color: white;
+}
+
+#submit-typing:hover {
+    background-color: #5a9ac9;
+}
+
+#clear-typing {
+    background-color: #f0f0f0;
+    color: #666;
+}
+
+#clear-typing:hover {
+    background-color: #e0e0e0;
+}
+
+.keyboard-button {
+    margin-top: 15px;
+    padding: 12px 25px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-family: inherit;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.keyboard-button:hover {
+    background-color: #3a5a85;
+}
+
+#next-typing {
+    padding: 10px 20px;
+    background-color: var(--secondary-color);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-bottom: 15px;
+}
+
+#next-typing:hover {
     background-color: #ff8c5a;
 }
 

@@ -122,7 +122,13 @@
             
             <section id="practice" class="hidden-section">
                 <h2>Practice Braille</h2>
-                <div class="practice-area">
+                <div class="practice-modes">
+                    <button class="mode-button active" data-mode="recognition">Recognition Mode</button>
+                    <button class="mode-button" data-mode="typing">Typing Mode</button>
+                </div>
+                
+                <!-- Recognition Mode (Original Practice Mode) -->
+                <div class="practice-area" id="recognition-mode">
                     <div class="practice-prompt">
                         <p>What letter is this?</p>
                         <div class="braille-cell large">
@@ -140,6 +146,29 @@
                     </div>
                     <div class="feedback" id="practice-feedback"></div>
                     <button id="next-practice">Next</button>
+                </div>
+                
+                <!-- Typing Mode (New Braille Keyboard Mode) -->
+                <div class="practice-area hidden" id="typing-mode">
+                    <div class="practice-prompt">
+                        <p>Type this letter in braille: <span id="typing-target" class="typing-target">A</span></p>
+                        <p class="typing-instructions">Use keys F, D, S (left hand) and J, K, L (right hand) to type braille dots.</p>
+                    </div>
+                    <div class="braille-cell large typing-cell">
+                        <div class="dot" id="typing-dot1" data-key="f">F</div>
+                        <div class="dot" id="typing-dot2" data-key="d">D</div>
+                        <div class="dot" id="typing-dot3" data-key="s">S</div>
+                        <div class="dot" id="typing-dot4" data-key="j">J</div>
+                        <div class="dot" id="typing-dot5" data-key="k">K</div>
+                        <div class="dot" id="typing-dot6" data-key="l">L</div>
+                    </div>
+                    <div class="typing-controls">
+                        <button id="submit-typing">Submit (Space)</button>
+                        <button id="clear-typing">Clear (Backspace)</button>
+                    </div>
+                    <div class="feedback" id="typing-feedback"></div>
+                    <button id="next-typing">Next</button>
+                    <button id="open-keyboard" class="keyboard-button">Open Braille Keyboard</button>
                 </div>
             </section>
             
@@ -304,6 +333,8 @@
     <script src="js/script.js"></script>
     <script src="js/service-worker-registration.js"></script>
     <script src="js/url-handler.js"></script>
+    <script src="js/braille-keyboard.js"></script>
+    <script src="js/braille-typing.js"></script>
     
     <!-- Offline mode notification -->
     <div id="offline-notification" class="offline-notification">
