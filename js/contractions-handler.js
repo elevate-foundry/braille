@@ -22,7 +22,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const contractionDots = Array.from({ length: 6 }, (_, i) => document.getElementById(`contraction-dot${i+1}`));
     
     // Current state
-    let activeGrade = '2'; // Default to Grade 2
     let activeCategory = 'two-letter'; // Default to two-letter contractions
     
     // Initialize contractions display
@@ -32,14 +31,6 @@ document.addEventListener('DOMContentLoaded', function() {
      * Initialize the contractions grid and event listeners
      */
     function initializeContractions() {
-        // Set up grade buttons
-        gradeButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const grade = this.getAttribute('data-grade');
-                setActiveGrade(grade);
-            });
-        });
-        
         // Set up category buttons
         categoryButtons.forEach(button => {
             button.addEventListener('click', function() {
@@ -52,25 +43,7 @@ document.addEventListener('DOMContentLoaded', function() {
         populateContractionsGrid();
     }
     
-    /**
-     * Set the active grade and update UI
-     * @param {string} grade - The grade to set active ('1' or '2')
-     */
-    function setActiveGrade(grade) {
-        activeGrade = grade;
-        
-        // Update button states
-        gradeButtons.forEach(button => {
-            if (button.getAttribute('data-grade') === grade) {
-                button.classList.add('active');
-            } else {
-                button.classList.remove('active');
-            }
-        });
-        
-        // Update grid
-        populateContractionsGrid();
-    }
+
     
     /**
      * Set the active category and update UI
@@ -99,25 +72,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Clear existing grid
         contractionsGrid.innerHTML = '';
         
-        // If Grade 1 is selected, show a message
-        if (activeGrade === '1') {
-            const message = document.createElement('div');
-            message.className = 'contractions-message';
-            message.innerHTML = `
-                <h3>Grade 1 Braille</h3>
-                <p>Grade 1 Braille is uncontracted, meaning each letter is represented by its own braille character.</p>
-                <p>To learn Grade 1 Braille, visit the <a href="#" data-section="learn">Learn</a> section.</p>
-            `;
-            contractionsGrid.appendChild(message);
-            
-            // Add click event to the link
-            message.querySelector('a').addEventListener('click', function(e) {
-                e.preventDefault();
-                document.querySelector('nav a[data-section="learn"]').click();
-            });
-            
-            return;
-        }
+
         
         // Get contractions based on category
         let contractions = [];
