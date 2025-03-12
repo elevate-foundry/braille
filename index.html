@@ -12,6 +12,13 @@
         <header>
             <h1>BrailleBuddy</h1>
             <p class="tagline">Learn Braille Through Play!</p>
+            <div id="user-profile" class="user-profile">
+                <button id="profile-button" class="profile-button">Set Your Name</button>
+                <div id="profile-info" class="profile-info hidden">
+                    <span id="user-display-name">Guest</span>
+                    <span id="streak-days" class="streak-badge" title="Your learning streak">0 days</span>
+                </div>
+            </div>
         </header>
         
         <nav>
@@ -114,6 +121,54 @@
         </footer>
     </div>
     
+    <!-- Achievement notification system -->
+    <div id="achievement-notification" class="achievement-notification">
+        <div class="achievement-content">
+            <h3>Achievement Unlocked!</h3>
+            <p id="achievement-name"></p>
+            <p id="achievement-description"></p>
+        </div>
+    </div>
+    
+    <!-- Settings modal -->
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>Settings</h2>
+            <div class="settings-form">
+                <div class="setting-group">
+                    <label for="username-input">Username:</label>
+                    <input type="text" id="username-input" placeholder="Enter your name">
+                </div>
+                <div class="setting-group">
+                    <label for="display-name-input">Display Name:</label>
+                    <input type="text" id="display-name-input" placeholder="How we should call you">
+                </div>
+                <div class="setting-group checkbox">
+                    <input type="checkbox" id="keyboard-input-setting">
+                    <label for="keyboard-input-setting">Enable Keyboard Input</label>
+                </div>
+                <div class="setting-group checkbox">
+                    <input type="checkbox" id="sound-effects-setting" checked>
+                    <label for="sound-effects-setting">Sound Effects</label>
+                </div>
+                <div class="setting-group checkbox">
+                    <input type="checkbox" id="high-contrast-setting">
+                    <label for="high-contrast-setting">High Contrast Mode</label>
+                </div>
+                <div class="setting-group checkbox">
+                    <input type="checkbox" id="adaptive-learning-setting" checked>
+                    <label for="adaptive-learning-setting">Adaptive Learning</label>
+                </div>
+                <button id="save-settings" class="save-settings-btn">Save Settings</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Load scripts -->
+    <script src="js/progress-tracker.js"></script>
+    <script src="js/keyboard-input.js"></script>
+    <script src="js/adaptive-learning.js"></script>
     <script src="js/script.js"></script>
 </body>
 </html>

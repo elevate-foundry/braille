@@ -1,4 +1,13 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize progress tracker and adaptive learning
+    if (window.progressTracker) {
+        // Update UI with user information
+        updateUserProfileUI();
+    }
+    
+    if (window.adaptiveLearning) {
+        adaptiveLearning.initialize();
+    }
     // Braille alphabet mapping
     const brailleAlphabet = {
         'a': [1, 0, 0, 0, 0, 0],
@@ -139,6 +148,12 @@ document.addEventListener('DOMContentLoaded', function() {
         // Update info
         currentLetter.textContent = letter.toUpperCase();
         letterDescription.textContent = letterDescriptions[letter.toLowerCase()];
+        
+        // Record that this letter has been learned
+        if (window.progressTracker) {
+            progressTracker.recordLetterLearned(letter);
+            checkForNewAchievements();
+        }
     }
 
     // Practice functionality
@@ -156,8 +171,25 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function generatePracticeLetter() {
-        const letters = Object.keys(brailleAlphabet);
-        currentPracticeLetter = letters[Math.floor(Math.random() * letters.length)];
+        // Use adaptive learning if available to get recommended letters
+        if (window.adaptiveLearning && window.progressTracker && 
+            progressTracker.userData.settings.adaptiveLearning) {
+            // Get a recommended letter to practice
+            const recommendedLetters = adaptiveLearning.getRecommendedPracticeSet();
+            if (recommendedLetters && recommendedLetters.length > 0) {
+                // Pick a random letter from the recommended set
+                currentPracticeLetter = recommendedLetters[Math.floor(Math.random() * recommendedLetters.length)];
+            } else {
+                // Fallback to random letter if no recommendations
+                const letters = Object.keys(brailleAlphabet);
+                currentPracticeLetter = letters[Math.floor(Math.random() * letters.length)];
+            }
+        } else {
+            // Default random selection
+            const letters = Object.keys(brailleAlphabet);
+            currentPracticeLetter = letters[Math.floor(Math.random() * letters.length)];
+        }
+        
         const pattern = brailleAlphabet[currentPracticeLetter];
         
         // Update practice dots
@@ -182,9 +214,20 @@ document.addEventListener('DOMContentLoaded', function() {
         if (userAnswer === currentPracticeLetter) {
             practiceFeedback.textContent = 'Correct! Great job!';
             practiceFeedback.className = 'feedback correct';
+            
+            // Record successful practice
+            if (window.progressTracker) {
+                progressTracker.recordPracticeAttempt(currentPracticeLetter, true);
+                checkForNewAchievements();
+            }
         } else {
             practiceFeedback.textContent = `Incorrect. This is the letter ${currentPracticeLetter.toUpperCase()}.`;
             practiceFeedback.className = 'feedback incorrect';
+            
+            // Record failed practice
+            if (window.progressTracker) {
+                progressTracker.recordPracticeAttempt(currentPracticeLetter, false);
+            }
         }
     }
 
@@ -251,4 +294,229 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Display first letter by default
     displayBrailleLetter('a');
+    
+    // Initialize keyboard input for practice mode
+    if (window.brailleKeyboard) {
+        const practiceDots = Array.from({ length: 6 }, (_, i) => document.getElementById(`practice-dot${i+1}`));
+        brailleKeyboard.initialize(practiceDots, function(letter, pattern) {
+            if (letter === currentPracticeLetter) {
+                practiceFeedback.textContent = 'Correct! Great job!';
+                practiceFeedback.className = 'feedback correct';
+                
+                // Record successful practice
+                if (window.progressTracker) {
+                    progressTracker.recordPracticeAttempt(letter, true);
+                    checkForNewAchievements();
+                }
+            } else {
+                practiceFeedback.textContent = `Incorrect. This is the letter ${currentPracticeLetter.toUpperCase()}.`;
+                practiceFeedback.className = 'feedback incorrect';
+                
+                // Record failed practice
+                if (window.progressTracker) {
+                    progressTracker.recordPracticeAttempt(currentPracticeLetter, false);
+                }
+            }
+        });
+    }
+    
+    // Set up settings and profile UI
+    setupSettingsUI();
+    
+    // Set up achievement notifications
+    setupAchievementNotifications();
 });
+
+// Update the display of user profile information
+function updateUserProfileUI() {
+    if (!window.progressTracker) return;
+    
+    const userData = progressTracker.userData;
+    const profileButton = document.getElementById('profile-button');
+    const profileInfo = document.getElementById('profile-info');
+    const userDisplayName = document.getElementById('user-display-name');
+    const streakDays = document.getElementById('streak-days');
+    
+    if (userData.displayName) {
+        profileButton.style.display = 'none';
+        profileInfo.classList.remove('hidden');
+        userDisplayName.textContent = userData.displayName;
+        streakDays.textContent = `${userData.progress.streakDays} days`;
+    } else {
+        profileButton.style.display = 'block';
+        profileInfo.classList.add('hidden');
+    }
+}
+
+// Set up the settings UI and modal
+function setupSettingsUI() {
+    const profileButton = document.getElementById('profile-button');
+    const settingsModal = document.getElementById('settings-modal');
+    const closeModal = document.querySelector('.close-modal');
+    const saveSettingsBtn = document.getElementById('save-settings');
+    
+    // Form elements
+    const usernameInput = document.getElementById('username-input');
+    const displayNameInput = document.getElementById('display-name-input');
+    const keyboardInputSetting = document.getElementById('keyboard-input-setting');
+    const soundEffectsSetting = document.getElementById('sound-effects-setting');
+    const highContrastSetting = document.getElementById('high-contrast-setting');
+    const adaptiveLearningSettings = document.getElementById('adaptive-learning-setting');
+    
+    // Open settings modal when profile button is clicked
+    profileButton.addEventListener('click', function() {
+        // Populate form with current settings if available
+        if (window.progressTracker) {
+            const userData = progressTracker.userData;
+            usernameInput.value = userData.username || '';
+            displayNameInput.value = userData.displayName || '';
+            keyboardInputSetting.checked = userData.settings.useKeyboardInput;
+            soundEffectsSetting.checked = userData.settings.soundEffects;
+            highContrastSetting.checked = userData.settings.highContrast;
+            adaptiveLearningSettings.checked = userData.settings.adaptiveLearning;
+        }
+        
+        settingsModal.classList.add('show');
+    });
+    
+    // Close modal when X is clicked
+    closeModal.addEventListener('click', function() {
+        settingsModal.classList.remove('show');
+    });
+    
+    // Close modal when clicking outside the content
+    settingsModal.addEventListener('click', function(e) {
+        if (e.target === settingsModal) {
+            settingsModal.classList.remove('show');
+        }
+    });
+    
+    // Save settings
+    saveSettingsBtn.addEventListener('click', function() {
+        if (window.progressTracker) {
+            // Update user profile
+            progressTracker.setUserProfile(
+                usernameInput.value,
+                displayNameInput.value
+            );
+            
+            // Update settings
+            progressTracker.updateSettings({
+                useKeyboardInput: keyboardInputSetting.checked,
+                soundEffects: soundEffectsSetting.checked,
+                highContrast: highContrastSetting.checked,
+                adaptiveLearning: adaptiveLearningSettings.checked
+            });
+            
+            // Apply settings
+            applySettings();
+            
+            // Update UI
+            updateUserProfileUI();
+        }
+        
+        settingsModal.classList.remove('show');
+    });
+}
+
+// Apply current settings to the UI
+function applySettings() {
+    if (!window.progressTracker) return;
+    
+    const userData = progressTracker.userData;
+    const settings = userData.settings;
+    
+    // Apply high contrast if enabled
+    if (settings.highContrast) {
+        document.body.classList.add('high-contrast');
+    } else {
+        document.body.classList.remove('high-contrast');
+    }
+    
+    // Toggle keyboard input
+    const toggleKeyboardBtn = document.querySelector('.toggle-keyboard-btn');
+    if (toggleKeyboardBtn && settings.useKeyboardInput !== toggleKeyboardBtn.textContent.includes('Disable')) {
+        toggleKeyboardBtn.click();
+    }
+}
+
+// Check for new achievements and show notifications
+function checkForNewAchievements() {
+    if (!window.progressTracker) return;
+    
+    const newAchievements = progressTracker.checkForAchievements();
+    
+    if (newAchievements.length > 0) {
+        // Show the most recent achievement
+        const achievement = newAchievements[newAchievements.length - 1];
+        showAchievementNotification(achievement.name, achievement.description);
+    }
+}
+
+// Set up achievement notifications
+function setupAchievementNotifications() {
+    // Add high contrast styles if needed
+    const style = document.createElement('style');
+    style.textContent = `
+        body.high-contrast {
+            --primary-color: #0066cc;
+            --secondary-color: #ff6600;
+            --accent-color: #00aaff;
+            --background-color: #ffffff;
+            --text-color: #000000;
+        }
+        
+        body.high-contrast .dot {
+            border-width: 3px;
+        }
+        
+        body.high-contrast .dot.active {
+            background-color: #ff6600;
+            border-color: #000000;
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+// Show achievement notification
+function showAchievementNotification(name, description) {
+    const notification = document.getElementById('achievement-notification');
+    const achievementName = document.getElementById('achievement-name');
+    const achievementDescription = document.getElementById('achievement-description');
+    
+    achievementName.textContent = name;
+    achievementDescription.textContent = description;
+    
+    notification.classList.add('show');
+    
+    // Play sound if enabled
+    if (window.progressTracker && progressTracker.userData.settings.soundEffects) {
+        // Simple beep sound using Web Audio API
+        try {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.type = 'sine';
+            oscillator.frequency.value = 800;
+            gainNode.gain.value = 0.1;
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.start();
+            
+            // Stop after 0.5 seconds
+            setTimeout(function() {
+                oscillator.stop();
+            }, 500);
+        } catch (e) {
+            console.log('Sound not supported');
+        }
+    }
+    
+    // Hide after 5 seconds
+    setTimeout(function() {
+        notification.classList.remove('show');
+    }, 5000);
+}
