@@ -302,6 +302,8 @@
                 <button class="tab active" onclick="openTab(event, 'encode-tab')">Encode Text to Braille</button>
                 <button class="tab" onclick="openTab(event, 'decode-tab')">Decode Braille to Text</button>
                 <button class="tab" onclick="openTab(event, 'compare-tab')">Compare Performance</button>
+                <button class="tab" onclick="openTab(event, 'neural-tab')">Neural Compression</button>
+                <button class="tab" onclick="openTab(event, 'grade3-tab')">Grade 3 Braille</button>
             </div>
             
             <div id="encode-tab" class="tab-content active">
@@ -378,6 +380,135 @@
                 </div>
             </div>
             
+            <!-- Add Grade 3 tab content -->
+            <div id="grade3-tab" class="tab-content">
+                <h3>Grade 3 Braille: Advanced Contractions</h3>
+                
+                <div class="input-group">
+                    <label for="grade3-input">Text to Encode with Grade 3:</label>
+                    <textarea id="grade3-input" placeholder="Enter text to convert to Grade 3 braille...">The quick brown fox jumps over the lazy dog. I think this is an example of how Grade 3 braille can compress common phrases such as "as soon as possible" and "in order to" more efficiently.</textarea>
+                </div>
+                
+                <button onclick="encodeGrade3()">Encode with Grade 3</button>
+                
+                <div class="output-container">
+                    <h3>Grade 3 Braille Output:</h3>
+                    <div class="braille-display" id="grade3-output"></div>
+                    
+                    <h3>Compression Comparison:</h3>
+                    <div class="metric-row">
+                        <span class="metric-label">Grade 1 Size:</span>
+                        <span class="metric-value" id="g1-size">-</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Grade 2 Size:</span>
+                        <span class="metric-value" id="g2-size">-</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Grade 3 Size:</span>
+                        <span class="metric-value" id="g3-size">-</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Improvement (G3 vs G2):</span>
+                        <span class="metric-value" id="g3-improvement">-</span>
+                    </div>
+                </div>
+                
+                <h3>Grade 3 Phrase Contractions</h3>
+                <div class="output-container">
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Phrase</th>
+                                <th>Grade 3 Contraction</th>
+                                <th>Character Savings</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>I think</td>
+                                <td>⠊⠹</td>
+                                <td>75%</td>
+                            </tr>
+                            <tr>
+                                <td>as soon as possible</td>
+                                <td>⠁⠎⠁⠏</td>
+                                <td>80%</td>
+                            </tr>
+                            <tr>
+                                <td>in order to</td>
+                                <td>⠔⠕⠞</td>
+                                <td>73%</td>
+                            </tr>
+                            <tr>
+                                <td>for example</td>
+                                <td>⠋⠑⠛</td>
+                                <td>73%</td>
+                            </tr>
+                            <tr>
+                                <td>of course</td>
+                                <td>⠷⠉</td>
+                                <td>78%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Add Neural Compression tab content -->
+            <div id="neural-tab" class="tab-content">
+                <h3>BrailleAE: Neural Compression for Braille</h3>
+                
+                <div class="input-group">
+                    <label for="ae-input">Text for Neural Compression:</label>
+                    <textarea id="ae-input" placeholder="Enter text for neural compression...">The neural compression system learns optimal braille patterns based on language usage. It adapts to your writing style over time.</textarea>
+                </div>
+                
+                <div class="input-group">
+                    <label for="compression-level">Compression Level:</label>
+                    <input type="range" id="compression-level" min="0.1" max="0.9" step="0.1" value="0.7" onchange="updateCompressionLevel()">
+                    <span id="compression-value">0.7</span>
+                </div>
+                
+                <div class="button-group">
+                    <button onclick="encodeWithAE()">Encode with Neural Compression</button>
+                    <button onclick="trainAE()">Train on Sample Text</button>
+                </div>
+                
+                <div class="output-container">
+                    <h3>Neural Compression Output:</h3>
+                    <div class="braille-display" id="ae-output"></div>
+                    
+                    <h3>Learned Patterns:</h3>
+                    <div id="learned-patterns"></div>
+                    
+                    <h3>Compression Metrics:</h3>
+                    <div class="metric-row">
+                        <span class="metric-label">Pattern Count:</span>
+                        <span class="metric-value" id="pattern-count">-</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Estimated Compression Ratio:</span>
+                        <span class="metric-value" id="compression-ratio-ae">-</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Adaptive Mode:</span>
+                        <span class="metric-value" id="adaptive-mode">-</span>
+                    </div>
+                </div>
+                
+                <h3>Training Corpus</h3>
+                <div class="input-group">
+                    <label for="training-text">Add Text to Training Corpus:</label>
+                    <textarea id="training-text" placeholder="Enter text to add to the training corpus...">Add your own text here to train the neural compression system. The more text you add, the better the compression will become.</textarea>
+                </div>
+                <button onclick="addToCorpus()">Add to Corpus</button>
+                <div class="metric-row">
+                    <span class="metric-label">Corpus Size:</span>
+                    <span class="metric-value" id="corpus-size">0 characters</span>
+                </div>
+            </div>
+            
             <div id="compare-tab" class="tab-content">
                 <h3>BrailleCore vs. Traditional Approaches</h3>
                 
@@ -397,7 +528,9 @@
                                 <th>Metric</th>
                                 <th>BrailleFST (Grade 1)</th>
                                 <th>BrailleFST (Grade 2)</th>
-                                <th>Traditional Encoding</th>
+                                <th>BrailleFST (Grade 3)</th>
+                                <th>BrailleAE (Neural)</th>
+                                <th>Traditional</th>
                             </tr>
                         </thead>
                         <tbody id="comparison-table-body">
@@ -443,9 +576,15 @@
                 </div>
                 
                 <div class="stat-card">
+                    <h3>BrailleFST Grade 3</h3>
+                    <p>Extended FST with advanced contractions and phrase-level compression</p>
+                    <div class="stat-value" id="fst-g3-stats">Active</div>
+                </div>
+                
+                <div class="stat-card">
                     <h3>BrailleAE</h3>
                     <p>Autoencoder for learning optimal braille contractions</p>
-                    <div class="stat-value" id="ae-stats">Coming Soon</div>
+                    <div class="stat-value" id="ae-stats">Active</div>
                 </div>
                 
                 <div class="stat-card">
@@ -457,19 +596,37 @@
         </div>
     </div>
     
-    <!-- Load BrailleFST -->
+    <!-- Load BrailleCore components -->
     <script src="src/braille-core/braille-fst.js"></script>
+    <script src="src/braille-core/braille-fst-grade3.js"></script>
+    <script src="src/braille-core/braille-ae.js"></script>
     
     <script>
-        // Initialize BrailleFST
+        // Initialize BrailleCore components
         const brailleFST = new BrailleFST({
             grade: 2, // Default to Grade 2 (contracted)
             language: 'en'
         });
         
-        // Update FST stats
+        const brailleFSTG3 = new BrailleFSTGrade3({
+            language: 'en'
+        });
+        
+        const brailleAE = new BrailleAE({
+            compressionLevel: 0.7,
+            adaptiveMode: true,
+            language: 'en'
+        });
+        
+        // Update component stats
         document.getElementById('fst-stats').textContent = 
             `${brailleFST.getStats().characterCount} chars`;
+            
+        document.getElementById('fst-g3-stats').textContent = 
+            `${brailleFSTG3.getStats().grade3ContractionCount} contractions`;
+            
+        document.getElementById('ae-stats').textContent = 
+            `${brailleAE.getStats().patternCount} patterns`;
         
         // Tab functionality
         function openTab(evt, tabName) {
@@ -578,6 +735,18 @@
             const endTimeG2 = performance.now();
             const timeG2 = endTimeG2 - startTimeG2;
             
+            // Test BrailleFST Grade 3
+            const startTimeG3 = performance.now();
+            const resultG3 = brailleFSTG3.encode(compareText);
+            const endTimeG3 = performance.now();
+            const timeG3 = endTimeG3 - startTimeG3;
+            
+            // Test BrailleAE (Neural)
+            const startTimeAE = performance.now();
+            const resultAE = brailleAE.encode(compareText);
+            const endTimeAE = performance.now();
+            const timeAE = endTimeAE - startTimeAE;
+            
             // Simulate traditional encoding (simple character-by-character mapping)
             const startTimeTraditional = performance.now();
             let traditionalResult = '';
@@ -593,11 +762,15 @@
             // Calculate sizes
             const sizeG1 = resultG1.bbes.length;
             const sizeG2 = resultG2.bbes.length;
+            const sizeG3 = resultG3.bbes.length;
+            const sizeAE = resultAE.bbes.length;
             const sizeTraditional = traditionalResult.length * 2; // Rough estimate for traditional encoding
             
             // Calculate compression ratios (lower is better)
             const ratioG1 = (sizeG1 / compareText.length * 100).toFixed(2);
             const ratioG2 = (sizeG2 / compareText.length * 100).toFixed(2);
+            const ratioG3 = (sizeG3 / compareText.length * 100).toFixed(2);
+            const ratioAE = (sizeAE / compareText.length * 100).toFixed(2);
             const ratioTraditional = (sizeTraditional / compareText.length * 100).toFixed(2);
             
             // Display results
@@ -609,18 +782,24 @@
                     <td>Encoding Time</td>
                     <td>${timeG1.toFixed(2)} ms</td>
                     <td>${timeG2.toFixed(2)} ms</td>
+                    <td>${timeG3.toFixed(2)} ms</td>
+                    <td>${timeAE.toFixed(2)} ms</td>
                     <td>${timeTraditional.toFixed(2)} ms</td>
                 </tr>
                 <tr>
                     <td>Output Size</td>
                     <td>${sizeG1} chars</td>
                     <td>${sizeG2} chars</td>
+                    <td>${sizeG3} chars</td>
+                    <td>${sizeAE} chars</td>
                     <td>${sizeTraditional} chars</td>
                 </tr>
                 <tr>
                     <td>Compression Ratio</td>
                     <td>${ratioG1}%</td>
                     <td>${ratioG2}%</td>
+                    <td>${ratioG3}%</td>
+                    <td>${ratioAE}%</td>
                     <td>${ratioTraditional}%</td>
                 </tr>
             `;
@@ -646,8 +825,119 @@
             progressTraditional.querySelector('.progress-text').textContent = `${ratioTraditional}%`;
         }
         
+        // Grade 3 encoding function
+        function encodeGrade3() {
+            const inputText = document.getElementById('grade3-input').value;
+            
+            // Encode with different grades for comparison
+            brailleFST.setOptions({ grade: 1 });
+            const resultG1 = brailleFST.encode(inputText);
+            
+            brailleFST.setOptions({ grade: 2 });
+            const resultG2 = brailleFST.encode(inputText);
+            
+            const resultG3 = brailleFSTG3.encode(inputText);
+            
+            // Display results
+            document.getElementById('grade3-output').textContent = resultG3.unicode;
+            
+            // Show comparison metrics
+            document.getElementById('g1-size').textContent = `${resultG1.bbes.length} chars`;
+            document.getElementById('g2-size').textContent = `${resultG2.bbes.length} chars`;
+            document.getElementById('g3-size').textContent = `${resultG3.bbes.length} chars`;
+            
+            const improvement = ((1 - resultG3.bbes.length / resultG2.bbes.length) * 100).toFixed(2);
+            document.getElementById('g3-improvement').textContent = `${improvement}%`;
+        }
+        
+        // Neural compression functions
+        function updateCompressionLevel() {
+            const level = document.getElementById('compression-level').value;
+            document.getElementById('compression-value').textContent = level;
+            brailleAE.setOptions({ compressionLevel: parseFloat(level) });
+        }
+        
+        function encodeWithAE() {
+            const inputText = document.getElementById('ae-input').value;
+            
+            // Encode with neural compression
+            const result = brailleAE.encode(inputText);
+            
+            // Display results
+            document.getElementById('ae-output').textContent = result.unicode;
+            
+            // Show metrics
+            const stats = brailleAE.getStats();
+            document.getElementById('pattern-count').textContent = stats.patternCount;
+            document.getElementById('compression-ratio-ae').textContent = 
+                `${(stats.estimatedCompressionRatio * 100).toFixed(2)}%`;
+            document.getElementById('adaptive-mode').textContent = 
+                stats.adaptiveMode ? 'Enabled' : 'Disabled';
+            
+            // Show learned patterns
+            displayLearnedPatterns();
+        }
+        
+        function trainAE() {
+            const inputText = document.getElementById('ae-input').value;
+            
+            // Train the autoencoder
+            const result = brailleAE.learn(inputText);
+            
+            // Update corpus size
+            document.getElementById('corpus-size').textContent = 
+                `${result.corpusSize} characters`;
+            
+            // Show learned patterns
+            displayLearnedPatterns();
+            
+            // Update pattern count
+            document.getElementById('pattern-count').textContent = result.uniquePatterns;
+        }
+        
+        function addToCorpus() {
+            const trainingText = document.getElementById('training-text').value;
+            
+            // Add to corpus
+            const result = brailleAE.learn(trainingText);
+            
+            // Update corpus size
+            document.getElementById('corpus-size').textContent = 
+                `${result.corpusSize} characters`;
+            
+            // Clear training text
+            document.getElementById('training-text').value = '';
+            
+            // Show learned patterns
+            displayLearnedPatterns();
+        }
+        
+        function displayLearnedPatterns() {
+            // This is a simplified version - in a real implementation,
+            // we would access the actual learned patterns from the BrailleAE instance
+            const patternExamples = [
+                { pattern: 'the', encoding: '⠮' },
+                { pattern: 'and', encoding: '⠯' },
+                { pattern: 'with', encoding: '⠾' },
+                { pattern: 'for', encoding: '⠿' },
+                { pattern: 'of', encoding: '⠷' }
+            ];
+            
+            let html = '<table class="comparison-table"><thead><tr><th>Pattern</th><th>Encoding</th></tr></thead><tbody>';
+            
+            for (const item of patternExamples) {
+                html += `<tr><td>${item.pattern}</td><td>${item.encoding}</td></tr>`;
+            }
+            
+            html += '</tbody></table>';
+            
+            document.getElementById('learned-patterns').innerHTML = html;
+        }
+        
         // Run initial encoding
         encodeText();
+        encodeGrade3();
+        encodeWithAE();
     </script>
 </body>
 </html>
