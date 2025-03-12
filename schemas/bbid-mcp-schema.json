@@ -1,0 +1,197 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "BBID MCP Schema",
+  "description": "Model Context Protocol schema for BrailleBuddy Identity (BBID)",
+  "type": "object",
+  "required": ["entity", "version", "id", "metadata", "fingerprint"],
+  "properties": {
+    "entity": {
+      "type": "string",
+      "enum": ["bbid"],
+      "description": "Entity type identifier"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Semantic version of the BBID schema"
+    },
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for this BBID"
+    },
+    "metadata": {
+      "type": "object",
+      "required": ["created", "modified", "name"],
+      "properties": {
+        "created": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of when this BBID was created"
+        },
+        "modified": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of when this BBID was last modified"
+        },
+        "name": {
+          "type": "string",
+          "description": "User-friendly name for this device or identity"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["desktop", "laptop", "tablet", "phone", "other"],
+          "description": "Type of device"
+        },
+        "os": {
+          "type": "string",
+          "enum": ["windows", "macos", "linux", "ios", "android", "other"],
+          "description": "Operating system of the device"
+        },
+        "userAgent": {
+          "type": "string",
+          "description": "User agent string of the browser/device"
+        },
+        "publicKey": {
+          "type": "string",
+          "description": "Base64-encoded public key for identity verification"
+        }
+      }
+    },
+    "fingerprint": {
+      "type": "object",
+      "required": ["bbes", "algorithm"],
+      "properties": {
+        "raw": {
+          "type": "string",
+          "description": "Raw device fingerprint hash (should be encrypted or omitted in shared contexts)"
+        },
+        "bbes": {
+          "type": "string",
+          "description": "Braille Binary Encoded Standard representation of the fingerprint"
+        },
+        "algorithm": {
+          "type": "string",
+          "enum": ["sha256", "sha512", "blake2b", "argon2id"],
+          "description": "Hashing algorithm used for the fingerprint"
+        },
+        "components": {
+          "type": "object",
+          "description": "Device-specific components used in fingerprinting",
+          "additionalProperties": true
+        }
+      }
+    },
+    "identity": {
+      "type": "object",
+      "description": "Personal identity information (encrypted)",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "User's name (encrypted)"
+        },
+        "brailleRepresentation": {
+          "type": "object",
+          "properties": {
+            "grade1": {
+              "type": "string",
+              "description": "Grade 1 braille representation of user's name"
+            },
+            "grade2": {
+              "type": "string",
+              "description": "Grade 2 braille representation of user's name"
+            },
+            "grade3": {
+              "type": "string",
+              "description": "Grade 3 braille representation of user's name"
+            },
+            "neural": {
+              "type": "string",
+              "description": "Neural-compressed braille representation"
+            }
+          }
+        },
+        "learningProgress": {
+          "type": "object",
+          "description": "Progress in learning braille identity",
+          "properties": {
+            "level": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 5,
+              "description": "Current learning level (0-5)"
+            },
+            "accuracy": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "description": "Recognition accuracy (0-1)"
+            },
+            "lastSession": {
+              "type": "string",
+              "format": "date-time",
+              "description": "Timestamp of last learning session"
+            },
+            "sessionsCompleted": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Number of completed learning sessions"
+            }
+          }
+        }
+      }
+    },
+    "usage": {
+      "type": "object",
+      "properties": {
+        "lastSeen": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of when this device was last seen"
+        },
+        "visitCount": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of times this device has been used"
+        },
+        "totalTimeSpent": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total time spent using this device (in seconds)"
+        },
+        "features": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Features or capabilities used on this device"
+        }
+      }
+    },
+    "permissions": {
+      "type": "object",
+      "properties": {
+        "read": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Entities allowed to read this BBID"
+        },
+        "write": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Entities allowed to modify this BBID"
+        },
+        "share": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Entities allowed to share this BBID"
+        }
+      }
+    }
+  }
+}

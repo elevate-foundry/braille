@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BBID Recognition System</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+        }
+        
+        .greeting-container {
+            text-align: center;
+            padding: 40px 20px;
+            border-radius: 8px;
+            background-color: #f0f8ff;
+            margin-bottom: 30px;
+            transition: all 0.5s ease;
+        }
+        
+        .greeting-text {
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+        
+        .identity-form {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        .device-info {
+            margin-top: 40px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .device-info h3 {
+            margin-top: 0;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        
+        .info-row {
+            display: flex;
+            margin-bottom: 10px;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            width: 200px;
+        }
+        
+        .info-value {
+            flex: 1;
+        }
+        
+        .braille-fingerprint {
+            font-family: monospace;
+            padding: 15px;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+            margin-top: 10px;
+            overflow-wrap: break-word;
+            line-height: 1.4;
+        }
+        
+        .recognition-status {
+            text-align: center;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+        
+        .status-unknown {
+            background-color: #f8f9fa;
+            color: #6c757d;
+        }
+        
+        .status-learning {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-recognized {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .braille-display {
+            font-size: 2rem;
+            margin: 20px 0;
+            text-align: center;
+            min-height: 60px;
+        }
+        
+        .actions {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .secondary-button {
+            background-color: #6c757d;
+        }
+        
+        .secondary-button:hover {
+            background-color: #5a6268;
+        }
+        
+        .user-profile {
+            display: none;
+            padding: 20px;
+            background-color: #e8f4f8;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        .profile-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color: #3498db;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin-right: 20px;
+        }
+        
+        .profile-name {
+            font-size: 1.8rem;
+            margin: 0;
+        }
+        
+        .profile-details {
+            margin-top: 20px;
+        }
+        
+        .detail-row {
+            display: flex;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+        }
+        
+        .detail-label {
+            font-weight: 600;
+            width: 200px;
+        }
+        
+        .detail-value {
+            flex: 1;
+        }
+        
+        .known-devices {
+            margin-top: 20px;
+        }
+        
+        .device-card {
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .device-card.current {
+            border-left-color: #2ecc71;
+            background-color: #f0fff0;
+        }
+        
+        .device-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .device-meta {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        
+        .confidence-meter {
+            height: 10px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+        
+        .confidence-level {
+            height: 100%;
+            background-color: #3498db;
+            border-radius: 5px;
+            transition: width 0.5s ease;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .pulse {
+            animation: pulse 1.5s infinite;
+        }
+        
+        /* Learning Interface Styles */
+        .learning-container {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .braille-display.large {
+            font-size: 2.5em;
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .learning-instructions {
+            margin: 15px 0;
+            font-size: 1.1em;
+            color: #444;
+        }
+        
+        .progress-container {
+            margin: 20px 0;
+        }
+        
+        .progress-label {
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        .progress-bar {
+            height: 10px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .progress-level {
+            height: 100%;
+            background-color: #4CAF50;
+            border-radius: 5px;
+            transition: width 0.5s ease;
+        }
+        
+        .challenge-container {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .challenge-prompt {
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .challenge-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .option-button {
+            padding: 10px;
+            font-size: 1.5em;
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .option-button:hover {
+            background-color: #e9e9e9;
+        }
+        
+        .option-button.correct {
+            background-color: #dff0d8;
+            border-color: #d6e9c6;
+            color: #3c763d;
+        }
+        
+        .option-button.incorrect {
+            background-color: #f2dede;
+            border-color: #ebccd1;
+            color: #a94442;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>BBID Recognition System</h1>
+        
+        <div class="greeting-container" id="greeting-container">
+            <div class="greeting-text" id="greeting-text">Hello there!</div>
+            <div class="braille-display" id="braille-greeting"></div>
+        </div>
+        
+        <div class="recognition-status status-unknown" id="recognition-status">
+            Analyzing device fingerprint...
+        </div>
+        
+        <div class="identity-form" id="identity-form" style="display: none;">
+            <div class="form-group">
+                <label for="name-input">What's your name?</label>
+                <input type="text" id="name-input" placeholder="Enter your name">
+            </div>
+            <button id="submit-name">Remember Me</button>
+        </div>
+        
+        <div class="user-profile" id="user-profile">
+            <div class="profile-header">
+                <div class="profile-avatar" id="profile-avatar">R</div>
+                <h2 class="profile-name" id="profile-name">Ryan Barrett</h2>
+            </div>
+            
+            <div class="profile-details">
+                <div class="detail-row">
+                    <div class="detail-label">First Seen:</div>
+                    <div class="detail-value" id="first-seen">March 12, 2025</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Recognition Confidence:</div>
+                    <div class="detail-value">
+                        <span id="confidence-value">95%</span>
+                        <div class="confidence-meter">
+                            <div class="confidence-level" id="confidence-level" style="width: 95%;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">BBID Version:</div>
+                    <div class="detail-value">1.0</div>
+                </div>
+            </div>
+            
+            <div class="known-devices">
+                <h3>Your Known Devices</h3>
+                <div class="device-card current">
+                    <div class="device-name">MacBook Pro</div>
+                    <div class="device-meta">Current device • Last seen: Just now</div>
+                </div>
+                <div class="device-card">
+                    <div class="device-name">Linux Workstation</div>
+                    <div class="device-meta">Last seen: March 10, 2025</div>
+                </div>
+            </div>
+            
+            <div class="actions">
+                <button id="reset-profile" class="secondary-button">Reset Profile</button>
+                <button id="export-bbid">Export BBID</button>
+                <button id="start-learning" class="primary-button">Learn My Name in Braille</button>
+            </div>
+        </div>
+        
+        <div class="device-info">
+            <h3>Device Fingerprint</h3>
+            <div class="info-row">
+                <div class="info-label">Device Type:</div>
+                <div class="info-value" id="device-type">-</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Operating System:</div>
+                <div class="info-value" id="device-os">-</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Browser:</div>
+                <div class="info-value" id="device-browser">-</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">BBID Fingerprint:</div>
+                <div class="info-value">
+                    <div class="braille-fingerprint" id="braille-fingerprint">-</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Load dependencies -->
+    <script src="js/device-fingerprint.js" defer></script>
+    <script src="src/braille-core/braille-fst.js" defer></script>
+    <script src="src/braille-core/braille-fst-grade3.js" defer></script>
+    <script src="src/braille-core/braille-ae.js" defer></script>
+    <script src="js/bbid-manager.js" defer></script>
+    <script src="js/bbid-mcp-client.js" defer></script>
+    <script src="js/braille-identity-learner.js" defer></script>
+    
+    <script>
+        // BrailleFST Identity Recognition System
+        class BrailleFSTIdentity {
+            constructor() {
+                this.deviceFingerprint = new DeviceFingerprint();
+                this.bbidManager = new BBIDManager();
+                this.brailleFST = new BrailleFST({ grade: 2, language: 'en' });
+                this.mcpClient = new BBIDMCPClient({
+                    apiBaseUrl: 'https://api.braillebuddy.com/mcp',
+                    useEncryption: true
+                });
+                this.identityLearner = null;
+                
+                // State
+                this.currentUser = null;
+                this.recognitionConfidence = 0;
+                this.knownDevices = [];
+                this.isInitialized = false;
+                
+                // Constants
+                this.CONFIDENCE_THRESHOLD = 0.8; // 80% confidence to auto-recognize
+                this.LOCAL_STORAGE_KEY = 'braillefst_identity';
+                
+                // Initialize
+                this.initialize();
+            }
+            
+            async initialize() {
+                try {
+                    // Get device fingerprint
+                    await this.deviceFingerprint.initialize();
+                    const fingerprint = this.deviceFingerprint.getFingerprint();
+                    
+                    // Display device info
+                    this.updateDeviceInfo(fingerprint);
+                    
+                    // Check if we have a stored identity
+                    const storedIdentity = localStorage.getItem(this.LOCAL_STORAGE_KEY);
+                    
+                    if (storedIdentity) {
+                        const identity = JSON.parse(storedIdentity);
+                        
+                        // Calculate recognition confidence
+                        this.recognitionConfidence = this.calculateConfidence(fingerprint, identity.fingerprint);
+                        
+                        if (this.recognitionConfidence >= this.CONFIDENCE_THRESHOLD) {
+                            // We recognize this user with high confidence
+                            this.currentUser = identity;
+                            this.displayRecognizedUser(identity);
+                        } else {
+                            // We have some data but not confident enough
+                            this.askForIdentityConfirmation(identity);
+                        }
+                    } else {
+                        // First time seeing this device
+                        this.askForIdentity();
+                    }
+                    
+                    this.isInitialized = true;
+                } catch (error) {
+                    console.error('Error initializing BrailleFST Identity:', error);
+                    document.getElementById('recognition-status').textContent = 
+                        'Error initializing identity system. Please try again.';
+                }
+            }
+            
+            updateDeviceInfo(fingerprint) {
+                // Update device info display
+                document.getElementById('device-type').textContent = 
+                    this.deviceFingerprint.getDeviceType() || 'Unknown';
+                document.getElementById('device-os').textContent = 
+                    this.deviceFingerprint.getOS() || 'Unknown';
+                document.getElementById('device-browser').textContent = 
+                    this.deviceFingerprint.getBrowser() || 'Unknown';
+                
+                // Display braille fingerprint
+                const brailleFingerprint = this.brailleFST.encode(fingerprint);
+                document.getElementById('braille-fingerprint').textContent = 
+                    brailleFingerprint.unicode || fingerprint.substring(0, 50) + '...';
+            }
+            
+            askForIdentity() {
+                // Update status
+                const statusElement = document.getElementById('recognition-status');
+                statusElement.textContent = "I don't recognize this device yet. Let's get acquainted!";
+                statusElement.className = 'recognition-status status-learning';
+                
+                // Show the identity form
+                document.getElementById('identity-form').style.display = 'block';
+                
+                // Update greeting
+                document.getElementById('greeting-text').textContent = "Hello there! I don't think we've met.";
+                document.getElementById('braille-greeting').textContent = 
+                    this.brailleFST.encode("Hello there! I don't think we've met.").unicode;
+                
+                // Handle form submission
+                document.getElementById('submit-name').addEventListener('click', () => {
+                    const name = document.getElementById('name-input').value.trim();
+                    if (name) {
+                        this.createNewIdentity(name);
+                    }
+                });
+                
+                // Also submit on Enter key
+                document.getElementById('name-input').addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        const name = document.getElementById('name-input').value.trim();
+                        if (name) {
+                            this.createNewIdentity(name);
+                        }
+                    }
+                });
+            }
+            
+            askForIdentityConfirmation(identity) {
+                // Update status
+                const statusElement = document.getElementById('recognition-status');
+                statusElement.textContent = `I think I recognize you as ${identity.name}, but I'm not entirely sure. Is that you?`;
+                statusElement.className = 'recognition-status status-learning';
+                
+                // Update greeting
+                document.getElementById('greeting-text').textContent = 
+                    `I think I recognize you as ${identity.name}. Is that correct?`;
+                document.getElementById('braille-greeting').textContent = 
+                    this.brailleFST.encode(`I think I recognize you as ${identity.name}`).unicode;
+                
+                // Create confirmation buttons
+                const actionsDiv = document.createElement('div');
+                actionsDiv.className = 'actions';
+                
+                const yesButton = document.createElement('button');
+                yesButton.textContent = 'Yes, that\'s me!';
+                yesButton.addEventListener('click', () => {
+                    this.confirmIdentity(identity);
+                });
+                
+                const noButton = document.createElement('button');
+                noButton.textContent = 'No, I\'m someone else';
+                noButton.className = 'secondary-button';
+                noButton.addEventListener('click', () => {
+                    this.askForIdentity();
+                });
+                
+                actionsDiv.appendChild(yesButton);
+                actionsDiv.appendChild(noButton);
+                
+                // Add to greeting container
+                document.getElementById('greeting-container').appendChild(actionsDiv);
+            }
+            
+            createNewIdentity(name) {
+                // Create a new identity
+                const fingerprint = this.deviceFingerprint.getFingerprint();
+                const now = new Date();
+                
+                const identity = {
+                    name: name,
+                    fingerprint: fingerprint,
+                    firstSeen: now.toISOString(),
+                    devices: [{
+                        name: this.getDeviceName(),
+                        fingerprint: fingerprint,
+                        lastSeen: now.toISOString(),
+                        isCurrent: true
+                    }]
+                };
+                
+                // Save to local storage
+                localStorage.setItem(this.LOCAL_STORAGE_KEY, JSON.stringify(identity));
+                
+                // Create BBID
+                this.bbidManager.createBBID({
+                    username: name,
+                    deviceFingerprint: fingerprint,
+                    created: now.toISOString()
+                });
+                
+                // Update UI
+                this.currentUser = identity;
+                this.displayRecognizedUser(identity);
+                
+                // Show welcome message
+                document.getElementById('greeting-text').textContent = 
+                    `Nice to meet you, ${name}! I'll remember you next time.`;
+                document.getElementById('braille-greeting').textContent = 
+                    this.brailleFST.encode(`Nice to meet you, ${name}`).unicode;
+            }
+            
+            confirmIdentity(identity) {
+                // Update the last seen time and confidence
+                const fingerprint = this.deviceFingerprint.getFingerprint();
+                const now = new Date();
+                
+                // Check if this is a new device or existing one
+                let deviceExists = false;
+                for (let i = 0; i < identity.devices.length; i++) {
+                    if (this.calculateConfidence(fingerprint, identity.devices[i].fingerprint) > 0.7) {
+                        identity.devices[i].lastSeen = now.toISOString();
+                        identity.devices[i].isCurrent = true;
+                        deviceExists = true;
+                    } else {
+                        identity.devices[i].isCurrent = false;
+                    }
+                }
+                
+                // Add new device if not found
+                if (!deviceExists) {
+                    identity.devices.push({
+                        name: this.getDeviceName(),
+                        fingerprint: fingerprint,
+                        lastSeen: now.toISOString(),
+                        isCurrent: true
+                    });
+                }
+                
+                // Save updated identity
+                localStorage.setItem(this.LOCAL_STORAGE_KEY, JSON.stringify(identity));
+                
+                // Update UI
+                this.currentUser = identity;
+                this.displayRecognizedUser(identity);
+                
+                // Show welcome back message
+                document.getElementById('greeting-text').textContent = 
+                    `Welcome back, ${identity.name}! It's good to see you again.`;
+                document.getElementById('braille-greeting').textContent = 
+                    this.brailleFST.encode(`Welcome back, ${identity.name}`).unicode;
+            }
+            
+            displayRecognizedUser(identity) {
+                // Update status
+                const statusElement = document.getElementById('recognition-status');
+                statusElement.textContent = `Welcome, ${identity.name}! I recognize you.`;
+                statusElement.className = 'recognition-status status-recognized';
+                
+                // Hide identity form if visible
+                document.getElementById('identity-form').style.display = 'none';
+                
+                // Show user profile
+                const profileElement = document.getElementById('user-profile');
+                profileElement.style.display = 'block';
+                
+                // Update profile details
+                document.getElementById('profile-name').textContent = identity.name;
+                document.getElementById('profile-avatar').textContent = identity.name.charAt(0).toUpperCase();
+                
+                // Format date
+                const firstSeen = new Date(identity.firstSeen);
+                document.getElementById('first-seen').textContent = 
+                    firstSeen.toLocaleDateString('en-US', { 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric' 
+                    });
+                
+                // Update confidence display
+                const confidencePercent = Math.round(this.recognitionConfidence * 100);
+                document.getElementById('confidence-value').textContent = `${confidencePercent}%`;
+                document.getElementById('confidence-level').style.width = `${confidencePercent}%`;
+                
+                // Show known devices
+                this.displayKnownDevices(identity.devices);
+                
+                // Add event listeners for profile actions
+                document.getElementById('reset-profile').addEventListener('click', () => {
+                    this.resetIdentity();
+                });
+                
+                document.getElementById('export-bbid').addEventListener('click', () => {
+                    this.exportBBID();
+                });
+                
+                document.getElementById('start-learning').addEventListener('click', () => {
+                    this.startIdentityLearning();
+                });
+            }
+            
+            displayKnownDevices(devices) {
+                const devicesContainer = document.querySelector('.known-devices');
+                
+                // Clear existing devices
+                const heading = devicesContainer.querySelector('h3');
+                devicesContainer.innerHTML = '';
+                devicesContainer.appendChild(heading);
+                
+                // Add each device
+                devices.forEach(device => {
+                    const deviceCard = document.createElement('div');
+                    deviceCard.className = `device-card ${device.isCurrent ? 'current' : ''}`;
+                    
+                    const deviceName = document.createElement('div');
+                    deviceName.className = 'device-name';
+                    deviceName.textContent = device.name;
+                    
+                    const lastSeen = new Date(device.lastSeen);
+                    const timeAgo = this.getTimeAgo(lastSeen);
+                    
+                    const deviceMeta = document.createElement('div');
+                    deviceMeta.className = 'device-meta';
+                    deviceMeta.textContent = device.isCurrent ? 
+                        `Current device • Last seen: Just now` : 
+                        `Last seen: ${timeAgo}`;
+                    
+                    deviceCard.appendChild(deviceName);
+                    deviceCard.appendChild(deviceMeta);
+                    devicesContainer.appendChild(deviceCard);
+                });
+            }
+            
+            resetIdentity() {
+                if (confirm('Are you sure you want to reset your identity? This will remove all your profile data from this device.')) {
+                    localStorage.removeItem(this.LOCAL_STORAGE_KEY);
+                    location.reload();
+                }
+            }
+            
+            exportBBID() {
+                if (this.currentUser) {
+                    this.bbidManager.exportBBID(this.currentUser.name);
+                }
+            }
+            
+            startIdentityLearning() {
+                if (!this.currentUser) {
+                    alert('Please set your identity first before starting the learning session.');
+                    return;
+                }
+                
+                // Initialize the identity learner if not already done
+                if (!this.identityLearner) {
+                    this.identityLearner = new BrailleIdentityLearner({
+                        name: this.currentUser.name,
+                        brailleFST: this.brailleFST,
+                        bbidManager: this.bbidManager,
+                        mcpClient: this.mcpClient
+                    });
+                }
+                
+                // Create learning UI
+                const learningContainer = document.createElement('div');
+                learningContainer.className = 'learning-container';
+                learningContainer.id = 'learning-container';
+                
+                const learningHeader = document.createElement('h3');
+                learningHeader.textContent = 'Learn Your Name in Braille';
+                
+                const brailleDisplay = document.createElement('div');
+                brailleDisplay.className = 'braille-display large';
+                brailleDisplay.id = 'learning-braille-display';
+                
+                const nameInBraille = this.brailleFST.encode(this.currentUser.name);
+                brailleDisplay.textContent = nameInBraille.unicode;
+                
+                const learningInstructions = document.createElement('div');
+                learningInstructions.className = 'learning-instructions';
+                learningInstructions.textContent = 'This is your name in braille. Study the pattern and try to recognize it.';
+                
+                const progressContainer = document.createElement('div');
+                progressContainer.className = 'progress-container';
+                
+                const progressLabel = document.createElement('div');
+                progressLabel.className = 'progress-label';
+                progressLabel.textContent = 'Learning Progress:';
+                
+                const progressBar = document.createElement('div');
+                progressBar.className = 'progress-bar';
+                
+                const progressLevel = document.createElement('div');
+                progressLevel.className = 'progress-level';
+                progressLevel.id = 'learning-progress';
+                progressLevel.style.width = '10%';
+                
+                progressBar.appendChild(progressLevel);
+                progressContainer.appendChild(progressLabel);
+                progressContainer.appendChild(progressBar);
+                
+                const startSessionButton = document.createElement('button');
+                startSessionButton.textContent = 'Start Learning Session';
+                startSessionButton.className = 'primary-button';
+                startSessionButton.id = 'start-session';
+                
+                const closeButton = document.createElement('button');
+                closeButton.textContent = 'Close';
+                closeButton.className = 'secondary-button';
+                closeButton.id = 'close-learning';
+                
+                // Add all elements to the container
+                learningContainer.appendChild(learningHeader);
+                learningContainer.appendChild(brailleDisplay);
+                learningContainer.appendChild(learningInstructions);
+                learningContainer.appendChild(progressContainer);
+                learningContainer.appendChild(startSessionButton);
+                learningContainer.appendChild(closeButton);
+                
+                // Add container to the page
+                document.querySelector('.container').appendChild(learningContainer);
+                
+                // Add event listeners
+                document.getElementById('start-session').addEventListener('click', () => {
+                    this.identityLearner.startLearningSession();
+                    
+                    // Update UI to show session in progress
+                    learningInstructions.textContent = 'Learning session started! Follow the instructions from the learner.';
+                    startSessionButton.style.display = 'none';
+                    
+                    // Create challenge container
+                    const challengeContainer = document.createElement('div');
+                    challengeContainer.className = 'challenge-container';
+                    challengeContainer.id = 'challenge-container';
+                    
+                    const challengePrompt = document.createElement('div');
+                    challengePrompt.className = 'challenge-prompt';
+                    challengePrompt.id = 'challenge-prompt';
+                    challengePrompt.textContent = 'Can you identify your name in braille?';
+                    
+                    const challengeOptions = document.createElement('div');
+                    challengeOptions.className = 'challenge-options';
+                    challengeOptions.id = 'challenge-options';
+                    
+                    // Create sample options
+                    const correctOption = this.brailleFST.encode(this.currentUser.name).unicode;
+                    const options = [
+                        correctOption,
+                        this.brailleFST.encode(this.currentUser.name.split('').reverse().join('')).unicode,
+                        this.brailleFST.encode(this.currentUser.name + 's').unicode
+                    ];
+                    
+                    // Shuffle options
+                    for (let i = options.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [options[i], options[j]] = [options[j], options[i]];
+                    }
+                    
+                    // Add options to container
+                    options.forEach((option, index) => {
+                        const optionButton = document.createElement('button');
+                        optionButton.className = 'option-button';
+                        optionButton.textContent = option;
+                        optionButton.dataset.correct = (option === correctOption).toString();
+                        
+                        optionButton.addEventListener('click', (e) => {
+                            const isCorrect = e.target.dataset.correct === 'true';
+                            
+                            // Highlight correct/incorrect
+                            document.querySelectorAll('.option-button').forEach(btn => {
+                                if (btn.dataset.correct === 'true') {
+                                    btn.classList.add('correct');
+                                } else if (btn === e.target) {
+                                    btn.classList.add('incorrect');
+                                }
+                            });
+                            
+                            // Update progress
+                            if (isCorrect) {
+                                const currentWidth = parseInt(progressLevel.style.width);
+                                progressLevel.style.width = Math.min(currentWidth + 10, 100) + '%';
+                                
+                                challengePrompt.textContent = 'Correct! Well done.';
+                            } else {
+                                challengePrompt.textContent = 'Not quite. Try again!';
+                            }
+                            
+                            // Disable all options
+                            document.querySelectorAll('.option-button').forEach(btn => {
+                                btn.disabled = true;
+                            });
+                            
+                            // Add continue button
+                            const continueButton = document.createElement('button');
+                            continueButton.textContent = 'Continue';
+                            continueButton.className = 'primary-button';
+                            continueButton.addEventListener('click', () => {
+                                // Remove challenge container and update instructions
+                                challengeContainer.remove();
+                                learningInstructions.textContent = 'Great job! You\'ve completed this learning session.';
+                                
+                                // Save progress to MCP
+                                this.mcpClient.updateLearningProgress({
+                                    userId: this.currentUser.name,
+                                    progress: parseInt(progressLevel.style.width) / 100,
+                                    lastSession: new Date().toISOString()
+                                }).catch(err => console.error('Failed to update learning progress:', err));
+                            });
+                            
+                            challengeContainer.appendChild(continueButton);
+                        });
+                        
+                        challengeOptions.appendChild(optionButton);
+                    });
+                    
+                    challengeContainer.appendChild(challengePrompt);
+                    challengeContainer.appendChild(challengeOptions);
+                    learningContainer.appendChild(challengeContainer);
+                });
+                
+                document.getElementById('close-learning').addEventListener('click', () => {
+                    learningContainer.remove();
+                });
+            }
+            
+            calculateConfidence(fingerprint1, fingerprint2) {
+                // Simple similarity calculation
+                // In a real implementation, this would be more sophisticated
+                let matchCount = 0;
+                const minLength = Math.min(fingerprint1.length, fingerprint2.length);
+                
+                for (let i = 0; i < minLength; i++) {
+                    if (fingerprint1[i] === fingerprint2[i]) {
+                        matchCount++;
+                    }
+                }
+                
+                return matchCount / minLength;
+            }
+            
+            getDeviceName() {
+                const os = this.deviceFingerprint.getOS() || 'Unknown OS';
+                const type = this.deviceFingerprint.getDeviceType() || 'Device';
+                
+                return `${os} ${type}`;
+            }
+            
+            getTimeAgo(date) {
+                const now = new Date();
+                const diffMs = now - date;
+                const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+                
+                if (diffDays === 0) {
+                    return 'Today';
+                } else if (diffDays === 1) {
+                    return 'Yesterday';
+                } else if (diffDays < 7) {
+                    return `${diffDays} days ago`;
+                } else {
+                    return date.toLocaleDateString('en-US', { 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric' 
+                    });
+                }
+            }
+        }
+        
+        // Initialize the BrailleFST Identity system when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            const brailleFSTIdentity = new BrailleFSTIdentity();
+            
+            // Add pulse animation to greeting
+            const greetingContainer = document.getElementById('greeting-container');
+            greetingContainer.classList.add('pulse');
+            
+            // Remove pulse after 3 seconds
+            setTimeout(() => {
+                greetingContainer.classList.remove('pulse');
+            }, 3000);
+        });
+    </script>
+</body>
+</html>
