@@ -563,7 +563,7 @@
                 // Update greeting
                 document.getElementById('greeting-text').textContent = "Hello there! I don't think we've met.";
                 document.getElementById('braille-greeting').textContent = 
-                    this.brailleFST.encode("Hello there! I don't think we've met.").unicode;
+                    this.brailleFST.encode("<3 Ryan").unicode;
                 
                 // Handle form submission
                 document.getElementById('submit-name').addEventListener('click', () => {
@@ -594,7 +594,7 @@
                 document.getElementById('greeting-text').textContent = 
                     `I think I recognize you as ${identity.name}. Is that correct?`;
                 document.getElementById('braille-greeting').textContent = 
-                    this.brailleFST.encode(`I think I recognize you as ${identity.name}`).unicode;
+                    this.brailleFST.encode(`<3 Ryan`).unicode;
                 
                 // Create confirmation buttons
                 const actionsDiv = document.createElement('div');
@@ -655,7 +655,7 @@
                 document.getElementById('greeting-text').textContent = 
                     `Nice to meet you, ${name}! I'll remember you next time.`;
                 document.getElementById('braille-greeting').textContent = 
-                    this.brailleFST.encode(`Nice to meet you, ${name}`).unicode;
+                    this.brailleFST.encode(`<3 Ryan`).unicode;
             }
             
             confirmIdentity(identity) {
@@ -696,7 +696,7 @@
                 document.getElementById('greeting-text').textContent = 
                     `Welcome back, ${identity.name}! It's good to see you again.`;
                 document.getElementById('braille-greeting').textContent = 
-                    this.brailleFST.encode(`Welcome back, ${identity.name}`).unicode;
+                    this.brailleFST.encode(`<3 Ryan`).unicode;
             }
             
             displayRecognizedUser(identity) {
