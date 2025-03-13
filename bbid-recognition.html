@@ -216,6 +216,158 @@
             padding-bottom: 10px;
         }
         
+        /* Fingerprint Tabs Styles */
+        .fingerprint-tabs {
+            display: flex;
+            border-bottom: 2px solid #e0e0e0;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            scrollbar-width: none; /* Firefox */
+        }
+        
+        .fingerprint-tabs::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Edge */
+        }
+        
+        .tab-button {
+            background: none;
+            border: none;
+            padding: 10px 15px;
+            margin-right: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #666;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .tab-button:hover {
+            color: #3498db;
+        }
+        
+        .tab-button.active {
+            color: #3498db;
+            font-weight: 600;
+        }
+        
+        .tab-button.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: #3498db;
+        }
+        
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        /* Fingerprint Summary Styles */
+        .fingerprint-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .summary-card {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: transform 0.2s ease;
+        }
+        
+        .summary-card:hover {
+            transform: translateY(-3px);
+        }
+        
+        .summary-icon {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .summary-title {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .summary-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        /* Confidence Meter Styles */
+        .confidence-meter {
+            margin: 25px 0;
+            text-align: center;
+        }
+        
+        .confidence-label {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        
+        .confidence-bar {
+            height: 12px;
+            background-color: #e0e0e0;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+        
+        .confidence-fill {
+            height: 100%;
+            width: 0%; /* Will be set by JS */
+            background: linear-gradient(90deg, #f39c12, #2ecc71);
+            border-radius: 6px;
+            transition: width 0.8s ease;
+        }
+        
+        .confidence-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        /* BBID Display Styles */
+        .bbid-display {
+            background-color: #f0f8ff;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            margin-top: 25px;
+            border: 1px solid #d1e6fa;
+        }
+        
+        .bbid-label {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        
+        .bbid-value {
+            font-family: monospace;
+            font-size: 14px;
+            background-color: #fff;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #e0e0e0;
+            word-break: break-all;
+        }
+        
         .detail-label {
             font-weight: 600;
             width: 200px;
@@ -520,23 +672,156 @@
         </div>
         
         <div class="device-info">
-            <h3>Device Fingerprint</h3>
-            <div class="info-row">
-                <div class="info-label">Device Type:</div>
-                <div class="info-value" id="device-type">-</div>
+            <h3>Your Digital Fingerprint</h3>
+            <div class="fingerprint-tabs">
+                <button class="tab-button active" data-tab="summary">Summary</button>
+                <button class="tab-button" data-tab="device">Device</button>
+                <button class="tab-button" data-tab="behavioral">Behavioral</button>
+                <button class="tab-button" data-tab="geolocation">Geolocation</button>
+                <button class="tab-button" data-tab="session">Session</button>
             </div>
-            <div class="info-row">
-                <div class="info-label">Operating System:</div>
-                <div class="info-value" id="device-os">-</div>
+            
+            <div class="tab-content" id="summary-tab" style="display: block;">
+                <div class="fingerprint-summary">
+                    <div class="summary-card">
+                        <div class="summary-icon">💻</div>
+                        <div class="summary-title">Device</div>
+                        <div class="summary-value" id="device-type">-</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-icon">👆</div>
+                        <div class="summary-title">Behavioral</div>
+                        <div class="summary-value" id="behavioral-score">-</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-icon">📍</div>
+                        <div class="summary-title">Geolocation</div>
+                        <div class="summary-value" id="geo-region">-</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-icon">🕒</div>
+                        <div class="summary-title">Session</div>
+                        <div class="summary-value" id="session-count">-</div>
+                    </div>
+                </div>
+                <div class="confidence-meter">
+                    <div class="confidence-label">Identity Confidence</div>
+                    <div class="confidence-bar">
+                        <div class="confidence-fill" id="confidence-fill"></div>
+                    </div>
+                    <div class="confidence-value" id="confidence-score">-</div>
+                </div>
+                <div class="bbid-display">
+                    <div class="bbid-label">Your BBID</div>
+                    <div class="bbid-value" id="braille-fingerprint">-</div>
+                </div>
             </div>
-            <div class="info-row">
-                <div class="info-label">Browser:</div>
-                <div class="info-value" id="device-browser">-</div>
+            
+            <div class="tab-content" id="device-tab">
+                <div class="info-row">
+                    <div class="info-label">Device Type:</div>
+                    <div class="info-value" id="device-type-detail">-</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Browser:</div>
+                    <div class="info-value" id="device-browser">-</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Operating System:</div>
+                    <div class="info-value" id="device-os">-</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Screen Resolution:</div>
+                    <div class="info-value" id="screen-resolution">-</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Color Depth:</div>
+                    <div class="info-value" id="color-depth">-</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Device Memory:</div>
+                    <div class="info-value" id="device-memory">-</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Hardware Concurrency:</div>
+                    <div class="info-value" id="hardware-concurrency">-</div>
+                </div>
             </div>
-            <div class="info-row">
-                <div class="info-label">BBID Fingerprint:</div>
-                <div class="info-value">
-                    <div class="braille-fingerprint" id="braille-fingerprint">-</div>
+            
+            <div class="tab-content" id="behavioral-tab">
+                <div class="info-row">
+                    <div class="info-label">Typing Pattern:</div>
+                    <div class="info-value" id="typing-pattern">-</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Mouse Movement:</div>
+                    <div class="info-value" id="mouse-movement">-</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Touch Gestures:</div>
+                    <div class="info-value" id="touch-gestures">-</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Scroll Behavior:</div>
+                    <div class="info-value" id="scroll-behavior">-</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Device Motion:</div>
+                    <div class="info-value" id="device-motion">-</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">UI Interaction:</div>
+                    <div class="info-value" id="ui-interaction">-</div>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="geolocation-tab">
+                <div class="info-row">
+                    <div class="info-label">Region:</div>
+                    <div class="info-value" id="geo-region-detail">-</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Timezone:</div>
+                    <div class="info-value" id="timezone">-</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Language:</div>
+                    <div class="info-value" id="language">-</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Connection Type:</div>
+                    <div class="info-value" id="connection-type">-</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Network Information:</div>
+                    <div class="info-value" id="network-info">-</div>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="session-tab">
+                <div class="info-row">
+                    <div class="info-label">First Visit:</div>
+                    <div class="info-value" id="first-visit">-</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Last Visit:</div>
+                    <div class="info-value" id="last-visit">-</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Visit Count:</div>
+                    <div class="info-value" id="visit-count">-</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Average Session Duration:</div>
+                    <div class="info-value" id="avg-session-duration">-</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Time of Day Pattern:</div>
+                    <div class="info-value" id="time-pattern">-</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Day of Week Pattern:</div>
+                    <div class="info-value" id="day-pattern">-</div>
                 </div>
             </div>
             
@@ -574,6 +859,8 @@
     <script src="js/bbid-manager.js" defer></script>
     <script src="js/bbid-mcp-client.js" defer></script>
     <script src="js/braille-identity-learner.js" defer></script>
+    <script src="js/bbid-behavioral.js" defer></script>
+    <link href="css/bbid-design-system.css" rel="stylesheet">
     
     <script>
         // BrailleFST Identity Recognition System
@@ -737,18 +1024,102 @@
             }
             
             updateDeviceInfo(fingerprint) {
-                // Update device info display
-                document.getElementById('device-type').textContent = 
-                    this.deviceFingerprint.getDeviceType() || 'Unknown';
-                document.getElementById('device-os').textContent = 
-                    this.deviceFingerprint.getOS() || 'Unknown';
-                document.getElementById('device-browser').textContent = 
-                    this.deviceFingerprint.getBrowser() || 'Unknown';
+                // Device info
+                const deviceType = this.deviceFingerprint.getDeviceType() || 'Unknown';
+                document.getElementById('device-type').textContent = deviceType;
+                document.getElementById('device-type-detail').textContent = deviceType;
+                
+                const os = this.deviceFingerprint.getOS() || 'Unknown';
+                document.getElementById('device-os').textContent = os;
+                
+                const browser = this.deviceFingerprint.getBrowser() || 'Unknown';
+                document.getElementById('device-browser').textContent = browser;
                 
                 // Display braille fingerprint
                 const brailleFingerprint = this.brailleFST.encode(fingerprint);
                 document.getElementById('braille-fingerprint').textContent = 
                     brailleFingerprint.unicode || fingerprint.substring(0, 50) + '...';
+                
+                // Screen info
+                document.getElementById('screen-resolution').textContent = `${window.screen.width} x ${window.screen.height}`;
+                document.getElementById('color-depth').textContent = `${window.screen.colorDepth} bits`;
+                
+                // Hardware info
+                document.getElementById('device-memory').textContent = navigator.deviceMemory ? 
+                    `${navigator.deviceMemory} GB` : 'Not available';
+                document.getElementById('hardware-concurrency').textContent = navigator.hardwareConcurrency ? 
+                    `${navigator.hardwareConcurrency} cores` : 'Not available';
+                
+                // Behavioral data (placeholder values until behavioral tracking is implemented)
+                document.getElementById('behavioral-score').textContent = 'Active';
+                document.getElementById('typing-pattern').textContent = 'Collected';
+                document.getElementById('mouse-movement').textContent = 'Collected';
+                document.getElementById('touch-gestures').textContent = this.isTouchDevice() ? 'Collected' : 'N/A';
+                document.getElementById('scroll-behavior').textContent = 'Collected';
+                document.getElementById('device-motion').textContent = this.hasMotionSensors() ? 'Collected' : 'N/A';
+                document.getElementById('ui-interaction').textContent = 'Collected';
+                
+                // Geolocation data
+                const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                const region = timezone.split('/')[0];
+                document.getElementById('geo-region').textContent = region;
+                document.getElementById('geo-region-detail').textContent = region;
+                document.getElementById('timezone').textContent = timezone;
+                document.getElementById('language').textContent = navigator.language;
+                document.getElementById('connection-type').textContent = 
+                    navigator.connection ? navigator.connection.effectiveType : 'Unknown';
+                document.getElementById('network-info').textContent = navigator.onLine ? 'Online' : 'Offline';
+                
+                // Session data
+                const now = new Date();
+                const firstVisit = localStorage.getItem('bbid_first_visit') || now.toISOString();
+                if (!localStorage.getItem('bbid_first_visit')) {
+                    localStorage.setItem('bbid_first_visit', firstVisit);
+                }
+                
+                const visitCount = parseInt(localStorage.getItem('bbid_visit_count') || '0') + 1;
+                localStorage.setItem('bbid_visit_count', visitCount.toString());
+                localStorage.setItem('bbid_last_visit', now.toISOString());
+                
+                document.getElementById('session-count').textContent = visitCount.toString();
+                document.getElementById('first-visit').textContent = this.formatDate(new Date(firstVisit));
+                document.getElementById('last-visit').textContent = 'Now';
+                document.getElementById('visit-count').textContent = visitCount.toString();
+                document.getElementById('avg-session-duration').textContent = 'Calculating...';
+                document.getElementById('time-pattern').textContent = this.getTimeOfDayPattern(now);
+                document.getElementById('day-pattern').textContent = this.getDayOfWeekPattern(now);
+                
+                // Set confidence score and meter
+                const confidenceScore = this.recognitionConfidence * 100;
+                document.getElementById('confidence-score').textContent = `${confidenceScore.toFixed(0)}%`;
+                document.getElementById('confidence-fill').style.width = `${confidenceScore}%`;
+            }
+            
+            // Helper methods for device detection and data formatting
+            isTouchDevice() {
+                return ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (navigator.msMaxTouchPoints > 0);
+            }
+            
+            hasMotionSensors() {
+                return window.DeviceMotionEvent !== undefined || window.DeviceOrientationEvent !== undefined;
+            }
+            
+            formatDate(date) {
+                const options = { year: 'numeric', month: 'long', day: 'numeric' };
+                return date.toLocaleDateString(undefined, options);
+            }
+            
+            getTimeOfDayPattern(date) {
+                const hour = date.getHours();
+                if (hour >= 5 && hour < 12) return 'Morning';
+                if (hour >= 12 && hour < 17) return 'Afternoon';
+                if (hour >= 17 && hour < 22) return 'Evening';
+                return 'Night';
+            }
+            
+            getDayOfWeekPattern(date) {
+                const day = date.getDay();
+                return ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][day];
             }
             
             askForIdentity() {
@@ -1301,6 +1672,66 @@
             setTimeout(() => {
                 greetingContainer.classList.remove('pulse');
             }, 3000);
+            
+            // Tab functionality for fingerprint sections
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    // Remove active class from all buttons
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    
+                    // Add active class to clicked button
+                    button.classList.add('active');
+                    
+                    // Hide all tab contents
+                    tabContents.forEach(content => content.style.display = 'none');
+                    
+                    // Show the selected tab content
+                    const tabId = button.getAttribute('data-tab');
+                    document.getElementById(`${tabId}-tab`).style.display = 'block';
+                });
+            });
+            
+            // Initialize behavioral fingerprinting if available
+            if (window.BBIDBehavioral) {
+                const behavioralTracker = new BBIDBehavioral({
+                    deviceId: brailleFSTIdentity.deviceFingerprint.getFingerprint(),
+                    onFingerprintGenerated: (behavioralData) => {
+                        // Update behavioral metrics in the UI
+                        if (behavioralData.keyboard) {
+                            document.getElementById('typing-pattern').textContent = 
+                                `${behavioralData.keyboard.averageSpeed || 0} CPM`;
+                        }
+                        if (behavioralData.mouse) {
+                            document.getElementById('mouse-movement').textContent = 
+                                `${behavioralData.mouse.totalDistance || 0} px`;
+                        }
+                        if (behavioralData.touch) {
+                            document.getElementById('touch-gestures').textContent = 
+                                `${behavioralData.touch.gestureCount || 0} gestures`;
+                        }
+                        if (behavioralData.scroll) {
+                            document.getElementById('scroll-behavior').textContent = 
+                                `${behavioralData.scroll.scrollCount || 0} scrolls`;
+                        }
+                        if (behavioralData.motion) {
+                            document.getElementById('device-motion').textContent = 
+                                behavioralData.motion.isStable ? 'Stable' : 'Active';
+                        }
+                        if (behavioralData.ui) {
+                            document.getElementById('ui-interaction').textContent = 
+                                `${behavioralData.ui.interactionCount || 0} interactions`;
+                        }
+                        
+                        document.getElementById('behavioral-score').textContent = 'Verified';
+                    }
+                });
+                
+                // Start tracking behavioral metrics
+                behavioralTracker.start();
+            }
         });
     </script>
 </body>
