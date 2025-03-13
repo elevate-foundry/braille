@@ -15,6 +15,7 @@ The project has expanded to include MOTL (Machine-Optimized Thought Language), a
 - **Multilingual Support**: Learn braille in multiple languages including English, Spanish, French, Chinese, Arabic, and Hindi
 - **BBID Recognition System**: Secure identity recognition using braille-encoded fingerprints
 - **BrailleFST Technology**: Efficient rule-based encoder/decoder for braille conversion
+- **Bible Compression Comparison**: Analyze storage efficiency of braille compression across different languages using religious texts
 
 ### MOTL (Machine-Optimized Thought Language)
 - **Semantic Encoding**: Concept-based compression rather than word-level tokenization
@@ -39,6 +40,36 @@ Learning braille offers several benefits for sighted children:
 ### Live Demo
 
 Try BrailleBuddy now: [https://braillebuddy.vercel.app/](https://braillebuddy.vercel.app/)
+
+### Bible Compression Comparison
+
+The Bible Compression Comparison feature demonstrates the storage efficiency of our braille compression system across different languages. This tool:
+
+- Compresses religious texts using braille-based 6-bit encoding
+- Compares compression efficiency across multiple languages (English, Spanish, French, Chinese, Arabic, etc.)
+- Utilizes advanced compression methods:
+  - Standard Braille Compression
+  - Language-specific Compression
+  - MOTL Religious Text Compression
+  - M2M Compression
+
+To run the comparison:
+
+```bash
+# Run basic comparison
+./run-comparison.sh
+
+# Run enhanced comparison with detailed analysis
+./run-enhanced-comparison.sh
+```
+
+The analysis provides insights into:
+- Compression ratios by language
+- Comparison to standard compression methods (gzip, bzip2)
+- Language-specific optimization opportunities
+- Recommendations for optimal storage efficiency
+
+This feature is particularly useful for organizations working with religious texts in multiple languages, offering significant storage savings while preserving semantic meaning.
 
 ### Local Development
 

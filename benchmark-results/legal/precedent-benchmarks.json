@@ -1,0 +1,45 @@
+{
+  "similarity": {
+    "precedent_1": 0.6893576213388112,
+    "precedent_2": 0.835250883151934
+  },
+  "application": {
+    "precedent_1": {
+      "actual": "overturned",
+      "predicted": "overturned",
+      "correct": true
+    },
+    "precedent_2": {
+      "actual": "affirmed",
+      "predicted": "affirmed",
+      "correct": true
+    }
+  },
+  "distinction": {
+    "precedent_1": {
+      "actual": [
+        "equal_protection",
+        "psychological_harm",
+        "education_right"
+      ],
+      "extracted": [
+        "privacy_expectation",
+        "free_speech",
+        "fifth_amendment"
+      ],
+      "accuracy": 0
+    },
+    "precedent_2": {
+      "actual": [
+        "fifth_amendment",
+        "police_procedure",
+        "constitutional_requirement"
+      ],
+      "extracted": [
+        "privacy_expectation",
+        "equal_protection"
+      ],
+      "accuracy": 0
+    }
+  }
+}

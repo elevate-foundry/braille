@@ -1,0 +1,11 @@
+{
+  "metadata": {
+    "title": "Miranda v. Arizona",
+    "court": "Supreme Court of the United States",
+    "date": "June 13, 1966",
+    "jurisdiction": "United States",
+    "concepts": ["constitutional_law", "criminal_law", "procedural_law", "fifth_amendment"],
+    "citations": ["Escobedo v. Illinois", "Gideon v. Wainwright"]
+  },
+  "text": "Miranda v. Arizona, 384 U.S. 436 (1966), was a landmark decision of the U.S. Supreme Court in which the Court ruled that the Fifth Amendment to the U.S. Constitution restricts prosecutors from using a person's statements made in response to interrogation in police custody as evidence at their trial unless they can show that the person was informed of the right to consult with an attorney before and during questioning and of the right against self-incrimination before police questioning, and that the defendant not only understood these rights, but voluntarily waived them.\n\nThe case began with the 1963 arrest of Ernesto Miranda, who was charged with rape, kidnapping, and robbery. Miranda was not informed of his rights prior to the police interrogation. During the two-hour interrogation, Miranda allegedly confessed to committing the crimes, which the police apparently recorded. Miranda was then convicted of both rape and kidnapping and sentenced to 20 to 30 years in prison. He appealed to the Arizona Supreme Court, claiming that the police had unconstitutionally obtained his confession.\n\nThe Supreme Court, in a 5–4 decision written by Chief Justice Earl Warren, ruled that the prosecution could not introduce Miranda's confession as evidence in a criminal trial because the police had failed to first inform Miranda of his right to an attorney and against self-incrimination. The Supreme Court did not specify the exact wording to use when informing a suspect of their rights. However, the Court did create a set of guidelines that must be followed. The ruling was later weakened by several overriding decisions."
+}

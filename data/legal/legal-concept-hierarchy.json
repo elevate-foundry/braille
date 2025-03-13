@@ -1,0 +1,303 @@
+{
+  "concepts": {
+    "constitutional_law": {
+      "name": "Constitutional Law",
+      "description": "Fundamental principles establishing the structure of a government and the relationship between the government and citizens",
+      "importance": 1.0,
+      "subconcepts": {
+        "separation_of_powers": {
+          "name": "Separation of Powers",
+          "description": "Division of governmental authority among different branches",
+          "importance": 0.9
+        },
+        "federalism": {
+          "name": "Federalism",
+          "description": "Division of power between national and state governments",
+          "importance": 0.9
+        },
+        "individual_rights": {
+          "name": "Individual Rights",
+          "description": "Fundamental rights and liberties protected from government intrusion",
+          "importance": 0.9
+        }
+      },
+      "opposites": ["authoritarianism"]
+    },
+    "common_law": {
+      "name": "Common Law",
+      "description": "Law developed through judicial decisions rather than legislative statutes",
+      "importance": 0.9,
+      "subconcepts": {
+        "stare_decisis": {
+          "name": "Stare Decisis",
+          "description": "Principle of following precedent in judicial decisions",
+          "importance": 0.8
+        },
+        "case_law": {
+          "name": "Case Law",
+          "description": "Body of law created by judicial precedent",
+          "importance": 0.8
+        },
+        "equity": {
+          "name": "Equity",
+          "description": "Principles of fairness used to supplement strict rules of law",
+          "importance": 0.7
+        }
+      }
+    },
+    "statutory_law": {
+      "name": "Statutory Law",
+      "description": "Laws enacted by legislative bodies",
+      "importance": 0.9,
+      "subconcepts": {
+        "legislation": {
+          "name": "Legislation",
+          "description": "Process of making or enacting laws",
+          "importance": 0.8
+        },
+        "codification": {
+          "name": "Codification",
+          "description": "Process of collecting and arranging laws systematically",
+          "importance": 0.7
+        },
+        "statutory_interpretation": {
+          "name": "Statutory Interpretation",
+          "description": "Process of determining the meaning of statutory language",
+          "importance": 0.8
+        }
+      }
+    },
+    "administrative_law": {
+      "name": "Administrative Law",
+      "description": "Law governing the activities of administrative agencies",
+      "importance": 0.8,
+      "subconcepts": {
+        "rulemaking": {
+          "name": "Rulemaking",
+          "description": "Process by which agencies create regulations",
+          "importance": 0.7
+        },
+        "adjudication": {
+          "name": "Adjudication",
+          "description": "Process by which agencies resolve disputes",
+          "importance": 0.7
+        },
+        "judicial_review": {
+          "name": "Judicial Review",
+          "description": "Court review of administrative actions",
+          "importance": 0.8
+        }
+      }
+    },
+    "criminal_law": {
+      "name": "Criminal Law",
+      "description": "Law related to crime and punishment",
+      "importance": 0.9,
+      "subconcepts": {
+        "mens_rea": {
+          "name": "Mens Rea",
+          "description": "Mental state required for criminal liability",
+          "importance": 0.8
+        },
+        "actus_reus": {
+          "name": "Actus Reus",
+          "description": "Criminal act or conduct",
+          "importance": 0.8
+        },
+        "punishment": {
+          "name": "Punishment",
+          "description": "Penalties imposed for criminal conduct",
+          "importance": 0.7
+        }
+      }
+    },
+    "civil_law": {
+      "name": "Civil Law",
+      "description": "Law dealing with disputes between private parties",
+      "importance": 0.8,
+      "subconcepts": {
+        "tort_law": {
+          "name": "Tort Law",
+          "description": "Law concerning civil wrongs",
+          "importance": 0.7
+        },
+        "contract_law": {
+          "name": "Contract Law",
+          "description": "Law governing agreements between parties",
+          "importance": 0.8
+        },
+        "property_law": {
+          "name": "Property Law",
+          "description": "Law governing ownership and use of property",
+          "importance": 0.7
+        }
+      }
+    },
+    "international_law": {
+      "name": "International Law",
+      "description": "Rules governing relations between states",
+      "importance": 0.8,
+      "subconcepts": {
+        "treaties": {
+          "name": "Treaties",
+          "description": "Agreements between states",
+          "importance": 0.8
+        },
+        "customary_law": {
+          "name": "Customary International Law",
+          "description": "Practices accepted as legally binding",
+          "importance": 0.7
+        },
+        "jus_cogens": {
+          "name": "Jus Cogens",
+          "description": "Peremptory norms that cannot be violated",
+          "importance": 0.7
+        }
+      }
+    },
+    "procedural_law": {
+      "name": "Procedural Law",
+      "description": "Rules governing legal process and proceedings",
+      "importance": 0.8,
+      "subconcepts": {
+        "due_process": {
+          "name": "Due Process",
+          "description": "Procedural rights ensuring fairness",
+          "importance": 0.8
+        },
+        "evidence": {
+          "name": "Evidence",
+          "description": "Information used to establish facts in legal proceedings",
+          "importance": 0.7
+        },
+        "jurisdiction": {
+          "name": "Jurisdiction",
+          "description": "Authority of a court to hear and decide cases",
+          "importance": 0.7
+        }
+      }
+    },
+    "authoritarianism": {
+      "name": "Authoritarianism",
+      "description": "System where individual freedoms are subordinated to the state",
+      "importance": 0.7,
+      "subconcepts": {
+        "executive_supremacy": {
+          "name": "Executive Supremacy",
+          "description": "Concentration of power in the executive branch",
+          "importance": 0.6
+        },
+        "limited_judicial_review": {
+          "name": "Limited Judicial Review",
+          "description": "Restricted ability of courts to check government power",
+          "importance": 0.6
+        }
+      },
+      "opposites": ["constitutional_law"]
+    }
+  },
+  "relationships": [
+    {
+      "source": "constitutional_law",
+      "target": "common_law",
+      "type": "interacts_with",
+      "strength": 0.8
+    },
+    {
+      "source": "constitutional_law",
+      "target": "statutory_law",
+      "type": "constrains",
+      "strength": 0.9
+    },
+    {
+      "source": "constitutional_law",
+      "target": "administrative_law",
+      "type": "constrains",
+      "strength": 0.8
+    },
+    {
+      "source": "common_law",
+      "target": "statutory_law",
+      "type": "supplements",
+      "strength": 0.7
+    },
+    {
+      "source": "statutory_law",
+      "target": "administrative_law",
+      "type": "authorizes",
+      "strength": 0.8
+    },
+    {
+      "source": "criminal_law",
+      "target": "procedural_law",
+      "type": "utilizes",
+      "strength": 0.8
+    },
+    {
+      "source": "civil_law",
+      "target": "procedural_law",
+      "type": "utilizes",
+      "strength": 0.8
+    },
+    {
+      "source": "international_law",
+      "target": "constitutional_law",
+      "type": "influences",
+      "strength": 0.6
+    }
+  ],
+  "crossSystemMapping": {
+    "constitutional_law": ["fundamental_rights", "governance", "social_contract"],
+    "common_law": ["tradition", "precedent", "evolution"],
+    "statutory_law": ["codification", "legislation", "positive_law"],
+    "administrative_law": ["regulation", "bureaucracy", "implementation"],
+    "criminal_law": ["punishment", "deterrence", "retribution"],
+    "civil_law": ["remedy", "compensation", "private_rights"],
+    "international_law": ["sovereignty", "cooperation", "universal_principles"],
+    "procedural_law": ["fairness", "process", "adjudication"]
+  },
+  "jurisdictionalVariants": {
+    "common_law": {
+      "us": {
+        "importance": 0.9,
+        "distinctive_features": ["federal_system", "strong_judicial_review"]
+      },
+      "uk": {
+        "importance": 0.9,
+        "distinctive_features": ["parliamentary_supremacy", "unwritten_constitution"]
+      },
+      "canada": {
+        "importance": 0.8,
+        "distinctive_features": ["charter_rights", "federal_provincial_division"]
+      }
+    },
+    "civil_law": {
+      "france": {
+        "importance": 0.9,
+        "distinctive_features": ["code_napoleon", "administrative_courts"]
+      },
+      "germany": {
+        "importance": 0.9,
+        "distinctive_features": ["constitutional_court", "social_state_principle"]
+      },
+      "japan": {
+        "importance": 0.8,
+        "distinctive_features": ["constitutional_pacifism", "civil_code"]
+      }
+    },
+    "international_law": {
+      "un_system": {
+        "importance": 0.9,
+        "distinctive_features": ["security_council", "general_assembly", "icj"]
+      },
+      "eu_system": {
+        "importance": 0.8,
+        "distinctive_features": ["direct_effect", "supremacy", "preliminary_reference"]
+      },
+      "wto_system": {
+        "importance": 0.7,
+        "distinctive_features": ["dispute_settlement", "most_favored_nation", "national_treatment"]
+      }
+    }
+  }
+}
