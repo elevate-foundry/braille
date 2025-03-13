@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BBID Semantic Encoding Test with ChatGPT</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+        .container {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .input-section {
+            margin-bottom: 20px;
+        }
+        textarea, input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: monospace;
+            margin-bottom: 10px;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .result {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            overflow-x: auto;
+            margin-top: 15px;
+        }
+        .metrics {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .metric-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            flex: 1;
+            min-width: 200px;
+        }
+        .metric-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #3498db;
+            margin: 10px 0;
+        }
+        .braille {
+            font-family: monospace;
+            font-size: 18px;
+            letter-spacing: 2px;
+            background-color: #f0f8ff;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .comparison-table th, .comparison-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        .comparison-table th {
+            background-color: #f2f2f2;
+        }
+        .comparison-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            border-bottom: none;
+            margin-right: 5px;
+            border-radius: 4px 4px 0 0;
+        }
+        .tab.active {
+            background-color: white;
+            border-color: #ddd;
+            border-bottom: 1px solid white;
+            margin-bottom: -1px;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            font-style: italic;
+            color: #777;
+        }
+        .error {
+            background-color: #ffebee;
+            color: #c62828;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        .copy-button {
+            background-color: #27ae60;
+            margin-left: 10px;
+        }
+        .api-url {
+            font-family: monospace;
+            background-color: #f0f0f0;
+            padding: 5px 10px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-right: 10px;
+        }
+        
+        /* Consent Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .modal-container {
+            background-color: white;
+            border-radius: 8px;
+            max-width: 500px;
+            width: 90%;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .modal-header {
+            margin-bottom: 20px;
+        }
+        
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .modal-btn {
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background-color: #3498db;
+            color: white;
+            border: none;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+        
+        .btn-secondary {
+            background-color: #f1f5f9;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #e1e5eb;
+        }
+    </style>
+</head>
+<body>
+    <h1>BBID Semantic Encoding Test with ChatGPT</h1>
+    <p>This tool helps test the density of semantic encoding for digital identities using BBID (BrailleBuddy Identity) with ChatGPT.</p>
+    
+    <div class="tabs">
+        <div class="tab active" data-tab="convert">Convert Fingerprint</div>
+        <div class="tab" data-tab="mydevice">My Device</div>
+        <div class="tab" data-tab="sample">Sample BBID</div>
+        <div class="tab" data-tab="batch">Batch Comparison</div>
+        <div class="tab" data-tab="behavioral">Behavioral Fingerprint</div>
+        <div class="tab" data-tab="api">API Reference</div>
+    </div>
+    
+    <div id="mydevice-tab" class="tab-content container">
+        <h2>My Device Fingerprint</h2>
+        <p>This shows the unique BBID fingerprint for your current device, automatically detected from your browser.</p>
+        
+        <div id="device-loading" class="loading">Generating your device fingerprint...</div>
+        <div id="device-error" class="error" style="display: none;"></div>
+        
+        <div id="device-result-container" style="display: none;">
+            <h3>Your Device Information</h3>
+            <div class="metrics">
+                <div class="metric-card">
+                    <h4>Browser</h4>
+                    <div id="my-browser" class="metric-value">-</div>
+                </div>
+                <div class="metric-card">
+                    <h4>Operating System</h4>
+                    <div id="my-os" class="metric-value">-</div>
+                </div>
+                <div class="metric-card">
+                    <h4>Screen Resolution</h4>
+                    <div id="my-screen" class="metric-value">-</div>
+                </div>
+                <div class="metric-card">
+                    <h4>Language</h4>
+                    <div id="my-language" class="metric-value">-</div>
+                </div>
+            </div>
+            
+            <h3>Your BBID Fingerprint</h3>
+            <div id="my-bbid" class="braille">-</div>
+            <button id="copy-my-bbid" class="copy-button">Copy BBID</button>
+            
+            <h3>Semantic Analysis</h3>
+            <div class="metrics">
+                <div class="metric-card">
+                    <h4>Compression Ratio</h4>
+                    <div id="my-compression" class="metric-value">-</div>
+                </div>
+                <div class="metric-card">
+                    <h4>Semantic Efficiency</h4>
+                    <div id="my-efficiency" class="metric-value">-</div>
+                </div>
+                <div class="metric-card">
+                    <h4>Original Length</h4>
+                    <div id="my-original-length" class="metric-value">-</div>
+                </div>
+                <div class="metric-card">
+                    <h4>BBID Length</h4>
+                    <div id="my-bbid-length" class="metric-value">-</div>
+                </div>
+            </div>
+            
+            <h3>Raw Data</h3>
+            <pre id="device-result" class="result">-</pre>
+        </div>
+    </div>
+    
+    <div id="convert-tab" class="tab-content active container">
+        <h2>Convert Traditional Fingerprint to BBID</h2>
+        <p>Enter a device fingerprint or identifier to convert it to BBID format and analyze its semantic efficiency.</p>
+        
+        <div class="input-section">
+            <label for="fingerprint">Device Fingerprint or Identifier:</label>
+            <textarea id="fingerprint" rows="4" placeholder="Enter a device fingerprint, UUID, or any identifier string...">Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36</textarea>
+            <button id="convert-button">Convert to BBID</button>
+        </div>
+        
+        <div id="convert-loading" class="loading" style="display: none;">Processing...</div>
+        <div id="convert-error" class="error" style="display: none;"></div>
+        
+        <div id="convert-result-container" style="display: none;">
+            <h3>Conversion Results</h3>
+            
+            <div class="metrics">
+                <div class="metric-card">
+                    <h4>Compression Ratio</h4>
+                    <div id="compression-ratio" class="metric-value">-</div>
+                    <p>Higher is better. Ratio of original length to BBID length.</p>
+                </div>
+                <div class="metric-card">
+                    <h4>Semantic Efficiency</h4>
+                    <div id="semantic-efficiency" class="metric-value">-</div>
+                    <p>Higher is better. Ratio of semantic density in BBID vs original.</p>
+                </div>
+                <div class="metric-card">
+                    <h4>Original Length</h4>
+                    <div id="original-length" class="metric-value">-</div>
+                    <p>Number of characters in the hashed fingerprint.</p>
+                </div>
+                <div class="metric-card">
+                    <h4>BBID Length</h4>
+                    <div id="bbid-length" class="metric-value">-</div>
+                    <p>Number of characters in the BBID encoding.</p>
+                </div>
+            </div>
+            
+            <h3>BBID Representation</h3>
+            <div id="bbid-representation" class="braille">-</div>
+            <button id="copy-bbid" class="copy-button">Copy BBID</button>
+            
+            <h3>Raw Data</h3>
+            <pre id="convert-result" class="result">-</pre>
+        </div>
+    </div>
+    
+    <div id="sample-tab" class="tab-content container">
+        <h2>Sample BBID Data</h2>
+        <p>View a sample BBID for a device with semantic efficiency analysis.</p>
+        
+        <button id="fetch-sample">Fetch Sample BBID</button>
+        
+        <div id="sample-loading" class="loading" style="display: none;">Loading sample data...</div>
+        <div id="sample-error" class="error" style="display: none;"></div>
+        
+        <div id="sample-result-container" style="display: none;">
+            <h3>Device Information</h3>
+            <div class="metrics">
+                <div class="metric-card">
+                    <h4>Device Name</h4>
+                    <div id="device-name" class="metric-value">-</div>
+                </div>
+                <div class="metric-card">
+                    <h4>OS</h4>
+                    <div id="device-os" class="metric-value">-</div>
+                </div>
+                <div class="metric-card">
+                    <h4>Browser</h4>
+                    <div id="device-browser" class="metric-value">-</div>
+                </div>
+            </div>
+            
+            <h3>BBID Representation</h3>
+            <div id="sample-bbid" class="braille">-</div>
+            
+            <h3>Semantic Analysis</h3>
+            <div class="metrics">
+                <div class="metric-card">
+                    <h4>Compression Ratio</h4>
+                    <div id="sample-compression" class="metric-value">-</div>
+                </div>
+                <div class="metric-card">
+                    <h4>Semantic Efficiency</h4>
+                    <div id="sample-efficiency" class="metric-value">-</div>
+                </div>
+                <div class="metric-card">
+                    <h4>Original Entropy</h4>
+                    <div id="sample-original-entropy" class="metric-value">-</div>
+                </div>
+                <div class="metric-card">
+                    <h4>BBID Entropy</h4>
+                    <div id="sample-bbid-entropy" class="metric-value">-</div>
+                </div>
+            </div>
+            
+            <h3>Raw Data</h3>
+            <pre id="sample-result" class="result">-</pre>
+        </div>
+    </div>
+    
+    <div id="batch-tab" class="tab-content container">
+        <h2>Batch Comparison</h2>
+        <p>Compare BBID with traditional fingerprinting methods in terms of semantic efficiency.</p>
+        
+        <button id="run-batch">Run Batch Comparison</button>
+        
+        <div id="batch-loading" class="loading" style="display: none;">Running comparison...</div>
+        <div id="batch-error" class="error" style="display: none;"></div>
+        
+        <div id="batch-result-container" style="display: none;">
+            <h3>Comparison Summary</h3>
+            <div class="metrics">
+                <div class="metric-card">
+                    <h4>Average Compression</h4>
+                    <div id="avg-compression" class="metric-value">-</div>
+                </div>
+                <div class="metric-card">
+                    <h4>Average Semantic Efficiency</h4>
+                    <div id="avg-efficiency" class="metric-value">-</div>
+                </div>
+                <div class="metric-card">
+                    <h4>Best Performer</h4>
+                    <div id="best-performer" class="metric-value">-</div>
+                </div>
+            </div>
+            
+            <h3>Detailed Comparison</h3>
+            <table id="comparison-table" class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Method</th>
+                        <th>Description</th>
+                        <th>Compression Ratio</th>
+                        <th>Semantic Efficiency</th>
+                        <th>BBID Example</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Filled dynamically -->
+                </tbody>
+            </table>
+            
+            <h3>Raw Data</h3>
+            <pre id="batch-result" class="result">-</pre>
+        </div>
+    </div>
+    
+    <div id="behavioral-tab" class="tab-content container">
+        <h2>Behavioral Fingerprinting</h2>
+        <p>This advanced fingerprinting method captures your unique interaction patterns with the website, creating a more accurate and harder-to-spoof identifier.</p>
+        
+        <div id="behavioral-loading" class="loading">Collecting behavioral data...</div>
+        <div id="behavioral-error" class="error" style="display: none;"></div>
+        
+        <div id="behavioral-result-container" style="display: none;">
+            <h3>Your Behavioral Fingerprint</h3>
+            <div id="behavioral-bbid" class="braille">-</div>
+            <button id="copy-behavioral-bbid" class="copy-button">Copy Behavioral BBID</button>
+            
+            <h3>Behavioral Metrics</h3>
+            <div class="metrics">
+                <div class="metric-card">
+                    <h4>Keyboard Dynamics</h4>
+                    <div id="keyboard-profile" class="metric-value">-</div>
+                    <p>Based on your typing rhythm and speed</p>
+                </div>
+                <div class="metric-card">
+                    <h4>Mouse Behavior</h4>
+                    <div id="mouse-profile" class="metric-value">-</div>
+                    <p>Based on movement patterns and clicking behavior</p>
+                </div>
+                <div class="metric-card">
+                    <h4>Touch Interaction</h4>
+                    <div id="touch-profile" class="metric-value">-</div>
+                    <p>Based on touch pressure and area (mobile devices)</p>
+                </div>
+                <div class="metric-card">
+                    <h4>Device Motion</h4>
+                    <div id="motion-profile" class="metric-value">-</div>
+                    <p>Based on how you hold and move your device</p>
+                </div>
+            </div>
+            
+            <h3>Interaction Summary</h3>
+            <div class="metrics">
+                <div class="metric-card">
+                    <h4>Active Time</h4>
+                    <div id="active-time" class="metric-value">-</div>
+                </div>
+                <div class="metric-card">
+                    <h4>Scroll Pattern</h4>
+                    <div id="scroll-pattern" class="metric-value">-</div>
+                </div>
+                <div class="metric-card">
+                    <h4>Form Interaction</h4>
+                    <div id="form-interaction" class="metric-value">-</div>
+                </div>
+                <div class="metric-card">
+                    <h4>Uniqueness Score</h4>
+                    <div id="uniqueness-score" class="metric-value">-</div>
+                </div>
+            </div>
+            
+            <h3>Comparison with Traditional Fingerprinting</h3>
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Method</th>
+                        <th>Spoofing Difficulty</th>
+                        <th>Stability</th>
+                        <th>Uniqueness</th>
+                        <th>Privacy Impact</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Traditional Fingerprint</td>
+                        <td>Medium</td>
+                        <td>High</td>
+                        <td>Medium</td>
+                        <td>Medium</td>
+                    </tr>
+                    <tr>
+                        <td>BBID</td>
+                        <td>Medium</td>
+                        <td>High</td>
+                        <td>Medium</td>
+                        <td>Low</td>
+                    </tr>
+                    <tr>
+                        <td>Behavioral BBID</td>
+                        <td>Very High</td>
+                        <td>Medium</td>
+                        <td>Very High</td>
+                        <td>Low</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3>Raw Data</h3>
+            <pre id="behavioral-result" class="result">-</pre>
+        </div>
+    </div>
+    
+    <div id="api-tab" class="tab-content container">
+        <h2>API Reference</h2>
+        <p>Use these API endpoints to test BBID with ChatGPT or other applications.</p>
+        
+        <h3>Convert Fingerprint to BBID</h3>
+        <div class="api-url">POST /api/convert</div>
+        <button class="copy-button" data-copy="javascript:navigator.clipboard.writeText(API_BASE_URL + '/api/convert')">Copy URL</button>
+        <p>Converts a traditional fingerprint to BBID format and calculates semantic efficiency metrics.</p>
+        <h4>Request Body:</h4>
+        <pre class="result">{
+  "fingerprint": "your-device-fingerprint-or-identifier"
+}</pre>
+        
+        <h3>Get Sample BBID</h3>
+        <div class="api-url">GET /api/bbid</div>
+        <button class="copy-button" data-copy="javascript:navigator.clipboard.writeText(API_BASE_URL + '/api/bbid')">Copy URL</button>
+        <p>Returns a sample BBID with semantic efficiency analysis.</p>
+        
+        <h3>Run Batch Comparison</h3>
+        <div class="api-url">GET /api/batch-compare</div>
+        <button class="copy-button" data-copy="javascript:navigator.clipboard.writeText(API_BASE_URL + '/api/batch-compare')">Copy URL</button>
+        <p>Compares BBID with traditional fingerprinting methods in terms of semantic efficiency.</p>
+        
+        <h3>Behavioral Fingerprinting</h3>
+        <div class="api-url">POST /api/behavioral-fingerprint</div>
+        <button class="copy-button" data-copy="javascript:navigator.clipboard.writeText(API_BASE_URL + '/api/behavioral-fingerprint')">Copy URL</button>
+        <p>Generates a behavioral fingerprint based on user interaction patterns.</p>
+        <h4>Request Body:</h4>
+        <pre class="result">{
+  "deviceId": "your-device-id",
+  "keyboardMetrics": { ... },
+  "mouseMetrics": { ... },
+  "touchMetrics": { ... },
+  "motionMetrics": { ... },
+  "interactionFlow": [ ... ],
+  "timeOnPage": { ... },
+  "scrollPatterns": { ... },
+  "formInteractions": { ... }
+}</pre>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fingerprintjs2/2.1.4/fingerprint2.min.js"></script>
+    <script src="/js/bbid-behavioral.js"></script>
+    <script>
+        // API base URL - automatically detects if we're running locally or on Vercel
+        const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+            ? 'http://localhost:3001' 
+            : window.location.origin;
+            
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                tab.classList.add('active');
+                document.getElementById(`${tab.dataset.tab}-tab`).classList.add('active');
+                
+                // If switching to My Device tab, generate fingerprint if not already done
+                if (tab.dataset.tab === 'mydevice' && document.getElementById('my-bbid').textContent === '-') {
+                    generateDeviceFingerprint();
+                }
+                
+                // If switching to Behavioral tab, initialize behavioral fingerprinting if not already done
+                if (tab.dataset.tab === 'behavioral' && document.getElementById('behavioral-bbid').textContent === '-') {
+                    initBehavioralFingerprinting();
+                }
+            });
+        });
+        
+        // Generate device fingerprint using FingerprintJS
+        function generateDeviceFingerprint() {
+            document.getElementById('device-loading').style.display = 'block';
+            document.getElementById('device-error').style.display = 'none';
+            document.getElementById('device-result-container').style.display = 'none';
+            
+            // Wait for page to fully load
+            setTimeout(() => {
+                Fingerprint2.get({ excludes: { webgl: true, canvas: true } }, components => {
+                    // Create fingerprint values
+                    const values = components.map(component => component.value);
+                    const fingerprint = Fingerprint2.x64hash128(values.join(''), 31);
+                    
+                    // Extract browser info
+                    const browserInfo = {};
+                    components.forEach(component => {
+                        browserInfo[component.key] = component.value;
+                    });
+                    
+                    // Convert to BBID
+                    convertToBBID(fingerprint, browserInfo);
+                });
+            }, 500);
+        }
+        
+        // Convert fingerprint to BBID using our API
+        async function convertToBBID(fingerprint, browserInfo) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/convert`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ fingerprint })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                // Display device info
+                document.getElementById('my-browser').textContent = 
+                    (browserInfo.userAgent || '').split(' ').filter(part => part.includes('/')).join(' ');
+                document.getElementById('my-os').textContent = browserInfo.platform || '-';
+                document.getElementById('my-screen').textContent = `${window.screen.width}x${window.screen.height}`;
+                document.getElementById('my-language').textContent = browserInfo.language || navigator.language || '-';
+                
+                // Display BBID
+                document.getElementById('my-bbid').textContent = data.bbes;
+                
+                // Display metrics
+                document.getElementById('my-compression').textContent = data.metrics.compressionRatio.toFixed(2);
+                document.getElementById('my-efficiency').textContent = data.metrics.semanticEfficiency.toFixed(2);
+                document.getElementById('my-original-length').textContent = data.metrics.originalLength;
+                document.getElementById('my-bbid-length').textContent = data.metrics.bbesLength;
+                
+                // Create full result object
+                const result = {
+                    deviceInfo: {
+                        browser: document.getElementById('my-browser').textContent,
+                        os: browserInfo.platform,
+                        screen: `${window.screen.width}x${window.screen.height}`,
+                        language: browserInfo.language || navigator.language,
+                        colorDepth: window.screen.colorDepth,
+                        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                        touchSupport: 'ontouchstart' in window
+                    },
+                    fingerprint: fingerprint,
+                    bbid: data.bbes,
+                    metrics: data.metrics
+                };
+                
+                // Log device data to our database
+                logDeviceData(result);
+                
+                document.getElementById('device-result').textContent = JSON.stringify(result, null, 2);
+                document.getElementById('device-loading').style.display = 'none';
+                document.getElementById('device-result-container').style.display = 'block';
+                
+                // Setup copy button
+                document.getElementById('copy-my-bbid').addEventListener('click', () => {
+                    navigator.clipboard.writeText(data.bbes);
+                    alert('BBID copied to clipboard!');
+                });
+            } catch (error) {
+                document.getElementById('device-loading').style.display = 'none';
+                document.getElementById('device-error').style.display = 'block';
+                document.getElementById('device-error').textContent = `Error: ${error.message}`;
+            }
+        }
+        
+        // Log device data to our database
+        async function logDeviceData(deviceData) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/log-device`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        deviceInfo: deviceData.deviceInfo,
+                        fingerprint: deviceData.fingerprint,
+                        bbid: deviceData.bbid,
+                        metrics: deviceData.metrics,
+                        timestamp: new Date().toISOString()
+                    })
+                });
+                
+                if (!response.ok) {
+                    console.warn('Failed to log device data:', await response.text());
+                } else {
+                    console.log('Device data logged successfully');
+                }
+            } catch (error) {
+                console.warn('Error logging device data:', error);
+            }
+        }
+        
+        // Consent modal functionality
+        function showConsentModal() {
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.id = 'consent-modal';
+            modal.style.zIndex = '2000'; // Ensure it's on top
+            
+            modal.innerHTML = `
+                <div class="modal-container">
+                    <div class="modal-header">
+                        <h2>Device Fingerprinting Consent</h2>
+                    </div>
+                    <div class="modal-content">
+                        <p>We'd like to collect your device fingerprint to demonstrate the effectiveness of our BBID (BrailleBuddy Identity) technology.</p>
+                        <p>This will help us show how BBID provides more efficient and semantic device identification compared to traditional fingerprinting methods.</p>
+                        <p>Your data will be anonymized and only used for demonstration purposes.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button id="decline-consent" class="modal-btn btn-secondary">Decline</button>
+                        <button id="accept-consent" class="modal-btn btn-primary">Accept & Continue</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // Event listeners for buttons
+            document.getElementById('accept-consent').addEventListener('click', () => {
+                localStorage.setItem('bbid_consent', 'granted');
+                modal.remove();
+                generateDeviceFingerprint();
+                // Don't automatically switch tabs - let user continue browsing
+            });
+            
+            document.getElementById('decline-consent').addEventListener('click', () => {
+                localStorage.setItem('bbid_consent', 'declined');
+                modal.remove();
+            });
+        }
+        
+        // Initialize behavioral fingerprinting
+        function initBehavioralFingerprinting() {
+            document.getElementById('behavioral-loading').style.display = 'block';
+            document.getElementById('behavioral-error').style.display = 'none';
+            document.getElementById('behavioral-result-container').style.display = 'none';
+            
+            // Initialize the behavioral tracking
+            if (window.BBIDBehavioral) {
+                const behavioralTracker = new BBIDBehavioral({
+                    apiEndpoint: `${API_BASE_URL}/api/behavioral-fingerprint`,
+                    collectionTime: 30000, // 30 seconds of data collection
+                    onDataCollected: handleBehavioralData,
+                    onError: (error) => {
+                        document.getElementById('behavioral-loading').style.display = 'none';
+                        document.getElementById('behavioral-error').style.display = 'block';
+                        document.getElementById('behavioral-error').textContent = `Error: ${error.message}`;
+                    }
+                });
+                
+                // Start tracking
+                behavioralTracker.startTracking();
+            } else {
+                document.getElementById('behavioral-loading').style.display = 'none';
+                document.getElementById('behavioral-error').style.display = 'block';
+                document.getElementById('behavioral-error').textContent = 'Behavioral tracking library not loaded';
+            }
+        }
+        
+        // Handle the behavioral data after collection
+        function handleBehavioralData(data) {
+            // Hide loading, show results
+            document.getElementById('behavioral-loading').style.display = 'none';
+            document.getElementById('behavioral-result-container').style.display = 'block';
+            
+            // Display the behavioral BBID
+            document.getElementById('behavioral-bbid').textContent = data.behavioralBBID || '-';
+            
+            // Update metrics
+            document.getElementById('keyboard-profile').textContent = data.metrics.keyboardProfile || 'No data';
+            document.getElementById('mouse-profile').textContent = data.metrics.mouseProfile || 'No data';
+            document.getElementById('touch-profile').textContent = data.metrics.touchProfile || 'No data';
+            document.getElementById('motion-profile').textContent = data.metrics.motionProfile || 'No data';
+            
+            document.getElementById('active-time').textContent = data.metrics.activeTime || 'No data';
+            document.getElementById('scroll-pattern').textContent = data.metrics.scrollPattern || 'No data';
+            document.getElementById('form-interaction').textContent = data.metrics.formInteraction || 'No data';
+            document.getElementById('uniqueness-score').textContent = data.metrics.uniquenessScore || 'No data';
+            
+            // Display raw data
+            document.getElementById('behavioral-result').textContent = JSON.stringify(data, null, 2);
+            
+            // Add copy button functionality
+            document.getElementById('copy-behavioral-bbid').addEventListener('click', () => {
+                navigator.clipboard.writeText(data.behavioralBBID || '');
+                alert('Behavioral BBID copied to clipboard!');
+            });
+        }
+        
+        // Check for consent and generate fingerprint on page load
+        window.addEventListener('load', () => {
+            const consent = localStorage.getItem('bbid_consent');
+            
+            if (consent === 'granted') {
+                // If consent was previously granted, generate fingerprint
+                // but don't switch tabs or disrupt user experience
+                generateDeviceFingerprint();
+            } else if (consent !== 'declined') {
+                // If no consent decision has been made, show the modal
+                // Set a small timeout to let the page load first
+                setTimeout(() => {
+                    showConsentModal();
+                }, 1000);
+            }
+            // If consent was declined, do nothing
+        });
+        
+        // Make sure tab functionality works properly
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                // If user has granted consent but we haven't generated fingerprint yet
+                // (e.g., if they cleared browser cache but kept localStorage)
+                if (localStorage.getItem('bbid_consent') === 'granted' && 
+                    document.getElementById('my-bbid').textContent === '-') {
+                    generateDeviceFingerprint();
+                }
+            });
+        });
+        
+        // Convert fingerprint
+        document.getElementById('convert-button').addEventListener('click', async () => {
+            const fingerprint = document.getElementById('fingerprint').value.trim();
+            if (!fingerprint) {
+                showError('convert', 'Please enter a fingerprint or identifier.');
+                return;
+            }
+            
+            showLoading('convert');
+            hideError('convert');
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/convert`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ fingerprint })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                // Display results
+                document.getElementById('compression-ratio').textContent = data.metrics.compressionRatio.toFixed(2);
+                document.getElementById('semantic-efficiency').textContent = data.metrics.semanticEfficiency.toFixed(2);
+                document.getElementById('original-length').textContent = data.metrics.originalLength;
+                document.getElementById('bbid-length').textContent = data.metrics.bbesLength;
+                document.getElementById('bbid-representation').textContent = data.bbes;
+                document.getElementById('convert-result').textContent = JSON.stringify(data, null, 2);
+                
+                document.getElementById('convert-result-container').style.display = 'block';
+            } catch (error) {
+                showError('convert', `Error: ${error.message}`);
+            } finally {
+                hideLoading('convert');
+            }
+        });
+        
+        // Fetch sample BBID
+        document.getElementById('fetch-sample').addEventListener('click', async () => {
+            showLoading('sample');
+            hideError('sample');
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/bbid`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                // Display results
+                document.getElementById('device-name').textContent = data.metadata.name;
+                document.getElementById('device-os').textContent = `${data.metadata.os} ${data.metadata.osVersion}`;
+                document.getElementById('device-browser').textContent = `${data.metadata.browser} ${data.metadata.browserVersion}`;
+                document.getElementById('sample-bbid').textContent = data.fingerprint.bbes;
+                document.getElementById('sample-compression').textContent = data.semanticAnalysis.compressionRatio.toFixed(2);
+                document.getElementById('sample-efficiency').textContent = data.semanticAnalysis.semanticEfficiency.toFixed(2);
+                document.getElementById('sample-original-entropy').textContent = data.semanticAnalysis.originalEntropy.toFixed(2);
+                document.getElementById('sample-bbid-entropy').textContent = data.semanticAnalysis.bbesEntropy.toFixed(2);
+                document.getElementById('sample-result').textContent = JSON.stringify(data, null, 2);
+                
+                document.getElementById('sample-result-container').style.display = 'block';
+            } catch (error) {
+                showError('sample', `Error: ${error.message}`);
+            } finally {
+                hideLoading('sample');
+            }
+        });
+        
+        // Run batch comparison
+        document.getElementById('run-batch').addEventListener('click', async () => {
+            showLoading('batch');
+            hideError('batch');
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/batch-compare`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                // Display summary
+                document.getElementById('avg-compression').textContent = data.comparison.averageCompressionRatio.toFixed(2);
+                document.getElementById('avg-efficiency').textContent = data.comparison.averageSemanticEfficiency.toFixed(2);
+                document.getElementById('best-performer').textContent = data.comparison.bestPerformer;
+                
+                // Build table
+                const tableBody = document.querySelector('#comparison-table tbody');
+                tableBody.innerHTML = '';
+                
+                data.testCases.forEach(testCase => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${testCase.name}</td>
+                        <td>${testCase.description}</td>
+                        <td>${testCase.metrics.compressionRatio.toFixed(2)}</td>
+                        <td>${testCase.metrics.semanticEfficiency.toFixed(2)}</td>
+                        <td class="braille">${testCase.bbes.substring(0, 15)}...</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+                
+                document.getElementById('batch-result').textContent = JSON.stringify(data, null, 2);
+                document.getElementById('batch-result-container').style.display = 'block';
+            } catch (error) {
+                showError('batch', `Error: ${error.message}`);
+            } finally {
+                hideLoading('batch');
+            }
+        });
+        
+        // Copy buttons
+        document.getElementById('copy-bbid').addEventListener('click', () => {
+            const bbid = document.getElementById('bbid-representation').textContent;
+            navigator.clipboard.writeText(bbid);
+            alert('BBID copied to clipboard!');
+        });
+        
+        document.querySelectorAll('.copy-button[data-copy]').forEach(button => {
+            button.addEventListener('click', () => {
+                navigator.clipboard.writeText(button.dataset.copy);
+                alert('URL copied to clipboard!');
+            });
+        });
+        
+        // Helper functions
+        function showLoading(tab) {
+            document.getElementById(`${tab}-loading`).style.display = 'block';
+        }
+        
+        function hideLoading(tab) {
+            document.getElementById(`${tab}-loading`).style.display = 'none';
+        }
+        
+        function showError(tab, message) {
+            const errorElement = document.getElementById(`${tab}-error`);
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+        }
+        
+        function hideError(tab) {
+            document.getElementById(`${tab}-error`).style.display = 'none';
+        }
+    </script>
+</body>
+</html>

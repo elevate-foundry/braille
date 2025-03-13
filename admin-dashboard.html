@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BBID Device Analytics Dashboard</title>
+    <link rel="icon" href="/images/favicon.svg" type="image/svg+xml">
+    <style>
+        :root {
+            --primary: #4a6fa5;
+            --secondary: #166d67;
+            --accent: #166d67;
+            --background: #f7f9fc;
+            --card-bg: #ffffff;
+            --text: #333333;
+            --border: #e1e5eb;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--background);
+            color: var(--text);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 20px 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1, h2, h3, h4 {
+            margin: 0;
+            font-weight: 600;
+        }
+        
+        .auth-container {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .dashboard {
+            display: none;
+        }
+        
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--accent);
+            margin: 10px 0;
+        }
+        
+        .devices-table-container {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        th {
+            background-color: #f1f5f9;
+            position: sticky;
+            top: 0;
+        }
+        
+        tr:hover {
+            background-color: #f9fafc;
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        
+        .pagination button {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            padding: 8px 16px;
+            margin: 0 5px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        
+        .pagination button:hover {
+            background-color: #f1f5f9;
+        }
+        
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        input, button {
+            padding: 10px 15px;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+            font-size: 1rem;
+        }
+        
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #3a5a84;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            font-style: italic;
+            color: #666;
+        }
+        
+        .error {
+            background-color: #fee;
+            color: #c00;
+            padding: 10px 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+            display: none;
+        }
+        
+        .chart-container {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+            height: 300px;
+        }
+        
+        .metrics-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .device-details {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .detail-item {
+            background-color: #f9fafc;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        
+        .detail-label {
+            font-weight: bold;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .detail-value {
+            margin-top: 5px;
+            word-break: break-all;
+        }
+        
+        .braille {
+            font-family: monospace;
+            background-color: #f1f5f9;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>BBID Device Analytics Dashboard</h1>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div id="auth-container" class="auth-container">
+            <h2>Admin Authentication</h2>
+            <p>Enter your API key to access the device analytics dashboard.</p>
+            <div class="error" id="auth-error"></div>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <input type="password" id="api-key" placeholder="Enter API Key" style="flex: 1;">
+                <button id="login-btn">Access Dashboard</button>
+            </div>
+        </div>
+        
+        <div id="dashboard" class="dashboard">
+            <div class="stats-container">
+                <div class="stat-card">
+                    <h3>Total Devices</h3>
+                    <div class="stat-value" id="total-devices">-</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Unique Browsers</h3>
+                    <div class="stat-value" id="unique-browsers">-</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Unique OS</h3>
+                    <div class="stat-value" id="unique-os">-</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Avg. Semantic Efficiency</h3>
+                    <div class="stat-value" id="avg-efficiency">-</div>
+                </div>
+            </div>
+            
+            <div class="chart-container">
+                <h3>Devices Over Time</h3>
+                <canvas id="devices-chart"></canvas>
+            </div>
+            
+            <div class="metrics-container">
+                <div class="chart-container">
+                    <h3>Browser Distribution</h3>
+                    <canvas id="browser-chart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h3>OS Distribution</h3>
+                    <canvas id="os-chart"></canvas>
+                </div>
+            </div>
+            
+            <div class="devices-table-container">
+                <h3>Recent Devices</h3>
+                <div class="error" id="devices-error"></div>
+                <div id="devices-loading" class="loading">Loading device data...</div>
+                <table id="devices-table" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Browser</th>
+                            <th>OS</th>
+                            <th>Screen</th>
+                            <th>Semantic Efficiency</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="devices-tbody"></tbody>
+                </table>
+                
+                <div class="pagination" id="pagination">
+                    <button id="prev-page" disabled>Previous</button>
+                    <span id="page-info">Page 1</span>
+                    <button id="next-page">Next</button>
+                </div>
+            </div>
+            
+            <div id="device-details" class="device-details">
+                <h3>Device Details</h3>
+                <button id="close-details" style="float: right; margin-top: -30px;">Close</button>
+                
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <div class="detail-label">Date</div>
+                        <div class="detail-value" id="detail-date">-</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Browser</div>
+                        <div class="detail-value" id="detail-browser">-</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">OS</div>
+                        <div class="detail-value" id="detail-os">-</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Screen</div>
+                        <div class="detail-value" id="detail-screen">-</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Language</div>
+                        <div class="detail-value" id="detail-language">-</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Timezone</div>
+                        <div class="detail-value" id="detail-timezone">-</div>
+                    </div>
+                </div>
+                
+                <h4 style="margin-top: 20px;">BBID Fingerprint</h4>
+                <div class="braille" id="detail-bbid">-</div>
+                
+                <h4>Traditional Fingerprint</h4>
+                <div class="detail-value" id="detail-fingerprint" style="word-break: break-all; font-family: monospace;">-</div>
+                
+                <h4>Semantic Metrics</h4>
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <div class="detail-label">Compression Ratio</div>
+                        <div class="detail-value" id="detail-compression">-</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Semantic Efficiency</div>
+                        <div class="detail-value" id="detail-efficiency">-</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Original Length</div>
+                        <div class="detail-value" id="detail-original-length">-</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">BBID Length</div>
+                        <div class="detail-value" id="detail-bbid-length">-</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // API base URL - automatically detects if we're running locally or on Vercel
+        const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+            ? 'http://localhost:3001' 
+            : window.location.origin;
+        
+        // State
+        let apiKey = '';
+        let currentPage = 1;
+        let pageSize = 20;
+        let totalDevices = 0;
+        let deviceData = [];
+        let charts = {};
+        
+        // DOM Elements
+        const authContainer = document.getElementById('auth-container');
+        const dashboard = document.getElementById('dashboard');
+        const apiKeyInput = document.getElementById('api-key');
+        const loginBtn = document.getElementById('login-btn');
+        const authError = document.getElementById('auth-error');
+        const devicesTable = document.getElementById('devices-table');
+        const devicesTbody = document.getElementById('devices-tbody');
+        const devicesLoading = document.getElementById('devices-loading');
+        const devicesError = document.getElementById('devices-error');
+        const prevPageBtn = document.getElementById('prev-page');
+        const nextPageBtn = document.getElementById('next-page');
+        const pageInfo = document.getElementById('page-info');
+        const deviceDetails = document.getElementById('device-details');
+        const closeDetailsBtn = document.getElementById('close-details');
+        
+        // Stats elements
+        const totalDevicesEl = document.getElementById('total-devices');
+        const uniqueBrowsersEl = document.getElementById('unique-browsers');
+        const uniqueOsEl = document.getElementById('unique-os');
+        const avgEfficiencyEl = document.getElementById('avg-efficiency');
+        
+        // Login
+        loginBtn.addEventListener('click', () => {
+            apiKey = apiKeyInput.value.trim();
+            if (!apiKey) {
+                showError(authError, 'Please enter an API key');
+                return;
+            }
+            
+            // Try to fetch devices to validate API key
+            fetchDevices().then(success => {
+                if (success) {
+                    authContainer.style.display = 'none';
+                    dashboard.style.display = 'block';
+                    
+                    // Initialize charts
+                    initCharts();
+                    
+                    // Save API key to localStorage
+                    localStorage.setItem('bbid_api_key', apiKey);
+                }
+            });
+        });
+        
+        // Check for saved API key
+        const savedApiKey = localStorage.getItem('bbid_api_key');
+        if (savedApiKey) {
+            apiKeyInput.value = savedApiKey;
+            loginBtn.click();
+        }
+        
+        // Fetch devices
+        async function fetchDevices() {
+            devicesLoading.style.display = 'block';
+            devicesTable.style.display = 'none';
+            devicesError.style.display = 'none';
+            
+            try {
+                const skip = (currentPage - 1) * pageSize;
+                const response = await fetch(`${API_BASE_URL}/api/devices?apiKey=${apiKey}&limit=${pageSize}&skip=${skip}`);
+                
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        showError(authError, 'Invalid API key');
+                        return false;
+                    }
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                deviceData = data.devices;
+                totalDevices = data.pagination.total;
+                
+                // Update pagination
+                updatePagination(data.pagination);
+                
+                // Render devices
+                renderDevices(deviceData);
+                
+                // Update stats
+                updateStats(deviceData);
+                
+                return true;
+            } catch (error) {
+                console.error('Error fetching devices:', error);
+                showError(devicesError, `Error fetching devices: ${error.message}`);
+                return false;
+            } finally {
+                devicesLoading.style.display = 'none';
+            }
+        }
+        
+        // Render devices table
+        function renderDevices(devices) {
+            devicesTbody.innerHTML = '';
+            
+            if (devices.length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = '<td colspan="6" style="text-align: center;">No devices found</td>';
+                devicesTbody.appendChild(row);
+            } else {
+                devices.forEach(device => {
+                    const row = document.createElement('tr');
+                    
+                    // Format date
+                    const date = new Date(device.timestamp);
+                    const formattedDate = date.toLocaleString();
+                    
+                    row.innerHTML = `
+                        <td>${formattedDate}</td>
+                        <td>${device.deviceInfo?.browser || 'Unknown'}</td>
+                        <td>${device.deviceInfo?.os || 'Unknown'}</td>
+                        <td>${device.deviceInfo?.screen || 'Unknown'}</td>
+                        <td>${device.metrics?.semanticEfficiency?.toFixed(2) || 'N/A'}</td>
+                        <td><button class="view-details" data-id="${device._id}">View Details</button></td>
+                    `;
+                    
+                    devicesTbody.appendChild(row);
+                });
+                
+                // Add event listeners to view details buttons
+                document.querySelectorAll('.view-details').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const id = btn.getAttribute('data-id');
+                        const device = deviceData.find(d => d._id === id);
+                        if (device) {
+                            showDeviceDetails(device);
+                        }
+                    });
+                });
+            }
+            
+            devicesTable.style.display = 'table';
+        }
+        
+        // Update pagination
+        function updatePagination(pagination) {
+            totalDevicesEl.textContent = pagination.total;
+            
+            // Update page info
+            const totalPages = Math.ceil(pagination.total / pageSize);
+            pageInfo.textContent = `Page ${currentPage} of ${totalPages || 1}`;
+            
+            // Update buttons
+            prevPageBtn.disabled = currentPage <= 1;
+            nextPageBtn.disabled = !pagination.hasMore;
+        }
+        
+        // Pagination event listeners
+        prevPageBtn.addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                fetchDevices();
+            }
+        });
+        
+        nextPageBtn.addEventListener('click', () => {
+            currentPage++;
+            fetchDevices();
+        });
+        
+        // Show device details
+        function showDeviceDetails(device) {
+            // Set device details
+            document.getElementById('detail-date').textContent = new Date(device.timestamp).toLocaleString();
+            document.getElementById('detail-browser').textContent = device.deviceInfo?.browser || 'Unknown';
+            document.getElementById('detail-os').textContent = device.deviceInfo?.os || 'Unknown';
+            document.getElementById('detail-screen').textContent = device.deviceInfo?.screen || 'Unknown';
+            document.getElementById('detail-language').textContent = device.deviceInfo?.language || 'Unknown';
+            document.getElementById('detail-timezone').textContent = device.deviceInfo?.timezone || 'Unknown';
+            
+            document.getElementById('detail-bbid').textContent = device.bbid || 'Unknown';
+            document.getElementById('detail-fingerprint').textContent = device.fingerprint || 'Unknown';
+            
+            document.getElementById('detail-compression').textContent = device.metrics?.compressionRatio?.toFixed(2) || 'N/A';
+            document.getElementById('detail-efficiency').textContent = device.metrics?.semanticEfficiency?.toFixed(2) || 'N/A';
+            document.getElementById('detail-original-length').textContent = device.metrics?.originalLength || 'N/A';
+            document.getElementById('detail-bbid-length').textContent = device.metrics?.bbesLength || 'N/A';
+            
+            // Show details
+            deviceDetails.style.display = 'block';
+            
+            // Scroll to details
+            deviceDetails.scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // Close details
+        closeDetailsBtn.addEventListener('click', () => {
+            deviceDetails.style.display = 'none';
+        });
+        
+        // Update stats
+        function updateStats(devices) {
+            // Unique browsers
+            const browsers = new Set(devices.map(d => d.deviceInfo?.browser).filter(Boolean));
+            uniqueBrowsersEl.textContent = browsers.size;
+            
+            // Unique OS
+            const os = new Set(devices.map(d => d.deviceInfo?.os).filter(Boolean));
+            uniqueOsEl.textContent = os.size;
+            
+            // Average semantic efficiency
+            const efficiencies = devices.map(d => d.metrics?.semanticEfficiency).filter(Boolean);
+            const avgEfficiency = efficiencies.length > 0 
+                ? efficiencies.reduce((sum, val) => sum + val, 0) / efficiencies.length 
+                : 0;
+            avgEfficiencyEl.textContent = avgEfficiency.toFixed(2);
+            
+            // Update charts
+            updateCharts(devices);
+        }
+        
+        // Initialize charts
+        function initCharts() {
+            // Devices over time chart
+            const devicesCtx = document.getElementById('devices-chart').getContext('2d');
+            charts.devices = new Chart(devicesCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Devices',
+                        data: [],
+                        borderColor: '#4a6fa5',
+                        backgroundColor: 'rgba(74, 111, 165, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision: 0
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Browser distribution chart
+            const browserCtx = document.getElementById('browser-chart').getContext('2d');
+            charts.browser = new Chart(browserCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        data: [],
+                        backgroundColor: [
+                            '#4a6fa5', '#166d67', '#5e9ca0', '#8fd9a8', '#d2e69c',
+                            '#3a5a84', '#0f5753', '#4b7c80', '#72ad86', '#a8b87d'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        }
+                    }
+                }
+            });
+            
+            // OS distribution chart
+            const osCtx = document.getElementById('os-chart').getContext('2d');
+            charts.os = new Chart(osCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        data: [],
+                        backgroundColor: [
+                            '#4a6fa5', '#166d67', '#5e9ca0', '#8fd9a8', '#d2e69c',
+                            '#3a5a84', '#0f5753', '#4b7c80', '#72ad86', '#a8b87d'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Update charts
+        function updateCharts(devices) {
+            if (!charts.devices) return;
+            
+            // Group devices by date
+            const devicesByDate = {};
+            devices.forEach(device => {
+                const date = new Date(device.timestamp).toLocaleDateString();
+                devicesByDate[date] = (devicesByDate[date] || 0) + 1;
+            });
+            
+            // Sort dates
+            const sortedDates = Object.keys(devicesByDate).sort((a, b) => new Date(a) - new Date(b));
+            
+            // Update devices chart
+            charts.devices.data.labels = sortedDates;
+            charts.devices.data.datasets[0].data = sortedDates.map(date => devicesByDate[date]);
+            charts.devices.update();
+            
+            // Count browsers
+            const browserCounts = {};
+            devices.forEach(device => {
+                const browser = device.deviceInfo?.browser || 'Unknown';
+                browserCounts[browser] = (browserCounts[browser] || 0) + 1;
+            });
+            
+            // Update browser chart
+            charts.browser.data.labels = Object.keys(browserCounts);
+            charts.browser.data.datasets[0].data = Object.values(browserCounts);
+            charts.browser.update();
+            
+            // Count OS
+            const osCounts = {};
+            devices.forEach(device => {
+                const os = device.deviceInfo?.os || 'Unknown';
+                osCounts[os] = (osCounts[os] || 0) + 1;
+            });
+            
+            // Update OS chart
+            charts.os.data.labels = Object.keys(osCounts);
+            charts.os.data.datasets[0].data = Object.values(osCounts);
+            charts.os.update();
+        }
+        
+        // Show error
+        function showError(element, message) {
+            element.textContent = message;
+            element.style.display = 'block';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BBID Fingerprint Statistics</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .stats-container {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+        .stat-card {
+            background-color: white;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+        .stat-title {
+            font-weight: bold;
+            color: #3498db;
+            margin-bottom: 5px;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .recent-visits {
+            margin-top: 20px;
+        }
+        .visit-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .timestamp {
+            font-weight: bold;
+            color: #7f8c8d;
+        }
+        .user-agent {
+            font-size: 14px;
+            color: #95a5a6;
+            word-break: break-all;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            font-style: italic;
+            color: #7f8c8d;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 20px;
+            display: none;
+        }
+        .refresh-button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+        }
+        .refresh-button:hover {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <h1>BBID Fingerprint Statistics</h1>
+    <p>This page displays statistics about unique device fingerprints collected by the BBID system.</p>
+    
+    <div id="loading" class="loading">Loading statistics...</div>
+    <div id="error" class="error"></div>
+    
+    <div id="stats-container" class="stats-container" style="display: none;">
+        <div class="stat-card">
+            <div class="stat-title">Total Records</div>
+            <div id="total-records" class="stat-value">-</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-title">Unique Device Fingerprints</div>
+            <div id="unique-fingerprints" class="stat-value">-</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-title">Unique BBIDs</div>
+            <div id="unique-bbids" class="stat-value">-</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-title">Unique IP Addresses</div>
+            <div id="unique-ips" class="stat-value">-</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-title">Behavioral Fingerprints</div>
+            <div id="behavioral-fingerprints" class="stat-value">-</div>
+        </div>
+        
+        <h2>Recent Visits</h2>
+        <div id="recent-visits" class="recent-visits">
+            <!-- Filled dynamically -->
+        </div>
+    </div>
+    
+    <button id="refresh-button" class="refresh-button" style="display: none;">Refresh Statistics</button>
+    
+    <script>
+        // API base URL - automatically detects if we're running locally or on Vercel
+        const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+            ? 'http://localhost:3001' 
+            : window.location.origin;
+            
+        // Function to fetch fingerprint statistics
+        async function fetchFingerprintStats() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('stats-container').style.display = 'none';
+            document.getElementById('error').style.display = 'none';
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/count-fingerprints`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                // Update statistics
+                document.getElementById('total-records').textContent = data.totalRecords;
+                document.getElementById('unique-fingerprints').textContent = data.uniqueFingerprints;
+                document.getElementById('unique-bbids').textContent = data.uniqueBBIDs;
+                document.getElementById('unique-ips').textContent = data.uniqueIPAddresses;
+                document.getElementById('behavioral-fingerprints').textContent = data.behavioralFingerprints;
+                
+                // Update recent visits
+                const recentVisitsContainer = document.getElementById('recent-visits');
+                recentVisitsContainer.innerHTML = '';
+                
+                if (data.recentVisits && data.recentVisits.length > 0) {
+                    data.recentVisits.forEach(visit => {
+                        const visitElement = document.createElement('div');
+                        visitElement.className = 'visit-item';
+                        
+                        const timestamp = new Date(visit.timestamp).toLocaleString();
+                        const userAgent = visit.userAgent || 'Unknown';
+                        
+                        visitElement.innerHTML = `
+                            <div class="timestamp">${timestamp}</div>
+                            <div class="user-agent">${userAgent}</div>
+                        `;
+                        
+                        recentVisitsContainer.appendChild(visitElement);
+                    });
+                } else {
+                    recentVisitsContainer.innerHTML = '<p>No recent visits recorded</p>';
+                }
+                
+                // Show statistics and hide loading
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('stats-container').style.display = 'block';
+                document.getElementById('refresh-button').style.display = 'block';
+                
+            } catch (error) {
+                console.error('Error fetching fingerprint statistics:', error);
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error').style.display = 'block';
+                document.getElementById('error').textContent = `Error: ${error.message}`;
+                document.getElementById('refresh-button').style.display = 'block';
+            }
+        }
+        
+        // Fetch statistics on page load
+        window.addEventListener('load', fetchFingerprintStats);
+        
+        // Add refresh button functionality
+        document.getElementById('refresh-button').addEventListener('click', fetchFingerprintStats);
+    </script>
+</body>
+</html>
