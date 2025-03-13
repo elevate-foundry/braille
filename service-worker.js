@@ -12,12 +12,14 @@ const FILES_TO_CACHE = [
   '/js/progress-tracker.js',
   '/js/adaptive-learning.js',
   '/js/mobile-optimization.js',
-  '/js/games/memory-match.js',
-  '/js/games/word-builder.js',
-  '/js/games/speedster.js',
+  '/js/games.js',  // All games are in this single file instead of separate files
   '/images/favicon.svg',
   '/images/apple-touch-icon.svg',
   '/images/og-image.svg',
+  // MOTL-related files
+  '/src/ai-core/m2m-compression.js',
+  '/test/motl-cross-religious-benchmark.js',
+  '/test/motl-bible-benchmark.js',
   'https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap'
 ];
 
@@ -61,6 +63,13 @@ self.addEventListener('activate', event => {
 // Fetch event - serve from cache, fall back to network
 self.addEventListener('fetch', event => {
   console.log('[ServiceWorker] Fetch', event.request.url);
+  
+  // Handle missing screenshot images gracefully
+  if (event.request.url.includes('screenshot1.png') || 
+      event.request.url.includes('screenshot2.png')) {
+    console.log('[ServiceWorker] Ignoring request for missing screenshot:', event.request.url);
+    return;
+  }
   
   // Skip cross-origin requests
   if (event.request.mode === 'navigate') {

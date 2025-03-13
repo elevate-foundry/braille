@@ -1,0 +1,225 @@
+{
+  "islamicConcepts": [
+    "tawhid",
+    "risalah",
+    "akhirah",
+    "iman",
+    "taqwa",
+    "ibadah",
+    "adl",
+    "rahmah"
+  ],
+  "christianConcepts": [
+    "salvation",
+    "covenant",
+    "redemption",
+    "grace",
+    "judgment",
+    "resurrection",
+    "atonement",
+    "faith"
+  ],
+  "mappings": {
+    "tawhid": [
+      "covenant",
+      "faith"
+    ],
+    "risalah": [
+      "covenant",
+      "prophecy"
+    ],
+    "akhirah": [
+      "judgment",
+      "resurrection"
+    ],
+    "iman": [
+      "faith",
+      "covenant"
+    ],
+    "taqwa": [
+      "faith",
+      "judgment"
+    ],
+    "ibadah": [
+      "covenant",
+      "atonement"
+    ],
+    "adl": [
+      "judgment",
+      "covenant"
+    ],
+    "rahmah": [
+      "grace",
+      "redemption"
+    ]
+  },
+  "conceptData": {
+    "tawhid": {
+      "bitPattern": "000",
+      "keywords": [
+        "allah",
+        "one",
+        "unity",
+        "monotheism",
+        "lord",
+        "creator"
+      ],
+      "occurrences": {
+        "al-fatiha": 0,
+        "al-baqarah": 0,
+        "al-imran": 0,
+        "an-nisa": 0,
+        "al-maida": 0,
+        "al-ikhlas": 0,
+        "al-falaq": 0,
+        "an-nas": 0
+      }
+    },
+    "risalah": {
+      "bitPattern": "001",
+      "keywords": [
+        "prophet",
+        "messenger",
+        "muhammad",
+        "revelation",
+        "sent"
+      ],
+      "occurrences": {
+        "al-fatiha": 0,
+        "al-baqarah": 0,
+        "al-imran": 0,
+        "an-nisa": 0,
+        "al-maida": 0,
+        "al-ikhlas": 0,
+        "al-falaq": 0,
+        "an-nas": 0
+      }
+    },
+    "akhirah": {
+      "bitPattern": "010",
+      "keywords": [
+        "hereafter",
+        "judgment",
+        "paradise",
+        "hell",
+        "resurrection",
+        "day"
+      ],
+      "occurrences": {
+        "al-fatiha": 0,
+        "al-baqarah": 0,
+        "al-imran": 0,
+        "an-nisa": 0,
+        "al-maida": 0,
+        "al-ikhlas": 0,
+        "al-falaq": 0,
+        "an-nas": 0
+      }
+    },
+    "iman": {
+      "bitPattern": "011",
+      "keywords": [
+        "believe",
+        "faith",
+        "trust",
+        "certainty",
+        "conviction"
+      ],
+      "occurrences": {
+        "al-fatiha": 0,
+        "al-baqarah": 0,
+        "al-imran": 0,
+        "an-nisa": 0,
+        "al-maida": 0,
+        "al-ikhlas": 0,
+        "al-falaq": 0,
+        "an-nas": 0
+      }
+    },
+    "taqwa": {
+      "bitPattern": "100",
+      "keywords": [
+        "fear",
+        "awareness",
+        "consciousness",
+        "piety",
+        "mindful"
+      ],
+      "occurrences": {
+        "al-fatiha": 0,
+        "al-baqarah": 0,
+        "al-imran": 0,
+        "an-nisa": 0,
+        "al-maida": 0,
+        "al-ikhlas": 0,
+        "al-falaq": 0,
+        "an-nas": 0
+      }
+    },
+    "ibadah": {
+      "bitPattern": "101",
+      "keywords": [
+        "worship",
+        "prayer",
+        "devotion",
+        "ritual",
+        "salat",
+        "fast",
+        "zakat",
+        "hajj"
+      ],
+      "occurrences": {
+        "al-fatiha": 0,
+        "al-baqarah": 0,
+        "al-imran": 0,
+        "an-nisa": 0,
+        "al-maida": 0,
+        "al-ikhlas": 0,
+        "al-falaq": 0,
+        "an-nas": 0
+      }
+    },
+    "adl": {
+      "bitPattern": "110",
+      "keywords": [
+        "justice",
+        "fairness",
+        "equity",
+        "balance",
+        "right",
+        "truth"
+      ],
+      "occurrences": {
+        "al-fatiha": 0,
+        "al-baqarah": 0,
+        "al-imran": 0,
+        "an-nisa": 0,
+        "al-maida": 0,
+        "al-ikhlas": 0,
+        "al-falaq": 0,
+        "an-nas": 0
+      }
+    },
+    "rahmah": {
+      "bitPattern": "111",
+      "keywords": [
+        "mercy",
+        "compassion",
+        "forgiveness",
+        "grace",
+        "kindness",
+        "love"
+      ],
+      "occurrences": {
+        "al-fatiha": 0,
+        "al-baqarah": 0,
+        "al-imran": 0,
+        "an-nisa": 0,
+        "al-maida": 0,
+        "al-ikhlas": 0,
+        "al-falaq": 0,
+        "an-nas": 0
+      }
+    }
+  }
+}

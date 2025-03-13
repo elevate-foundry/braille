@@ -274,11 +274,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Display braille representation of a letter
+    // Display braille representation of a letter or number
     function displayBrailleLetter(letter) {
         let pattern;
-        // Check if the letter is a number
-        const isNumber = /^[0-9]$/.test(letter);
+        // Check if the letter is a number (single digit or multi-digit)
+        const isNumber = /^[0-9]+$/.test(letter);
         
         // Try to get pattern from language manager first
         if (window.brailleLanguageManager) {
@@ -288,8 +288,14 @@ document.addEventListener('DOMContentLoaded', function() {
         // Fallback to local alphabet if needed
         if (!pattern) {
             const currentAlphabet = getBrailleAlphabet();
-            pattern = currentAlphabet[letter.toLowerCase()];
+            // For multi-digit numbers, we only display the first digit pattern
+            // but we still show the number sign
+            const charToDisplay = letter.toLowerCase().charAt(0);
+            pattern = currentAlphabet[charToDisplay];
         }
+        
+        // Debug log for troubleshooting
+        console.log(`Displaying ${isNumber ? 'number' : 'letter'}: ${letter}`, pattern);
         
         // Update dots for the letter/number
         dots.forEach((dot, index) => {
@@ -304,25 +310,49 @@ document.addEventListener('DOMContentLoaded', function() {
         if (isNumber) {
             // For numbers, show the number sign prefix
             currentLetter.textContent = `# ${letter}`;
-            letterDescription.textContent = `The number ${letter}. In Braille, numbers use the same patterns as the first 10 letters (a-j) but are preceded by the number sign.`;
+            
+            // Different description for single vs multi-digit numbers
+            if (letter.length === 1) {
+                letterDescription.textContent = `The number ${letter}. In Braille, numbers use the same patterns as the first 10 letters (a-j) but are preceded by the number sign.`;
+            } else {
+                letterDescription.textContent = `The number ${letter}. In Braille, each digit uses the same patterns as the first 10 letters (a-j), with the entire number preceded by the number sign.`;
+            }
             
             // If we have a number sign container, show it
             const numberSignContainer = document.getElementById('number-sign-container');
+            console.log('Number sign container:', numberSignContainer);
+            
             if (numberSignContainer) {
+                // Force display block and ensure it's visible
                 numberSignContainer.style.display = 'block';
+                numberSignContainer.style.visibility = 'visible';
+                numberSignContainer.style.opacity = '1';
                 
                 // If we have a number sign pattern, display it
                 const currentAlphabet = getBrailleAlphabet();
                 const numberSignPattern = currentAlphabet['#'];
+                console.log('Number sign pattern:', numberSignPattern);
+                
                 if (numberSignPattern) {
                     // Make sure we're activating the correct dots for the number sign
                     // The number sign pattern is [0, 0, 1, 1, 1, 1] (dots 3, 4, 5, 6)
-                    document.getElementById('number-sign-dot1').classList.remove('active');
-                    document.getElementById('number-sign-dot2').classList.remove('active');
-                    document.getElementById('number-sign-dot3').classList.add('active');
-                    document.getElementById('number-sign-dot4').classList.add('active');
-                    document.getElementById('number-sign-dot5').classList.add('active');
-                    document.getElementById('number-sign-dot6').classList.add('active');
+                    const dot1 = document.getElementById('number-sign-dot1');
+                    const dot2 = document.getElementById('number-sign-dot2');
+                    const dot3 = document.getElementById('number-sign-dot3');
+                    const dot4 = document.getElementById('number-sign-dot4');
+                    const dot5 = document.getElementById('number-sign-dot5');
+                    const dot6 = document.getElementById('number-sign-dot6');
+                    
+                    // Log the dots for debugging
+                    console.log('Number sign dots:', { dot1, dot2, dot3, dot4, dot5, dot6 });
+                    
+                    // Apply the active class to the appropriate dots
+                    if (dot1) dot1.classList.remove('active');
+                    if (dot2) dot2.classList.remove('active');
+                    if (dot3) dot3.classList.add('active');
+                    if (dot4) dot4.classList.add('active');
+                    if (dot5) dot5.classList.add('active');
+                    if (dot6) dot6.classList.add('active');
                 }
             }
         } else {

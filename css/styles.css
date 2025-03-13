@@ -273,6 +273,10 @@ section h2 {
     background-color: #f9f9f9;
     border-radius: 8px;
     border-left: 4px solid var(--secondary-color);
+    display: none; /* Hidden by default, shown via JavaScript */
+    visibility: visible;
+    opacity: 1;
+    transition: opacity 0.3s ease;
 }
 
 .number-sign-container p {
@@ -285,6 +289,12 @@ section h2 {
     width: 80px;
     height: 120px;
     margin: 0 auto;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    background-color: var(--primary-color);
+    border-radius: 10px;
+    padding: 10px;
 }
 
 .grid-section-header {

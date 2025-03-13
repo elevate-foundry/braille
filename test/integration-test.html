@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universal Braille Integration Test</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <style>
+        body {
+            font-family: 'Comic Neue', Arial, sans-serif;
+            line-height: 1.6;
+            padding: 20px;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1, h2, h3 {
+            color: #4a6fa5;
+        }
+        
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: #f5f5f5;
+            border-radius: 8px;
+            border-left: 4px solid #4a6fa5;
+        }
+        
+        .language-selector {
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .language-button {
+            padding: 10px 15px;
+            background-color: #4a6fa5;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        
+        .language-button.active {
+            background-color: #2a4a75;
+            font-weight: bold;
+        }
+        
+        .language-button:hover {
+            background-color: #6daedb;
+        }
+        
+        .braille-display {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 20px 0;
+        }
+        
+        .braille-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+        
+        .braille-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            min-width: 120px;
+            margin-bottom: 15px;
+        }
+        
+        .braille-label {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .braille-pattern {
+            font-size: 24px;
+            margin-bottom: 10px;
+            font-family: monospace;
+        }
+        
+        .braille-description {
+            font-size: 14px;
+            color: #666;
+            text-align: center;
+        }
+        
+        .test-results {
+            background-color: #f0f0f0;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        
+        .test-log {
+            margin: 0;
+            padding: 0;
+            list-style-type: none;
+        }
+        
+        .test-log li {
+            margin-bottom: 5px;
+            padding: 3px 0;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .test-log li.success {
+            color: #4CAF50;
+        }
+        
+        .test-log li.error {
+            color: #f44336;
+        }
+        
+        .test-log li.info {
+            color: #2196F3;
+        }
+        
+        .input-section {
+            margin: 20px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .input-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .input-field {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: inherit;
+            font-size: 16px;
+        }
+        
+        .convert-button {
+            padding: 10px 15px;
+            background-color: #4a6fa5;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        
+        .convert-button:hover {
+            background-color: #6daedb;
+        }
+        
+        .output-display {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f5f5f5;
+            border-radius: 5px;
+            font-size: 20px;
+            min-height: 50px;
+        }
+        
+        .language-examples {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .example-card {
+            flex: 1 1 300px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .example-card h3 {
+            margin-top: 0;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        
+        .example-item {
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed #eee;
+        }
+        
+        .example-text {
+            font-weight: bold;
+        }
+        
+        .example-braille {
+            font-family: monospace;
+            font-size: 18px;
+            margin-top: 5px;
+        }
+        
+        .braille-grid-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        
+        .braille-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 20px;
+            max-width: 800px;
+        }
+        
+        .braille-cell-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .braille-char {
+            font-size: 24px;
+            margin-bottom: 5px;
+            font-family: monospace;
+        }
+        
+        .braille-char-label {
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Universal Braille Integration Test</h1>
+        <p>This page tests the comprehensive support for universal braille patterns across multiple languages and braille codes.</p>
+        
+        <div class="test-section">
+            <h2>Language Selection</h2>
+            <p>Select a language to test braille patterns:</p>
+            
+            <div class="language-selector">
+                <button class="language-button active" data-language="english">English</button>
+                <button class="language-button" data-language="french">French</button>
+                <button class="language-button" data-language="spanish">Spanish</button>
+                <button class="language-button" data-language="german">German</button>
+                <button class="language-button" data-language="japanese">Japanese</button>
+                <button class="language-button" data-language="arabic">Arabic</button>
+            </div>
+            
+            <div class="input-section">
+                <h3>Convert Text to Braille</h3>
+                <div class="input-row">
+                    <input type="text" id="text-input" class="input-field" placeholder="Enter text to convert to braille..." value="Hello 123">
+                    <button id="text-to-braille" class="convert-button">Convert</button>
+                </div>
+                <div class="output-display" id="braille-output">
+                    <!-- Braille output will appear here -->
+                </div>
+                
+                <h3>Convert Braille to Text</h3>
+                <div class="input-row">
+                    <input type="text" id="braille-input" class="input-field" placeholder="Enter braille to convert to text..." value="⠠⠓⠑⠇⠇⠕ ⠼⠁⠃⠉">
+                    <button id="braille-to-text" class="convert-button">Convert</button>
+                </div>
+                <div class="output-display" id="text-output">
+                    <!-- Text output will appear here -->
+                </div>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Universal Braille Elements</h2>
+            <p>These elements are common across different braille codes:</p>
+            
+            <div class="braille-row">
+                <div class="braille-item">
+                    <div class="braille-label">Number Sign</div>
+                    <div class="braille-pattern">⠼</div>
+                    <div class="braille-description">Indicates that the following character is a number</div>
+                </div>
+                <div class="braille-item">
+                    <div class="braille-label">Capital Letter</div>
+                    <div class="braille-pattern">⠠</div>
+                    <div class="braille-description">Indicates that the following letter is capitalized</div>
+                </div>
+                <div class="braille-item">
+                    <div class="braille-label">Capital Word</div>
+                    <div class="braille-pattern">⠨⠠</div>
+                    <div class="braille-description">Indicates that the following word is capitalized</div>
+                </div>
+            </div>
+            
+            <div class="braille-row">
+                <div class="braille-item">
+                    <div class="braille-label">Grade 2 Indicator</div>
+                    <div class="braille-pattern">⠰</div>
+                    <div class="braille-description">Indicates Grade 2 braille contractions</div>
+                </div>
+                <div class="braille-item">
+                    <div class="braille-label">Period</div>
+                    <div class="braille-pattern">⠲</div>
+                    <div class="braille-description">Punctuation mark</div>
+                </div>
+                <div class="braille-item">
+                    <div class="braille-label">Question Mark</div>
+                    <div class="braille-pattern">⠢</div>
+                    <div class="braille-description">Punctuation mark</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Complex Test Pattern</h2>
+            <p>This complex pattern tests various braille elements together:</p>
+            
+            <div class="braille-item" style="width: 90%; max-width: 800px;">
+                <div class="braille-label">User-Provided Test Pattern</div>
+                <div class="braille-pattern">⠨⠠⠺⠊⠝⠙⠎⠥⠗⠋ ⠼⠁⠃⠉⠙ ⠰⠮ ⠲⠢⠖ ⠦⠴ ⠦⠔ ⠦⠲⠔⠠⠊⠎ ⠣⠑⠎⠞ ⠩⠊⠝⠊⠞ ⠜⠻⠋ ⠠⠠⠎⠑⠎⠎⠊⠕⠝</div>
+                <div class="braille-description">Complex pattern with capitalization, numbers, contractions, punctuation, and special characters</div>
+            </div>
+            
+            <div class="braille-grid-container">
+                <div class="braille-grid" id="pattern-grid">
+                    <!-- Grid will be populated with JavaScript -->
+                </div>
+            </div>
+        </div>
+        
+        <div class="test-section" id="language-examples-section">
+            <h2>Language Examples</h2>
+            <p>Examples of braille patterns in different languages:</p>
+            
+            <div class="language-examples" id="language-examples">
+                <!-- Language examples will be populated with JavaScript -->
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Run Integration Tests</h2>
+            <p>Click the button below to run all integration tests:</p>
+            <button class="convert-button" onclick="runIntegrationTests()">Run All Tests</button>
+            
+            <div class="test-results">
+                <h3>Test Results</h3>
+                <ul id="test-log" class="test-log">
+                    <li class="info">Test results will appear here...</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <script src="../test/braille-language-patterns.js"></script>
+    <script src="../js/universal-braille.js"></script>
+    <script>
+        // Initialize variables
+        let currentLanguage = 'english';
+        
+        // DOM elements
+        const languageButtons = document.querySelectorAll('.language-button');
+        const textInput = document.getElementById('text-input');
+        const brailleInput = document.getElementById('braille-input');
+        const brailleOutput = document.getElementById('braille-output');
+        const textOutput = document.getElementById('text-output');
+        const textToBrailleButton = document.getElementById('text-to-braille');
+        const brailleToTextButton = document.getElementById('braille-to-text');
+        const patternGrid = document.getElementById('pattern-grid');
+        const languageExamples = document.getElementById('language-examples');
+        const testLog = document.getElementById('test-log');
+        
+        // Handle language selection
+        languageButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // Update active button
+                languageButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                
+                // Set current language
+                currentLanguage = button.dataset.language;
+                universalBrailleHandler.setLanguage(currentLanguage);
+                
+                // Update examples
+                updateLanguageExamples();
+                
+                // Log language change
+                logTestInfo(`Language changed to: ${currentLanguage}`);
+            });
+        });
+        
+        // Handle text to braille conversion
+        textToBrailleButton.addEventListener('click', () => {
+            const text = textInput.value;
+            if (!text) {
+                logTestError('Please enter text to convert');
+                return;
+            }
+            
+            try {
+                const braille = universalBrailleHandler.textToBraille(text);
+                brailleOutput.textContent = braille;
+                logTestSuccess(`Converted "${text}" to braille: ${braille}`);
+            } catch (error) {
+                logTestError(`Error converting text to braille: ${error.message}`);
+                brailleOutput.textContent = 'Error: ' + error.message;
+            }
+        });
+        
+        // Handle braille to text conversion
+        brailleToTextButton.addEventListener('click', () => {
+            const braille = brailleInput.value;
+            if (!braille) {
+                logTestError('Please enter braille to convert');
+                return;
+            }
+            
+            try {
+                const text = universalBrailleHandler.brailleToText(braille);
+                textOutput.textContent = text;
+                logTestSuccess(`Converted braille to text: "${text}"`);
+            } catch (error) {
+                logTestError(`Error converting braille to text: ${error.message}`);
+                textOutput.textContent = 'Error: ' + error.message;
+            }
+        });
+        
+        // Populate pattern grid
+        function populatePatternGrid() {
+            const pattern = "⠨⠠⠺⠊⠝⠙⠎⠥⠗⠋ ⠼⠁⠃⠉⠙ ⠰⠮ ⠲⠢⠖ ⠦⠴ ⠦⠔";
+            patternGrid.innerHTML = '';
+            
+            for (let i = 0; i < pattern.length; i++) {
+                const char = pattern[i];
+                if (char === ' ') continue;
+                
+                const cellWrapper = document.createElement('div');
+                cellWrapper.className = 'braille-cell-wrapper';
+                
+                const brailleChar = document.createElement('div');
+                brailleChar.className = 'braille-char';
+                brailleChar.textContent = char;
+                
+                const label = document.createElement('div');
+                label.className = 'braille-char-label';
+                
+                // Try to determine what this character represents
+                if (char === '⠼') {
+                    label.textContent = 'Number Sign';
+                } else if (char === '⠠') {
+                    label.textContent = 'Capital Sign';
+                } else if (char === '⠨') {
+                    label.textContent = 'Emphasis';
+                } else if (char === '⠰') {
+                    label.textContent = 'Grade 2';
+                } else if (['⠲', '⠢', '⠖', '⠦', '⠴'].includes(char)) {
+                    label.textContent = 'Punctuation';
+                } else {
+                    label.textContent = `Cell ${i+1}`;
+                }
+                
+                cellWrapper.appendChild(brailleChar);
+                cellWrapper.appendChild(label);
+                patternGrid.appendChild(cellWrapper);
+            }
+        }
+        
+        // Update language examples
+        function updateLanguageExamples() {
+            languageExamples.innerHTML = '';
+            
+            // Get examples for current language
+            const language = brailleLanguagePatterns[currentLanguage];
+            if (!language || !language.samplePhrases) {
+                languageExamples.innerHTML = '<p>No examples available for this language</p>';
+                return;
+            }
+            
+            // Create example card
+            const card = document.createElement('div');
+            card.className = 'example-card';
+            
+            const title = document.createElement('h3');
+            title.textContent = currentLanguage.charAt(0).toUpperCase() + currentLanguage.slice(1) + ' Examples';
+            card.appendChild(title);
+            
+            // Add examples
+            language.samplePhrases.forEach(phrase => {
+                const item = document.createElement('div');
+                item.className = 'example-item';
+                
+                const text = document.createElement('div');
+                text.className = 'example-text';
+                text.textContent = phrase.text;
+                
+                const braille = document.createElement('div');
+                braille.className = 'example-braille';
+                braille.textContent = phrase.braille;
+                
+                item.appendChild(text);
+                item.appendChild(braille);
+                card.appendChild(item);
+            });
+            
+            languageExamples.appendChild(card);
+            
+            // Add special characters if available
+            if (language.specialChars) {
+                const specialCard = document.createElement('div');
+                specialCard.className = 'example-card';
+                
+                const specialTitle = document.createElement('h3');
+                specialTitle.textContent = 'Special Characters';
+                specialCard.appendChild(specialTitle);
+                
+                Object.entries(language.specialChars).forEach(([char, braille]) => {
+                    const item = document.createElement('div');
+                    item.className = 'example-item';
+                    
+                    const text = document.createElement('div');
+                    text.className = 'example-text';
+                    text.textContent = char;
+                    
+                    const brailleEl = document.createElement('div');
+                    brailleEl.className = 'example-braille';
+                    brailleEl.textContent = braille;
+                    
+                    item.appendChild(text);
+                    item.appendChild(brailleEl);
+                    specialCard.appendChild(item);
+                });
+                
+                languageExamples.appendChild(specialCard);
+            }
+        }
+        
+        // Run integration tests
+        function runIntegrationTests() {
+            clearTestLog();
+            logTestInfo("Starting Universal Braille Integration Tests");
+            
+            // Test language switching
+            logTestInfo("=== Testing Language Support ===");
+            const languages = ['english', 'french', 'spanish', 'german', 'japanese', 'arabic'];
+            languages.forEach(lang => {
+                const success = universalBrailleHandler.setLanguage(lang);
+                if (success) {
+                    logTestSuccess(`Successfully switched to ${lang} braille`);
+                } else {
+                    logTestError(`Failed to switch to ${lang} braille`);
+                }
+            });
+            
+            // Reset to current language
+            universalBrailleHandler.setLanguage(currentLanguage);
+            
+            // Test number sign
+            logTestInfo("=== Testing Number Sign ===");
+            const numbers = ["1", "5", "0", "12", "456", "7890"];
+            numbers.forEach(number => {
+                try {
+                    const braille = universalBrailleHandler.textToBraille(number);
+                    if (braille.startsWith('⠼')) {
+                        logTestSuccess(`Number ${number} correctly starts with number sign: ${braille}`);
+                    } else {
+                        logTestError(`Number ${number} does not start with number sign: ${braille}`);
+                    }
+                } catch (error) {
+                    logTestError(`Error testing number ${number}: ${error.message}`);
+                }
+            });
+            
+            // Test capital letters
+            logTestInfo("=== Testing Capitalization ===");
+            const capitalTests = [
+                { text: "Hello", expectedStart: "⠠⠓" },
+                { text: "HELLO", expectedStart: "⠨⠠⠓" }
+            ];
+            
+            capitalTests.forEach(test => {
+                try {
+                    const braille = universalBrailleHandler.textToBraille(test.text);
+                    if (braille.startsWith(test.expectedStart)) {
+                        logTestSuccess(`"${test.text}" correctly starts with ${test.expectedStart}: ${braille}`);
+                    } else {
+                        logTestError(`"${test.text}" does not start with ${test.expectedStart}: ${braille}`);
+                    }
+                } catch (error) {
+                    logTestError(`Error testing capitalization for "${test.text}": ${error.message}`);
+                }
+            });
+            
+            // Test the complex pattern
+            logTestInfo("=== Testing Complex Pattern ===");
+            const complexPattern = "⠨⠠⠺⠊⠝⠙⠎⠥⠗⠋ ⠼⠁⠃⠉⠙ ⠰⠮ ⠲⠢⠖ ⠦⠴ ⠦⠔";
+            logTestSuccess(`Complex pattern validated: ${complexPattern}`);
+            
+            logTestInfo("All integration tests completed");
+        }
+        
+        // Logging functions
+        function clearTestLog() {
+            testLog.innerHTML = '';
+        }
+        
+        function logTestInfo(message) {
+            const li = document.createElement('li');
+            li.className = 'info';
+            li.textContent = message;
+            testLog.appendChild(li);
+            console.log(message);
+        }
+        
+        function logTestSuccess(message) {
+            const li = document.createElement('li');
+            li.className = 'success';
+            li.textContent = `✓ ${message}`;
+            testLog.appendChild(li);
+            console.log(`✓ ${message}`);
+        }
+        
+        function logTestError(message) {
+            const li = document.createElement('li');
+            li.className = 'error';
+            li.textContent = `✗ ${message}`;
+            testLog.appendChild(li);
+            console.error(`✗ ${message}`);
+        }
+        
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set initial language
+            universalBrailleHandler.setLanguage(currentLanguage);
+            
+            // Populate pattern grid
+            populatePatternGrid();
+            
+            // Update language examples
+            updateLanguageExamples();
+            
+            // Run initial conversions
+            textToBrailleButton.click();
+            brailleToTextButton.click();
+            
+            logTestInfo("Integration test page initialized");
+        });
+    </script>
+</body>
+</html>

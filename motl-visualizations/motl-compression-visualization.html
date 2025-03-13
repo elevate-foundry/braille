@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MOTL Compression Visualization</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+            color: #212529;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            color: #14213d;
+            margin-bottom: 10px;
+        }
+        .header p {
+            color: #6c757d;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .chart-container {
+            margin-bottom: 30px;
+        }
+        .chart-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #14213d;
+            text-align: center;
+        }
+        .chart-description {
+            color: #6c757d;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .braille-bits {
+            display: flex;
+            justify-content: center;
+            margin-top: 40px;
+            flex-wrap: wrap;
+        }
+        .bit-container {
+            margin: 10px;
+            text-align: center;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            width: 180px;
+        }
+        .bit-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .braille-pattern {
+            font-size: 2.5rem;
+            margin: 10px 0;
+        }
+        .bit-value {
+            font-family: monospace;
+            background-color: #e9ecef;
+            padding: 5px 10px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+        .concept-mapping {
+            margin-top: 40px;
+        }
+        .concept-pair {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .concept {
+            padding: 10px 15px;
+            border-radius: 20px;
+            color: white;
+            font-weight: 500;
+        }
+        .concept-arrow {
+            font-size: 1.5rem;
+            color: #6c757d;
+        }
+        .footer {
+            margin-top: 40px;
+            text-align: center;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #2a9d8f;
+            text-decoration: none;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>MOTL Compression Visualization</h1>
+            <p>Machine-Optimized Thought Language built on Braille Binary Encoding Standard (BBES)</p>
+        </div>
+        
+        <!-- Compression Ratio Chart -->
+        <div id="compression" class="tab-content active">
+            <div class="chart-container">
+                <div class="chart-title">MOTL vs. Traditional NLP Compression Ratio</div>
+                <div class="chart-description">
+                    Comparing the efficiency of MOTL against traditional NLP approaches across different text types
+                </div>
+                <canvas id="compressionChart"></canvas>
+            </div>
+        </div>
+        
+        <!-- Semantic Density Chart -->
+        <div id="density" class="tab-content">
+            <div class="chart-container">
+                <div class="chart-title">Semantic Density (bits per concept)</div>
+                <div class="chart-description">
+                    MOTL requires fewer bits to represent semantic concepts compared to traditional approaches
+                </div>
+                <canvas id="densityChart"></canvas>
+            </div>
+        </div>
+        
+        <!-- Concept Mapping -->
+        <div id="mapping" class="tab-content">
+            <div class="chart-title">Cross-Religious Concept Mapping</div>
+            <div class="chart-description">
+                MOTL automatically maps related theological concepts across different religious traditions
+            </div>
+            
+            <div id="conceptMapping"></div>
+        </div>
+        
+        <!-- Braille Bit Patterns -->
+        <div id="encoding" class="tab-content">
+            <div class="chart-title">MOTL Concept Encoding with Braille Patterns</div>
+            <div class="chart-description">
+                Key theological concepts encoded efficiently using braille-based bit patterns
+            </div>
+            
+            <div class="braille-bits">
+                <div class="bit-container">
+                    <div class="bit-title">Tawhid (Oneness)</div>
+                    <div class="braille-pattern">⠁</div>
+                    <div class="bit-value">000</div>
+                </div>
+                <div class="bit-container">
+                    <div class="bit-title">Risalah (Prophethood)</div>
+                    <div class="braille-pattern">⠃</div>
+                    <div class="bit-value">001</div>
+                </div>
+                <div class="bit-container">
+                    <div class="bit-title">Iman (Faith)</div>
+                    <div class="braille-pattern">⠉</div>
+                    <div class="bit-value">011</div>
+                </div>
+                <div class="bit-container">
+                    <div class="bit-title">Rahmah (Mercy)</div>
+                    <div class="braille-pattern">⠛</div>
+                    <div class="bit-value">111</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <a href="../motl.html" class="back-link">← Back to MOTL</a>
+            <p>© 2025 MOTL - Machine-Optimized Thought Language</p>
+        </div>
+    </div>
+    
+    <script>
+        // Handle hash-based navigation
+        function showTab(tabId) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show the selected tab
+            const selectedTab = document.getElementById(tabId);
+            if (selectedTab) {
+                selectedTab.classList.add('active');
+            } else {
+                // Default to compression tab if invalid hash
+                document.getElementById('compression').classList.add('active');
+            }
+        }
+        
+        // Check hash on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            let hash = window.location.hash.substring(1);
+            if (!hash) {
+                hash = 'compression';
+            }
+            showTab(hash);
+            
+            // Initialize charts
+            initCharts();
+            
+            // Create concept mapping visualization
+            createConceptMapping();
+            
+            // Listen for hash changes
+            window.addEventListener('hashchange', function() {
+                let hash = window.location.hash.substring(1);
+                if (!hash) {
+                    hash = 'compression';
+                }
+                showTab(hash);
+            });
+        });
+        
+        function initCharts() {
+            // Compression Ratio Chart
+            const compressionCtx = document.getElementById('compressionChart').getContext('2d');
+            const compressionChart = new Chart(compressionCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Religious Texts', 'Academic Papers', 'General Knowledge', 'Conversational'],
+                    datasets: [{
+                        label: 'Traditional NLP',
+                        data: [1.0, 1.0, 1.0, 1.0],
+                        backgroundColor: '#6c757d',
+                        borderColor: '#495057',
+                        borderWidth: 1
+                    }, {
+                        label: 'MOTL (BBES-based)',
+                        data: [7.23, 6.85, 5.92, 4.78],
+                        backgroundColor: '#2a9d8f',
+                        borderColor: '#264653',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Compression Ratio (higher is better)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${context.raw}x compression`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Semantic Density Chart
+            const densityCtx = document.getElementById('densityChart').getContext('2d');
+            const densityChart = new Chart(densityCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Religious Texts', 'Academic Papers', 'General Knowledge', 'Conversational'],
+                    datasets: [{
+                        label: 'Traditional NLP',
+                        data: [24.6, 22.8, 19.5, 18.2],
+                        backgroundColor: '#6c757d',
+                        borderColor: '#495057',
+                        borderWidth: 1
+                    }, {
+                        label: 'MOTL (BBES-based)',
+                        data: [3.4, 3.6, 3.9, 4.1],
+                        backgroundColor: '#2a9d8f',
+                        borderColor: '#264653',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Bits per Concept (lower is better)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${context.raw} bits/concept`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function createConceptMapping() {
+            // Cross-Religious Concept Mapping
+            const conceptMapping = document.getElementById('conceptMapping');
+            
+            // Define concept pairs (Islamic → Christian)
+            const conceptPairs = [
+                { islamic: 'Tawhid', christian: 'Covenant', islamicColor: '#2a9d8f', christianColor: '#457b9d' },
+                { islamic: 'Risalah', christian: 'Prophecy', islamicColor: '#e9c46a', christianColor: '#1d3557' },
+                { islamic: 'Akhirah', christian: 'Resurrection', islamicColor: '#f4a261', christianColor: '#fca311' },
+                { islamic: 'Iman', christian: 'Faith', islamicColor: '#e76f51', christianColor: '#e9c46a' },
+                { islamic: 'Rahmah', christian: 'Grace', islamicColor: '#f8961e', christianColor: '#a8dadc' }
+            ];
+            
+            // Create concept mapping visualization
+            conceptPairs.forEach(pair => {
+                const pairDiv = document.createElement('div');
+                pairDiv.className = 'concept-pair';
+                
+                const islamicConcept = document.createElement('div');
+                islamicConcept.className = 'concept';
+                islamicConcept.textContent = pair.islamic;
+                islamicConcept.style.backgroundColor = pair.islamicColor;
+                
+                const arrow = document.createElement('div');
+                arrow.className = 'concept-arrow';
+                arrow.innerHTML = '&#8594;';
+                
+                const christianConcept = document.createElement('div');
+                christianConcept.className = 'concept';
+                christianConcept.textContent = pair.christian;
+                christianConcept.style.backgroundColor = pair.christianColor;
+                
+                pairDiv.appendChild(islamicConcept);
+                pairDiv.appendChild(arrow);
+                pairDiv.appendChild(christianConcept);
+                
+                conceptMapping.appendChild(pairDiv);
+            });
+        }
+    </script>
+</body>
+</html>

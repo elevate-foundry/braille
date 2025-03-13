@@ -34,6 +34,68 @@
     <!-- Stylesheets -->
     <link rel="stylesheet" href="css/styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Additional styles for MOTL integration -->
+    <style>
+        .highlight-nav-item {
+            background-color: #2a9d8f;
+            border-radius: 4px;
+            margin-left: 10px;
+        }
+        
+        .highlight-nav-item a {
+            color: white !important;
+        }
+        
+        .motl-promo-banner {
+            background: linear-gradient(135deg, #14213d 0%, #2a9d8f 100%);
+            color: white;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .motl-promo-content {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+        }
+        
+        .motl-promo-content h3 {
+            margin: 0;
+            font-size: 1.2rem;
+        }
+        
+        .motl-promo-content p {
+            margin: 0;
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .motl-promo-button {
+            background-color: white;
+            color: #14213d;
+            padding: 8px 16px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        
+        .motl-promo-button:hover {
+            background-color: #f1f1f1;
+        }
+        
+        @media (max-width: 768px) {
+            .motl-promo-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -57,8 +119,17 @@
                 <li><a href="#" data-section="games">Games</a></li>
                 <li><a href="#" data-section="compression">Compression</a></li>
                 <li><a href="#" data-section="about">About</a></li>
+                <li class="highlight-nav-item"><a href="motl.html">MOTL Technology</a></li>
             </ul>
         </nav>
+        
+        <div class="motl-promo-banner">
+            <div class="motl-promo-content">
+                <h3>NEW: Machine-Optimized Thought Language (MOTL)</h3>
+                <p>Discover our breakthrough in AI-driven semantic compression, built on the Braille Binary Encoding Standard (BBES).</p>
+                <a href="motl.html" class="motl-promo-button">Learn More</a>
+            </div>
+        </div>
         
         <main>
             <section id="learn" class="active-section">
@@ -240,7 +311,10 @@
                 <div class="about-content">
                     <p>Braille is a tactile writing system used by people who are visually impaired. It was invented by Louis Braille in 1824, who was blind himself.</p>
                     <p>Each braille character or "cell" is made up of 6 dots arranged in a 2×3 grid. By raising different combinations of these dots, different letters, numbers, and symbols can be represented.</p>
-                    <img src="images/louis-braille.jpg" alt="Portrait of Louis Braille" class="about-image">
+                    <!-- Placeholder for Louis Braille image -->
+                    <div class="about-image-placeholder">
+                        <p>Portrait of Louis Braille</p>
+                    </div>
                     <h3>Why Learn Braille?</h3>
                     <p>Learning braille promotes:</p>
                     <ul>

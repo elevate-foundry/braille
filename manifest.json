@@ -29,22 +29,7 @@
       "type": "image/png"
     }
   ],
-  "screenshots": [
-    {
-      "src": "images/screenshot1.png",
-      "sizes": "1280x720",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "BrailleBuddy Learn Mode"
-    },
-    {
-      "src": "images/screenshot2.png",
-      "sizes": "1280x720",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "BrailleBuddy Practice Mode"
-    }
-  ],
+  "screenshots": [],
   "shortcuts": [
     {
       "name": "Learn Braille",
