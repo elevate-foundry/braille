@@ -607,6 +607,7 @@
             const modal = document.createElement('div');
             modal.className = 'modal-overlay';
             modal.id = 'consent-modal';
+            modal.style.zIndex = '2000'; // Ensure it's on top
             
             modal.innerHTML = `
                 <div class="modal-container">
@@ -632,8 +633,7 @@
                 localStorage.setItem('bbid_consent', 'granted');
                 modal.remove();
                 generateDeviceFingerprint();
-                // Automatically switch to My Device tab
-                document.querySelector('.tab[data-tab="mydevice"]').click();
+                // Don't automatically switch tabs - let user continue browsing
             });
             
             document.getElementById('decline-consent').addEventListener('click', () => {
@@ -648,14 +648,28 @@
             
             if (consent === 'granted') {
                 // If consent was previously granted, generate fingerprint
+                // but don't switch tabs or disrupt user experience
                 generateDeviceFingerprint();
-                // If My Device tab is not active, don't automatically switch to it
-                // This preserves the user's tab choice on repeat visits
             } else if (consent !== 'declined') {
                 // If no consent decision has been made, show the modal
-                showConsentModal();
+                // Set a small timeout to let the page load first
+                setTimeout(() => {
+                    showConsentModal();
+                }, 1000);
             }
             // If consent was declined, do nothing
+        });
+        
+        // Make sure tab functionality works properly
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                // If user has granted consent but we haven't generated fingerprint yet
+                // (e.g., if they cleared browser cache but kept localStorage)
+                if (localStorage.getItem('bbid_consent') === 'granted' && 
+                    document.getElementById('my-bbid').textContent === '-') {
+                    generateDeviceFingerprint();
+                }
+            });
         });
         
         // Convert fingerprint
