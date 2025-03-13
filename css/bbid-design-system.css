@@ -1,0 +1,675 @@
+/* BBID Design System
+   A modern, cohesive design system for the BBID interface
+   Created: March 2025
+*/
+
+:root {
+  /* Color Palette */
+  --bbid-primary: #4a6fa5;
+  --bbid-primary-dark: #3a5a84;
+  --bbid-primary-light: #6d8dbd;
+  --bbid-secondary: #2a9d8f;
+  --bbid-secondary-dark: #1e7268;
+  --bbid-secondary-light: #4dbcaf;
+  --bbid-accent: #e76f51;
+  --bbid-accent-dark: #c85a3e;
+  --bbid-accent-light: #f08e74;
+  
+  /* Neutrals */
+  --bbid-neutral-100: #ffffff;
+  --bbid-neutral-200: #f7f9fc;
+  --bbid-neutral-300: #edf2f7;
+  --bbid-neutral-400: #e2e8f0;
+  --bbid-neutral-500: #cbd5e0;
+  --bbid-neutral-600: #a0aec0;
+  --bbid-neutral-700: #718096;
+  --bbid-neutral-800: #4a5568;
+  --bbid-neutral-900: #2d3748;
+  --bbid-neutral-1000: #1a202c;
+  
+  /* Semantic Colors */
+  --bbid-success: #48bb78;
+  --bbid-warning: #f6ad55;
+  --bbid-error: #f56565;
+  --bbid-info: #4299e1;
+  
+  /* Typography */
+  --bbid-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
+  --bbid-heading-font-weight: 700;
+  --bbid-body-font-weight: 400;
+  
+  /* Spacing */
+  --bbid-space-1: 0.25rem;  /* 4px */
+  --bbid-space-2: 0.5rem;   /* 8px */
+  --bbid-space-3: 0.75rem;  /* 12px */
+  --bbid-space-4: 1rem;     /* 16px */
+  --bbid-space-5: 1.5rem;   /* 24px */
+  --bbid-space-6: 2rem;     /* 32px */
+  --bbid-space-8: 3rem;     /* 48px */
+  --bbid-space-10: 4rem;    /* 64px */
+  
+  /* Border Radius */
+  --bbid-radius-sm: 0.25rem; /* 4px */
+  --bbid-radius-md: 0.5rem;  /* 8px */
+  --bbid-radius-lg: 1rem;    /* 16px */
+  --bbid-radius-xl: 1.5rem;  /* 24px */
+  --bbid-radius-full: 9999px;
+  
+  /* Shadows */
+  --bbid-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.08);
+  --bbid-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
+  --bbid-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
+  --bbid-shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.1), 0 10px 10px rgba(0, 0, 0, 0.04);
+  
+  /* Transitions */
+  --bbid-transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --bbid-transition-normal: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  --bbid-transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* Z-index */
+  --bbid-z-base: 1;
+  --bbid-z-elevated: 10;
+  --bbid-z-sticky: 100;
+  --bbid-z-dropdown: 1000;
+  --bbid-z-modal: 2000;
+  --bbid-z-toast: 3000;
+}
+
+/* Base Typography */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--bbid-font-family);
+  font-weight: var(--bbid-heading-font-weight);
+  line-height: 1.2;
+  margin-bottom: var(--bbid-space-4);
+  color: var(--bbid-neutral-900);
+}
+
+h1 {
+  font-size: 2.5rem;
+}
+
+h2 {
+  font-size: 2rem;
+}
+
+h3 {
+  font-size: 1.5rem;
+}
+
+h4 {
+  font-size: 1.25rem;
+}
+
+h5 {
+  font-size: 1.125rem;
+}
+
+h6 {
+  font-size: 1rem;
+}
+
+p, ul, ol {
+  font-family: var(--bbid-font-family);
+  font-weight: var(--bbid-body-font-weight);
+  line-height: 1.6;
+  margin-bottom: var(--bbid-space-4);
+  color: var(--bbid-neutral-800);
+}
+
+/* Button Styles */
+.bbid-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--bbid-space-2) var(--bbid-space-4);
+  border-radius: var(--bbid-radius-md);
+  font-weight: 500;
+  font-size: 1rem;
+  line-height: 1.5;
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--bbid-transition-fast);
+  border: none;
+  outline: none;
+}
+
+.bbid-btn:focus {
+  box-shadow: 0 0 0 3px rgba(74, 111, 165, 0.4);
+}
+
+.bbid-btn-primary {
+  background-color: var(--bbid-primary);
+  color: white;
+}
+
+.bbid-btn-primary:hover {
+  background-color: var(--bbid-primary-dark);
+}
+
+.bbid-btn-secondary {
+  background-color: var(--bbid-secondary);
+  color: white;
+}
+
+.bbid-btn-secondary:hover {
+  background-color: var(--bbid-secondary-dark);
+}
+
+.bbid-btn-accent {
+  background-color: var(--bbid-accent);
+  color: white;
+}
+
+.bbid-btn-accent:hover {
+  background-color: var(--bbid-accent-dark);
+}
+
+.bbid-btn-outline {
+  background-color: transparent;
+  border: 2px solid var(--bbid-primary);
+  color: var(--bbid-primary);
+}
+
+.bbid-btn-outline:hover {
+  background-color: var(--bbid-primary);
+  color: white;
+}
+
+.bbid-btn-ghost {
+  background-color: transparent;
+  color: var(--bbid-primary);
+}
+
+.bbid-btn-ghost:hover {
+  background-color: var(--bbid-neutral-200);
+}
+
+.bbid-btn-sm {
+  padding: var(--bbid-space-1) var(--bbid-space-3);
+  font-size: 0.875rem;
+}
+
+.bbid-btn-lg {
+  padding: var(--bbid-space-3) var(--bbid-space-5);
+  font-size: 1.125rem;
+}
+
+/* Card Styles */
+.bbid-card {
+  background-color: var(--bbid-neutral-100);
+  border-radius: var(--bbid-radius-md);
+  box-shadow: var(--bbid-shadow-md);
+  padding: var(--bbid-space-5);
+  transition: transform var(--bbid-transition-normal), box-shadow var(--bbid-transition-normal);
+}
+
+.bbid-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--bbid-shadow-lg);
+}
+
+.bbid-card-header {
+  margin-bottom: var(--bbid-space-4);
+}
+
+.bbid-card-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: var(--bbid-space-2);
+}
+
+.bbid-card-subtitle {
+  font-size: 0.875rem;
+  color: var(--bbid-neutral-700);
+}
+
+.bbid-card-body {
+  margin-bottom: var(--bbid-space-4);
+}
+
+.bbid-card-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+/* Form Controls */
+.bbid-form-group {
+  margin-bottom: var(--bbid-space-4);
+}
+
+.bbid-label {
+  display: block;
+  margin-bottom: var(--bbid-space-2);
+  font-weight: 500;
+  color: var(--bbid-neutral-800);
+}
+
+.bbid-input {
+  width: 100%;
+  padding: var(--bbid-space-3);
+  border-radius: var(--bbid-radius-md);
+  border: 1px solid var(--bbid-neutral-400);
+  background-color: var(--bbid-neutral-100);
+  font-size: 1rem;
+  transition: border-color var(--bbid-transition-fast), box-shadow var(--bbid-transition-fast);
+}
+
+.bbid-input:focus {
+  outline: none;
+  border-color: var(--bbid-primary);
+  box-shadow: 0 0 0 3px rgba(74, 111, 165, 0.2);
+}
+
+.bbid-select {
+  width: 100%;
+  padding: var(--bbid-space-3);
+  border-radius: var(--bbid-radius-md);
+  border: 1px solid var(--bbid-neutral-400);
+  background-color: var(--bbid-neutral-100);
+  font-size: 1rem;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23718096' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.5rem center;
+  background-size: 1.5em 1.5em;
+}
+
+.bbid-select:focus {
+  outline: none;
+  border-color: var(--bbid-primary);
+  box-shadow: 0 0 0 3px rgba(74, 111, 165, 0.2);
+}
+
+/* Badge Styles */
+.bbid-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--bbid-space-1) var(--bbid-space-2);
+  border-radius: var(--bbid-radius-full);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.bbid-badge-primary {
+  background-color: var(--bbid-primary-light);
+  color: white;
+}
+
+.bbid-badge-secondary {
+  background-color: var(--bbid-secondary-light);
+  color: white;
+}
+
+.bbid-badge-accent {
+  background-color: var(--bbid-accent-light);
+  color: white;
+}
+
+.bbid-badge-success {
+  background-color: var(--bbid-success);
+  color: white;
+}
+
+.bbid-badge-warning {
+  background-color: var(--bbid-warning);
+  color: white;
+}
+
+.bbid-badge-error {
+  background-color: var(--bbid-error);
+  color: white;
+}
+
+.bbid-badge-info {
+  background-color: var(--bbid-info);
+  color: white;
+}
+
+/* Alert Styles */
+.bbid-alert {
+  padding: var(--bbid-space-4);
+  border-radius: var(--bbid-radius-md);
+  margin-bottom: var(--bbid-space-4);
+}
+
+.bbid-alert-success {
+  background-color: rgba(72, 187, 120, 0.1);
+  border-left: 4px solid var(--bbid-success);
+  color: var(--bbid-success);
+}
+
+.bbid-alert-warning {
+  background-color: rgba(246, 173, 85, 0.1);
+  border-left: 4px solid var(--bbid-warning);
+  color: var(--bbid-warning);
+}
+
+.bbid-alert-error {
+  background-color: rgba(245, 101, 101, 0.1);
+  border-left: 4px solid var(--bbid-error);
+  color: var(--bbid-error);
+}
+
+.bbid-alert-info {
+  background-color: rgba(66, 153, 225, 0.1);
+  border-left: 4px solid var(--bbid-info);
+  color: var(--bbid-info);
+}
+
+/* Layout Utilities */
+.bbid-container {
+  width: 100%;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--bbid-space-4);
+  padding-right: var(--bbid-space-4);
+}
+
+.bbid-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: var(--bbid-space-4);
+}
+
+.bbid-flex {
+  display: flex;
+}
+
+.bbid-flex-col {
+  flex-direction: column;
+}
+
+.bbid-items-center {
+  align-items: center;
+}
+
+.bbid-justify-between {
+  justify-content: space-between;
+}
+
+.bbid-justify-center {
+  justify-content: center;
+}
+
+.bbid-gap-2 {
+  gap: var(--bbid-space-2);
+}
+
+.bbid-gap-4 {
+  gap: var(--bbid-space-4);
+}
+
+.bbid-gap-6 {
+  gap: var(--bbid-space-6);
+}
+
+/* Responsive Utilities */
+@media (max-width: 640px) {
+  .bbid-sm-hidden {
+    display: none;
+  }
+  
+  .bbid-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  .bbid-md-hidden {
+    display: none;
+  }
+  
+  .bbid-grid {
+    grid-template-columns: repeat(8, 1fr);
+  }
+}
+
+@media (min-width: 1025px) {
+  .bbid-lg-hidden {
+    display: none;
+  }
+}
+
+/* Animation Utilities */
+.bbid-animate-fade {
+  animation: bbidFade var(--bbid-transition-normal);
+}
+
+.bbid-animate-slide-up {
+  animation: bbidSlideUp var(--bbid-transition-normal);
+}
+
+.bbid-animate-pulse {
+  animation: bbidPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes bbidFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes bbidSlideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes bbidPulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Data Visualization Styles */
+.bbid-chart-container {
+  width: 100%;
+  height: 300px;
+  margin-bottom: var(--bbid-space-6);
+}
+
+.bbid-data-card {
+  background-color: var(--bbid-neutral-100);
+  border-radius: var(--bbid-radius-md);
+  box-shadow: var(--bbid-shadow-md);
+  padding: var(--bbid-space-4);
+  display: flex;
+  flex-direction: column;
+}
+
+.bbid-data-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--bbid-primary);
+  margin-bottom: var(--bbid-space-2);
+}
+
+.bbid-data-label {
+  font-size: 0.875rem;
+  color: var(--bbid-neutral-700);
+}
+
+.bbid-progress-bar {
+  width: 100%;
+  height: 8px;
+  background-color: var(--bbid-neutral-300);
+  border-radius: var(--bbid-radius-full);
+  overflow: hidden;
+  margin-bottom: var(--bbid-space-2);
+}
+
+.bbid-progress-value {
+  height: 100%;
+  background-color: var(--bbid-primary);
+  border-radius: var(--bbid-radius-full);
+}
+
+/* Tooltip Styles */
+.bbid-tooltip {
+  position: relative;
+  display: inline-block;
+}
+
+.bbid-tooltip-content {
+  visibility: hidden;
+  position: absolute;
+  z-index: var(--bbid-z-dropdown);
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--bbid-neutral-900);
+  color: white;
+  text-align: center;
+  padding: var(--bbid-space-2) var(--bbid-space-3);
+  border-radius: var(--bbid-radius-md);
+  font-size: 0.875rem;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity var(--bbid-transition-fast);
+}
+
+.bbid-tooltip:hover .bbid-tooltip-content {
+  visibility: visible;
+  opacity: 1;
+}
+
+.bbid-tooltip-content::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: var(--bbid-neutral-900) transparent transparent transparent;
+}
+
+/* Fingerprint Visualization Styles */
+.bbid-fingerprint-visual {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bbid-space-1);
+  margin-bottom: var(--bbid-space-4);
+}
+
+.bbid-fingerprint-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: var(--bbid-primary);
+  opacity: 0.7;
+  transition: transform var(--bbid-transition-fast), opacity var(--bbid-transition-fast);
+}
+
+.bbid-fingerprint-dot:hover {
+  transform: scale(1.5);
+  opacity: 1;
+}
+
+.bbid-fingerprint-strength {
+  display: flex;
+  align-items: center;
+  margin-bottom: var(--bbid-space-4);
+}
+
+.bbid-strength-meter {
+  flex-grow: 1;
+  height: 8px;
+  background-color: var(--bbid-neutral-300);
+  border-radius: var(--bbid-radius-full);
+  overflow: hidden;
+  margin-right: var(--bbid-space-3);
+}
+
+.bbid-strength-value {
+  height: 100%;
+  border-radius: var(--bbid-radius-full);
+}
+
+.bbid-strength-weak {
+  width: 30%;
+  background-color: var(--bbid-error);
+}
+
+.bbid-strength-medium {
+  width: 60%;
+  background-color: var(--bbid-warning);
+}
+
+.bbid-strength-strong {
+  width: 90%;
+  background-color: var(--bbid-success);
+}
+
+.bbid-strength-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+/* Timeline Visualization */
+.bbid-timeline {
+  position: relative;
+  padding-left: 30px;
+  margin-bottom: var(--bbid-space-6);
+}
+
+.bbid-timeline-line {
+  position: absolute;
+  left: 10px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background-color: var(--bbid-neutral-400);
+}
+
+.bbid-timeline-item {
+  position: relative;
+  margin-bottom: var(--bbid-space-4);
+}
+
+.bbid-timeline-dot {
+  position: absolute;
+  left: -30px;
+  top: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: var(--bbid-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 0.75rem;
+}
+
+.bbid-timeline-content {
+  background-color: var(--bbid-neutral-100);
+  border-radius: var(--bbid-radius-md);
+  padding: var(--bbid-space-4);
+  box-shadow: var(--bbid-shadow-sm);
+}
+
+.bbid-timeline-date {
+  font-size: 0.75rem;
+  color: var(--bbid-neutral-700);
+  margin-bottom: var(--bbid-space-1);
+}
+
+.bbid-timeline-title {
+  font-weight: 600;
+  margin-bottom: var(--bbid-space-2);
+}
