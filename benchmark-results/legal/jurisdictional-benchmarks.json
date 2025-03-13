@@ -1,0 +1,17 @@
+{
+  "similarity": {
+    "jurisdiction_1": 0.47265872783240315
+  },
+  "distinction": {
+    "jurisdiction_1": {
+      "scores": [
+        0.617297504468943,
+        0.9147592685964805
+      ],
+      "difference": 0.29746176412753744
+    }
+  },
+  "transferability": {
+    "jurisdiction_1": 0.699322609559956
+  }
+}

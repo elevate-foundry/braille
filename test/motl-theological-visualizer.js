@@ -66,6 +66,15 @@ class MOTLTheologicalVisualizer {
      * @returns {string} HTML content
      */
     _generateHTML() {
+        // Add null checks to prevent errors
+        if (!this.trackingResults || !this.trackingResults.conceptOccurrences) {
+            console.warn('[MOTL] No tracking results available for visualization');
+            return `<div class="motl-visualization-container">
+                <h2>Theological Concept Visualization</h2>
+                <p>No theological concept data available. Run the benchmark first to generate data.</p>
+            </div>`;
+        }
+        
         const concepts = Object.keys(this.trackingResults.conceptOccurrences);
         
         // Generate concept occurrence chart data
@@ -386,12 +395,36 @@ class MOTLTheologicalVisualizer {
      * @returns {Object} Chart.js configuration
      */
     _generateOccurrenceChartData(concepts) {
-        const books = Object.keys(this.trackingResults.conceptOccurrences[concepts[0]]);
+        // Handle empty concepts array
+        if (!concepts || concepts.length === 0) {
+            return {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: []
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Theological Concept Occurrences by Text'
+                        }
+                    }
+                }
+            };
+        }
+        
+        // Safely get books
+        const firstConcept = concepts[0];
+        const conceptData = this.trackingResults.conceptOccurrences[firstConcept] || {};
+        const books = Object.keys(conceptData);
         
         const datasets = concepts.map(concept => {
+            const conceptData = this.trackingResults.conceptOccurrences[concept] || {};
             return {
                 label: concept,
-                data: books.map(book => this.trackingResults.conceptOccurrences[concept][book]),
+                data: books.map(book => conceptData[book] || 0),
                 backgroundColor: this.options.colorScheme[concept] || '#000000'
             };
         });
@@ -438,7 +471,40 @@ class MOTLTheologicalVisualizer {
      * @returns {Object} Chart.js configuration
      */
     _generateCoherenceChartData(concepts) {
-        const data = concepts.map(concept => this.trackingResults.semanticCoherence[concept]);
+        // Handle empty concepts array
+        if (!concepts || concepts.length === 0) {
+            return {
+                type: 'radar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Semantic Coherence',
+                        data: [],
+                        fill: true,
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        borderColor: 'rgb(54, 162, 235)',
+                        pointBackgroundColor: 'rgb(54, 162, 235)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgb(54, 162, 235)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Semantic Coherence by Concept'
+                        }
+                    }
+                }
+            };
+        }
+        
+        // Safely get coherence data
+        const data = concepts.map(concept => {
+            return (this.trackingResults.semanticCoherence && this.trackingResults.semanticCoherence[concept]) || 0;
+        });
         
         return {
             type: 'radar',
@@ -482,6 +548,11 @@ class MOTLTheologicalVisualizer {
      * @returns {Object} Network graph data
      */
     _generateNetworkData(concepts) {
+        // Handle empty concepts array
+        if (!concepts || concepts.length === 0) {
+            return { nodes: [], links: [] };
+        }
+        
         // Create nodes for concepts
         const nodes = concepts.map(concept => ({
             id: concept,
@@ -492,12 +563,19 @@ class MOTLTheologicalVisualizer {
         // Create links between concepts based on cross-references
         const links = [];
         
+        // Check if cross-reference map exists
+        if (!this.trackingResults.crossReferenceMap) {
+            return { nodes, links };
+        }
+        
         concepts.forEach(concept => {
-            const refs = this.trackingResults.crossReferenceMap[concept];
+            const refs = this.trackingResults.crossReferenceMap[concept] || [];
             
             // Group references by target book
             const bookRefs = {};
             refs.forEach(ref => {
+                if (!ref || !ref.target) return;
+                
                 const targetBook = ref.target.split(':')[0];
                 if (!bookRefs[targetBook]) {
                     bookRefs[targetBook] = [];
@@ -509,9 +587,11 @@ class MOTLTheologicalVisualizer {
             concepts.forEach(otherConcept => {
                 if (concept === otherConcept) return;
                 
-                const otherRefs = this.trackingResults.crossReferenceMap[otherConcept];
+                const otherRefs = this.trackingResults.crossReferenceMap[otherConcept] || [];
                 const otherBookRefs = {};
                 otherRefs.forEach(ref => {
+                    if (!ref || !ref.target) return;
+                    
                     const targetBook = ref.target.split(':')[0];
                     if (!otherBookRefs[targetBook]) {
                         otherBookRefs[targetBook] = [];
@@ -547,16 +627,32 @@ class MOTLTheologicalVisualizer {
      * @returns {Array<Object>} Concept evolution data
      */
     _generateEvolutionData(concepts) {
+        // Handle empty concepts array
+        if (!concepts || concepts.length === 0 || !this.trackingResults.conceptualEvolution) {
+            return [];
+        }
+        
         return concepts.map(concept => {
-            const evolution = this.trackingResults.conceptualEvolution[concept];
-            const latestEvolution = evolution[evolution.length - 1];
+            // Check if evolution data exists for this concept
+            const evolution = this.trackingResults.conceptualEvolution[concept] || [];
+            if (evolution.length === 0) {
+                return {
+                    name: concept,
+                    color: this.options.colorScheme[concept] || '#000000',
+                    semanticDensity: 0,
+                    modifiers: [],
+                    bitDepth: 0
+                };
+            }
+            
+            const latestEvolution = evolution[evolution.length - 1] || {};
             
             return {
                 name: concept,
                 color: this.options.colorScheme[concept] || '#000000',
-                semanticDensity: latestEvolution.semanticDensity,
-                modifiers: latestEvolution.contextualModifiers,
-                bitDepth: latestEvolution.bitDepthAllocation
+                semanticDensity: latestEvolution.semanticDensity || 0,
+                modifiers: latestEvolution.contextualModifiers || [],
+                bitDepth: latestEvolution.bitDepthAllocation || 0
             };
         });
     }

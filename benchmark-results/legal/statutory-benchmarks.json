@@ -1,0 +1,36 @@
+{
+  "textual": {
+    "statute_1": {
+      "interpretation1": 0.8461426247082993,
+      "interpretation2": 0.9919861071762359,
+      "difference": 0.14584348246793666
+    },
+    "statute_2": {
+      "interpretation1": 0.8398306482776712,
+      "interpretation2": 0.7394313208824576,
+      "difference": 0.10039932739521362
+    }
+  },
+  "purposive": {
+    "statute_1": {
+      "interpretation1": 0.9349711970168993,
+      "interpretation2": 0.9424721465622241,
+      "difference": 0.007500949545324764
+    },
+    "statute_2": {
+      "interpretation1": 0.5268835903866341,
+      "interpretation2": 0.9359668222686094,
+      "difference": 0.40908323188197526
+    }
+  },
+  "consistency": {
+    "statute_1": {
+      "interpretation1": 0.9550142370591396,
+      "interpretation2": 0.8456457476188832
+    },
+    "statute_2": {
+      "interpretation1": 0.7640195331071695,
+      "interpretation2": 0.8227607550110102
+    }
+  }
+}

@@ -1,0 +1,181 @@
+{
+  "speed": {},
+  "compression": {},
+  "accuracy": {},
+  "crossReference": {},
+  "precedent": {
+    "similarity": {
+      "precedent_1": 0.6893576213388112,
+      "precedent_2": 0.835250883151934
+    },
+    "application": {
+      "precedent_1": {
+        "actual": "overturned",
+        "predicted": "overturned",
+        "correct": true
+      },
+      "precedent_2": {
+        "actual": "affirmed",
+        "predicted": "affirmed",
+        "correct": true
+      }
+    },
+    "distinction": {
+      "precedent_1": {
+        "actual": [
+          "equal_protection",
+          "psychological_harm",
+          "education_right"
+        ],
+        "extracted": [
+          "privacy_expectation",
+          "free_speech",
+          "fifth_amendment"
+        ],
+        "accuracy": 0
+      },
+      "precedent_2": {
+        "actual": [
+          "fifth_amendment",
+          "police_procedure",
+          "constitutional_requirement"
+        ],
+        "extracted": [
+          "privacy_expectation",
+          "equal_protection"
+        ],
+        "accuracy": 0
+      }
+    }
+  },
+  "statutory": {
+    "textual": {
+      "statute_1": {
+        "interpretation1": 0.8461426247082993,
+        "interpretation2": 0.9919861071762359,
+        "difference": 0.14584348246793666
+      },
+      "statute_2": {
+        "interpretation1": 0.8398306482776712,
+        "interpretation2": 0.7394313208824576,
+        "difference": 0.10039932739521362
+      }
+    },
+    "purposive": {
+      "statute_1": {
+        "interpretation1": 0.9349711970168993,
+        "interpretation2": 0.9424721465622241,
+        "difference": 0.007500949545324764
+      },
+      "statute_2": {
+        "interpretation1": 0.5268835903866341,
+        "interpretation2": 0.9359668222686094,
+        "difference": 0.40908323188197526
+      }
+    },
+    "consistency": {
+      "statute_1": {
+        "interpretation1": 0.9550142370591396,
+        "interpretation2": 0.8456457476188832
+      },
+      "statute_2": {
+        "interpretation1": 0.7640195331071695,
+        "interpretation2": 0.8227607550110102
+      }
+    }
+  },
+  "reasoning": {
+    "coherence": {
+      "reasoning_1": 0.9262316969527858
+    },
+    "validity": {
+      "reasoning_1": 0.7386227106073294
+    },
+    "efficiency": {
+      "reasoning_1": 1.726530612244898
+    }
+  },
+  "crossref": {
+    "detection": {
+      "crossref_1": {
+        "scores": [
+          0.780809197304359,
+          0.7837490251774905,
+          0.8453781782948112
+        ],
+        "average": 0.8033121335922203
+      },
+      "crossref_2": {
+        "scores": [
+          0.8771171530793763,
+          0.7715517212045971,
+          0.7820685120501826
+        ],
+        "average": 0.8102457954447186
+      }
+    },
+    "relevance": {
+      "crossref_1": {
+        "scores": [
+          0.7763481757879368,
+          0.6256443077197563,
+          0.809091372302479
+        ],
+        "average": 0.737027951936724
+      },
+      "crossref_2": {
+        "scores": [
+          0.8746073642229124,
+          0.6640685917278546,
+          0.6649404375237286
+        ],
+        "average": 0.7345387978248318
+      }
+    },
+    "strength": {
+      "crossref_1": {
+        "actual": [
+          0.7,
+          0.6,
+          0.8
+        ],
+        "predicted": [
+          0.6206133161843835,
+          0.7910691604700757,
+          0.7839195266385034
+        ],
+        "correlation": 0.8602744537339899
+      },
+      "crossref_2": {
+        "actual": [
+          0.8,
+          0.7,
+          0.5
+        ],
+        "predicted": [
+          0.9744469491757763,
+          0.5767920604451106,
+          0.9464518542361043
+        ],
+        "correlation": 0.8729523174914835
+      }
+    }
+  },
+  "jurisdictional": {
+    "similarity": {
+      "jurisdiction_1": 0.47265872783240315
+    },
+    "distinction": {
+      "jurisdiction_1": {
+        "scores": [
+          0.617297504468943,
+          0.9147592685964805
+        ],
+        "difference": 0.29746176412753744
+      }
+    },
+    "transferability": {
+      "jurisdiction_1": 0.699322609559956
+    }
+  }
+}
