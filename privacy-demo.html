@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BBID Privacy Controls Demo</title>
+    <link rel="stylesheet" href="css/bbid-design-system.css">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .panel {
+            flex: 1;
+            min-width: 300px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .panel h2 {
+            margin-top: 0;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 20px;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+        
+        .tab.active {
+            border-bottom: 2px solid #3498db;
+            font-weight: bold;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        
+        button:hover {
+            background: #2980b9;
+        }
+        
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status.warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .data-display {
+            background: #f8f9fa;
+            border-radius: 4px;
+            padding: 15px;
+            overflow: auto;
+            max-height: 400px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        
+        .privacy-controls-container,
+        .privacy-explanation-container,
+        #settings-container {
+            margin-top: 20px;
+        }
+        
+        .data-comparison {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .data-column {
+            flex: 1;
+        }
+        
+        .confidence-meter {
+            height: 20px;
+            background: #eee;
+            border-radius: 10px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+        
+        .confidence-level {
+            height: 100%;
+            background: linear-gradient(to right, #f1c40f, #2ecc71);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+    </style>
+</head>
+<body>
+    <h1>BBID Privacy Controls Demo</h1>
+    
+    <div class="container">
+        <div class="panel">
+            <h2>Behavioral Fingerprinting with Privacy</h2>
+            
+            <div class="tabs">
+                <div class="tab active" data-tab="demo">Demo</div>
+                <div class="tab" data-tab="settings">Privacy Settings</div>
+                <div class="tab" data-tab="explanation">How It Works</div>
+            </div>
+            
+            <div class="tab-content active" data-tab="demo">
+                <p>This demo shows how behavioral fingerprinting works with privacy controls.</p>
+                
+                <div id="status-container" class="status warning">
+                    Waiting for consent...
+                </div>
+                
+                <button id="start-tracking">Start Behavioral Tracking</button>
+                <button id="generate-fingerprint" disabled>Generate Fingerprint</button>
+                
+                <div id="tracking-status"></div>
+                
+                <h3>Device Information</h3>
+                <div id="device-info" class="data-display">
+                    Waiting for data...
+                </div>
+                
+                <h3>Recognition Confidence</h3>
+                <div class="confidence-meter">
+                    <div id="confidence-level" class="confidence-level"></div>
+                </div>
+                <div id="confidence-text">Not enough data</div>
+                
+                <h3>Data Comparison</h3>
+                <div class="data-comparison">
+                    <div class="data-column">
+                        <h4>Raw Data</h4>
+                        <div id="raw-data" class="data-display">
+                            Waiting for data...
+                        </div>
+                    </div>
+                    <div class="data-column">
+                        <h4>Privacy-Filtered Data</h4>
+                        <div id="filtered-data" class="data-display">
+                            Waiting for data...
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tab-content" data-tab="settings">
+                <div id="settings-container">
+                    Loading privacy settings...
+                </div>
+            </div>
+            
+            <div class="tab-content" data-tab="explanation">
+                <div id="explanation-container">
+                    Loading privacy explanation...
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="js/bbid-behavioral.js"></script>
+    <script src="js/bbid-api.js"></script>
+    <script src="js/bbid-behavioral-analytics.js"></script>
+    <script src="js/bbid-privacy-controls.js"></script>
+    
+    <script>
+        // Initialize privacy controls
+        const privacyControls = new BBIDPrivacyControls({
+            consentRequired: true,
+            privacyPolicyUrl: '#privacy-policy',
+            dataRetentionDays: 90,
+            allowDataDeletion: true,
+            dataMinimization: true,
+            anonymizationLevel: 'standard',
+            storageType: 'local',
+            debugMode: true
+        });
+        
+        // Initialize behavioral tracking
+        let behavioralTracker = null;
+        let rawData = null;
+        let filteredData = null;
+        let deviceId = null;
+        
+        // DOM elements
+        const startTrackingBtn = document.getElementById('start-tracking');
+        const generateFingerprintBtn = document.getElementById('generate-fingerprint');
+        const statusContainer = document.getElementById('status-container');
+        const trackingStatus = document.getElementById('tracking-status');
+        const deviceInfo = document.getElementById('device-info');
+        const rawDataDisplay = document.getElementById('raw-data');
+        const filteredDataDisplay = document.getElementById('filtered-data');
+        const confidenceLevel = document.getElementById('confidence-level');
+        const confidenceText = document.getElementById('confidence-text');
+        const settingsContainer = document.getElementById('settings-container');
+        const explanationContainer = document.getElementById('explanation-container');
+        
+        // Tab functionality
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabName = tab.getAttribute('data-tab');
+                
+                // Update active tab
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                // Update active content
+                tabContents.forEach(content => {
+                    if (content.getAttribute('data-tab') === tabName) {
+                        content.classList.add('active');
+                    } else {
+                        content.classList.remove('active');
+                    }
+                });
+            });
+        });
+        
+        // Add privacy settings UI
+        settingsContainer.appendChild(privacyControls.getPrivacySettingsUI(settings => {
+            updateStatus(`Privacy settings updated: ${JSON.stringify(settings)}`, 'success');
+            
+            // If we have data, update the filtered display
+            if (rawData) {
+                filteredData = privacyControls.applyPrivacyFilters(rawData);
+                updateDataDisplays();
+            }
+        }));
+        
+        // Add privacy explanation
+        explanationContainer.appendChild(privacyControls.getPrivacyExplanation());
+        
+        // Start tracking button
+        startTrackingBtn.addEventListener('click', () => {
+            // Request consent if needed
+            if (!privacyControls.hasConsent()) {
+                privacyControls.requestConsent(consentGiven => {
+                    if (consentGiven) {
+                        updateStatus('Consent given. You can now start tracking.', 'success');
+                        startBehavioralTracking();
+                    } else {
+                        updateStatus('Consent denied. Limited functionality available.', 'warning');
+                    }
+                });
+            } else {
+                startBehavioralTracking();
+            }
+        });
+        
+        // Generate fingerprint button
+        generateFingerprintBtn.addEventListener('click', () => {
+            if (!behavioralTracker) {
+                updateStatus('Please start tracking first', 'error');
+                return;
+            }
+            
+            // Get the raw behavioral data
+            rawData = behavioralTracker.getBehavioralData();
+            
+            // Apply privacy filters
+            filteredData = privacyControls.applyPrivacyFilters(rawData);
+            
+            // Update displays
+            updateDataDisplays();
+            
+            // Calculate and display confidence
+            const uniquenessScore = BBIDBehavioralAnalytics.calculateUniquenessScore(filteredData);
+            updateConfidence(uniquenessScore);
+            
+            // Generate device ID if we don't have one
+            if (!deviceId) {
+                deviceId = generateDeviceId(filteredData);
+                updateDeviceInfo();
+            }
+            
+            // Submit the fingerprint through the behavioral tracker
+            // This will apply privacy filters automatically
+            const result = behavioralTracker.submitFingerprint();
+            if (result) {
+                updateStatus('Fingerprint submitted successfully', 'success');
+            }
+        });
+        
+        function startBehavioralTracking() {
+            // Initialize the behavioral tracker with privacy controls integration
+            behavioralTracker = new BBIDBehavioral({
+                trackKeyboard: privacyControls.privacySettings.keyboard,
+                trackMouse: privacyControls.privacySettings.mouse,
+                trackTouch: privacyControls.privacySettings.touch,
+                trackMotion: privacyControls.privacySettings.motion,
+                trackUI: privacyControls.privacySettings.ui,
+                trackSession: privacyControls.privacySettings.session,
+                privacyControls: privacyControls, // Pass the privacy controls instance
+                deviceId: deviceId || generateTempDeviceId(),
+                debug: true,
+                onFingerprintGenerated: function(fingerprint) {
+                    console.log('Fingerprint generated:', fingerprint);
+                    // Store the device ID if it was generated by the server
+                    if (fingerprint.deviceId) {
+                        deviceId = fingerprint.deviceId;
+                        updateDeviceInfo();
+                    }
+                }
+            });
+            
+            // Start tracking
+            behavioralTracker.start();
+            
+            updateStatus('Behavioral tracking started', 'success');
+            startTrackingBtn.disabled = true;
+            generateFingerprintBtn.disabled = false;
+            
+            // Update tracking status periodically
+            updateTrackingStatus();
+            setInterval(updateTrackingStatus, 1000);
+        }
+        
+        function updateTrackingStatus() {
+            if (!behavioralTracker) return;
+            
+            const metrics = behavioralTracker.getTrackingMetrics();
+            trackingStatus.innerHTML = `
+                <p>Tracking time: ${metrics.trackingTime}s</p>
+                <p>Keyboard events: ${metrics.keyboardEvents}</p>
+                <p>Mouse events: ${metrics.mouseEvents}</p>
+                <p>Touch events: ${metrics.touchEvents}</p>
+                <p>Motion events: ${metrics.motionEvents}</p>
+                <p>UI events: ${metrics.uiEvents}</p>
+            `;
+        }
+        
+        function updateDataDisplays() {
+            if (rawData) {
+                rawDataDisplay.textContent = JSON.stringify(rawData, null, 2);
+            }
+            
+            if (filteredData) {
+                filteredDataDisplay.textContent = JSON.stringify(filteredData, null, 2);
+            }
+        }
+        
+        function updateConfidence(score) {
+            // Score should be between 0-100
+            const confidencePercent = Math.min(Math.max(score, 0), 100);
+            confidenceLevel.style.width = `${confidencePercent}%`;
+            
+            let confidenceMessage = 'Low confidence';
+            if (confidencePercent > 80) {
+                confidenceMessage = 'Very high confidence';
+            } else if (confidencePercent > 60) {
+                confidenceMessage = 'High confidence';
+            } else if (confidencePercent > 40) {
+                confidenceMessage = 'Medium confidence';
+            } else if (confidencePercent > 20) {
+                confidenceMessage = 'Low confidence';
+            } else {
+                confidenceMessage = 'Very low confidence';
+            }
+            
+            confidenceText.textContent = `${confidenceMessage} (${confidencePercent.toFixed(1)}%)`;
+        }
+        
+        function updateDeviceInfo() {
+            if (!filteredData) return;
+            
+            const deviceData = {
+                deviceId: deviceId,
+                browser: navigator.userAgent,
+                screenSize: `${window.screen.width}x${window.screen.height}`,
+                colorDepth: window.screen.colorDepth,
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                language: navigator.language
+            };
+            
+            deviceInfo.textContent = JSON.stringify(deviceData, null, 2);
+        }
+        
+        function generateDeviceId(data) {
+            // Simple hash function for demo purposes
+            const str = JSON.stringify(data);
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                const char = str.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash;
+            }
+            return 'device_' + Math.abs(hash).toString(16);
+        }
+        
+        function generateTempDeviceId() {
+            // Generate a temporary device ID for initial tracking
+            return 'temp_' + Math.random().toString(36).substring(2, 15);
+        }
+        
+        function updateStatus(message, type) {
+            statusContainer.textContent = message;
+            statusContainer.className = `status ${type}`;
+        }
+        
+        // Check for existing consent on page load
+        if (privacyControls.hasConsent()) {
+            updateStatus('Consent already given. You can start tracking.', 'success');
+        } else {
+            updateStatus('Consent required before tracking can begin.', 'warning');
+        }
+    </script>
+</body>
+</html>
