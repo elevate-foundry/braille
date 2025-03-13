@@ -14,10 +14,14 @@ class BBIDBehavioral {
       trackMotion: options.trackMotion !== false,
       trackScroll: options.trackScroll !== false,
       trackForms: options.trackForms !== false,
+      trackSession: options.trackSession !== false,
+      trackUI: options.trackUI !== false,
       sampleRate: options.sampleRate || 100, // ms
       batchSize: options.batchSize || 50,
       autoSubmitInterval: options.autoSubmitInterval || 10000, // 10 seconds
-      debug: options.debug || false
+      debug: options.debug || false,
+      privacyControls: options.privacyControls || null, // Reference to BBIDPrivacyControls instance
+      onFingerprintGenerated: options.onFingerprintGenerated || null // Callback when fingerprint is generated
     };
 
     // Initialize data structures with enhanced metrics
@@ -233,17 +237,21 @@ class BBIDBehavioral {
    * Attach all event listeners based on options
    */
   attachEventListeners() {
+    // Get privacy settings if available
+    const privacySettings = this._getPrivacySettings();
+    
     // Keyboard event tracking
-    if (this.options.trackKeyboard) {
+    if (this.options.trackKeyboard && privacySettings.keyboard) {
       document.addEventListener('keydown', this.boundHandlers.keydown);
       document.addEventListener('keyup', this.boundHandlers.keyup);
       document.addEventListener('copy', this.boundHandlers.copy);
       document.addEventListener('paste', this.boundHandlers.paste);
       document.addEventListener('cut', this.boundHandlers.cut);
+      this.log('Keyboard tracking enabled');
     }
 
     // Mouse event tracking
-    if (this.options.trackMouse) {
+    if (this.options.trackMouse && privacySettings.mouse) {
       document.addEventListener('mousemove', this.boundHandlers.mousemove);
       document.addEventListener('mousedown', this.boundHandlers.mousedown);
       document.addEventListener('mouseup', this.boundHandlers.mouseup);
@@ -251,39 +259,52 @@ class BBIDBehavioral {
       document.addEventListener('contextmenu', this.boundHandlers.contextmenu);
       document.addEventListener('mouseover', this.boundHandlers.mouseover);
       document.addEventListener('mouseout', this.boundHandlers.mouseout);
+      this.log('Mouse tracking enabled');
     }
 
     // Touch event tracking
-    if (this.options.trackTouch) {
+    if (this.options.trackTouch && privacySettings.touch) {
       document.addEventListener('touchstart', this.boundHandlers.touchstart);
       document.addEventListener('touchmove', this.boundHandlers.touchmove);
       document.addEventListener('touchend', this.boundHandlers.touchend);
       document.addEventListener('touchcancel', this.boundHandlers.touchcancel);
+      this.log('Touch tracking enabled');
     }
 
     // Motion and orientation tracking
-    if (this.options.trackMotion) {
+    if (this.options.trackMotion && privacySettings.motion) {
       window.addEventListener('devicemotion', this.boundHandlers.devicemotion);
       window.addEventListener('deviceorientation', this.boundHandlers.deviceorientation);
+      this.log('Motion tracking enabled');
     }
 
     // Scroll behavior tracking
-    if (this.options.trackScroll) {
+    if (this.options.trackScroll && (privacySettings.mouse || privacySettings.touch)) {
       window.addEventListener('scroll', this.boundHandlers.scroll);
+      this.log('Scroll tracking enabled');
     }
     
     // Form interaction tracking
-    if (this.options.trackForms) {
+    if (this.options.trackForms && privacySettings.ui) {
       document.addEventListener('focus', this.boundHandlers.focus, true);
       document.addEventListener('blur', this.boundHandlers.blur, true);
       document.addEventListener('submit', this.boundHandlers.submit);
       document.addEventListener('input', this.boundHandlers.input);
+      this.log('Form tracking enabled');
     }
     
-    // UI and session tracking (always enabled)
-    document.addEventListener('visibilitychange', this.boundHandlers.visibilitychange);
-    window.addEventListener('popstate', this.boundHandlers.popstate);
-    window.addEventListener('beforeunload', this.boundHandlers.beforeunload);
+    // UI and session tracking
+    if (privacySettings.ui && this.options.trackUI) {
+      document.addEventListener('visibilitychange', this.boundHandlers.visibilitychange);
+      window.addEventListener('popstate', this.boundHandlers.popstate);
+      this.log('UI tracking enabled');
+    }
+    
+    // Session tracking
+    if (privacySettings.session && this.options.trackSession) {
+      window.addEventListener('beforeunload', this.boundHandlers.beforeunload);
+      this.log('Session tracking enabled');
+    }
     
     // Track initial device info
     this.captureDeviceInfo();
@@ -1456,25 +1477,76 @@ class BBIDBehavioral {
     // Clear batch queue
     this.batchQueue = [];
     
-    // Prepare data for submission
-    const fingerprintData = {
+    // Check privacy controls if available
+    if (this.options.privacyControls) {
+      // Check if user has consented to behavioral tracking
+      if (!this.options.privacyControls.hasConsent()) {
+        this.log('User has not provided consent for behavioral tracking, skipping fingerprint submission');
+        return null;
+      }
+      
+      this.log('User has consented to behavioral tracking');
+    }
+    
+    // Calculate derived metrics before submission
+    this.calculateDerivedMetrics();
+    
+    // Get raw behavioral data
+    const rawData = {
       deviceId: this.options.deviceId,
-      keyboardMetrics: this.pruneMetrics(this.keyboardMetrics),
-      mouseMetrics: this.pruneMetrics(this.mouseMetrics),
-      touchMetrics: this.pruneMetrics(this.touchMetrics),
-      motionMetrics: this.pruneMetrics(this.motionMetrics),
-      interactionFlow: this.interactionFlow.slice(-100), // Keep only the last 100 interactions
+      keyboardMetrics: this.keyboardMetrics,
+      mouseMetrics: this.mouseMetrics,
+      touchMetrics: this.touchMetrics,
+      motionMetrics: this.motionMetrics,
+      interactionFlow: this.interactionFlow,
       timeOnPage: {
         totalTime: Date.now() - this.timeOnPage.startTime,
         activeTime: this.timeOnPage.activeTime,
-        idlePeriods: this.timeOnPage.idlePeriods.slice(-20), // Last 20 idle periods
-        focusPeriods: this.timeOnPage.focusPeriods.slice(-20), // Last 20 focus periods
+        idlePeriods: this.timeOnPage.idlePeriods,
+        focusPeriods: this.timeOnPage.focusPeriods,
         longestActivePeriod: this.timeOnPage.longestActivePeriod
       },
-      scrollPatterns: this.pruneMetrics(this.scrollPatterns),
+      scrollPatterns: this.scrollPatterns,
       formInteractions: this.formInteractions,
-      uiInteractions: this.pruneMetrics(this.uiInteractions),
-      sessionMetrics: this.sessionMetrics
+      uiInteractions: this.uiInteractions,
+      sessionMetrics: this.sessionMetrics,
+      deviceInfo: this.deviceInfo
+    };
+    
+    // Apply privacy filters if available
+    let processedData;
+    if (this.options.privacyControls) {
+      // Apply privacy filters based on user settings
+      processedData = this.options.privacyControls.applyPrivacyFilters(rawData);
+      this.log('Applied privacy filters to behavioral data');
+    } else {
+      // No privacy controls, just prune the data
+      processedData = {
+        deviceId: this.options.deviceId,
+        keyboardMetrics: this.pruneMetrics(this.keyboardMetrics),
+        mouseMetrics: this.pruneMetrics(this.mouseMetrics),
+        touchMetrics: this.pruneMetrics(this.touchMetrics),
+        motionMetrics: this.pruneMetrics(this.motionMetrics),
+        interactionFlow: this.interactionFlow.slice(-100), // Keep only the last 100 interactions
+        timeOnPage: {
+          totalTime: Date.now() - this.timeOnPage.startTime,
+          activeTime: this.timeOnPage.activeTime,
+          idlePeriods: this.timeOnPage.idlePeriods.slice(-20), // Last 20 idle periods
+          focusPeriods: this.timeOnPage.focusPeriods.slice(-20), // Last 20 focus periods
+          longestActivePeriod: this.timeOnPage.longestActivePeriod
+        },
+        scrollPatterns: this.pruneMetrics(this.scrollPatterns),
+        formInteractions: this.formInteractions,
+        uiInteractions: this.pruneMetrics(this.uiInteractions),
+        sessionMetrics: this.sessionMetrics
+      };
+    }
+    
+    // Create final payload
+    const fingerprintData = {
+      deviceId: this.options.deviceId,
+      timestamp: Date.now(),
+      metrics: processedData
     };
     
     try {
@@ -1492,14 +1564,19 @@ class BBIDBehavioral {
         this.log('Behavioral fingerprint submitted successfully', result);
         
         // Store BBID fingerprint if callback provided
-        if (this.options.onFingerprintGenerated && result.bbidFingerprint) {
-          this.options.onFingerprintGenerated(result.bbidFingerprint);
+        if (this.options.onFingerprintGenerated) {
+          // Pass the full result or just the fingerprint if available
+          const callbackData = result.bbidFingerprint || result;
+          this.options.onFingerprintGenerated(callbackData);
         }
       } else {
         this.log('Error submitting behavioral fingerprint:', result.error);
       }
+      
+      return result;
     } catch (error) {
       this.log('Failed to submit behavioral fingerprint:', error);
+      return null;
     }
   }
 
@@ -1530,6 +1607,70 @@ class BBIDBehavioral {
     if (this.options.debug) {
       console.log('[BBIDBehavioral]', ...args);
     }
+  }
+  
+  /**
+   * Get privacy settings from privacy controls or use defaults
+   * @private
+   */
+  _getPrivacySettings() {
+    // If privacy controls are available, use them
+    if (this.options.privacyControls && this.options.privacyControls.privacySettings) {
+      return this.options.privacyControls.privacySettings;
+    }
+    
+    // Otherwise return default settings (all enabled)
+    return {
+      keyboard: true,
+      mouse: true,
+      touch: true,
+      motion: true,
+      ui: true,
+      session: true
+    };
+  }
+  
+  /**
+   * Get behavioral data for external use
+   * @returns {Object} Behavioral data
+   */
+  getBehavioralData() {
+    // Calculate derived metrics first
+    this.calculateDerivedMetrics();
+    
+    // Return the complete behavioral data
+    return {
+      deviceId: this.options.deviceId,
+      keyboardMetrics: this.keyboardMetrics,
+      mouseMetrics: this.mouseMetrics,
+      touchMetrics: this.touchMetrics,
+      motionMetrics: this.motionMetrics,
+      scrollPatterns: this.scrollPatterns,
+      formInteractions: this.formInteractions,
+      uiInteractions: this.uiInteractions,
+      sessionMetrics: this.sessionMetrics,
+      timeOnPage: this.timeOnPage,
+      interactionFlow: this.interactionFlow,
+      deviceInfo: this.deviceInfo
+    };
+  }
+  
+  /**
+   * Get current tracking metrics for display
+   * @returns {Object} Tracking metrics
+   */
+  getTrackingMetrics() {
+    const now = Date.now();
+    const trackingTime = Math.floor((now - this.timeOnPage.startTime) / 1000);
+    
+    return {
+      trackingTime: trackingTime,
+      keyboardEvents: this.keyboardMetrics.keyPressCount,
+      mouseEvents: this.mouseMetrics.moveCount + this.mouseMetrics.clickCount,
+      touchEvents: this.touchMetrics.touchCount,
+      motionEvents: this.motionMetrics.orientationSamples.length + this.motionMetrics.accelerationSamples.length,
+      uiEvents: this.uiInteractions.tabSwitches + this.formInteractions.focusEvents
+    };
   }
 }
 
