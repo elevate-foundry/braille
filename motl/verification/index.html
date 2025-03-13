@@ -18,6 +18,9 @@
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="../../images/favicon.svg">
     
+    <!-- Sal Assistant -->
+    <script src="../../js/sal/sal-include.js"></script>
+    
     <!-- Stylesheets -->
     <link rel="stylesheet" href="../../css/bbid-design-system.css">
     <link rel="stylesheet" href="../../css/styles.css">
@@ -499,6 +502,13 @@
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Provide page-specific context to Sal if available
+            if (window.salAssistant) {
+                setTimeout(() => {
+                    window.salAssistant.speak('Welcome to the MOTL Communication Tools! Here you can explore various tools for AI-to-AI communication using dense semantic encoding.');
+                }, 3000);
+            }
+            
             // Initialize form submission
             const verificationForm = document.getElementById('verification-form');
             if (verificationForm) {

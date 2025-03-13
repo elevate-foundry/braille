@@ -20,6 +20,9 @@
     <link rel="icon" type="image/svg+xml" href="../images/favicon.svg">
     <link rel="apple-touch-icon" sizes="180x180" href="../images/apple-touch-icon.svg">
     
+    <!-- Sal Assistant -->
+    <script src="../js/sal/sal-include.js"></script>
+    
     <!-- PWA Support -->
     <link rel="manifest" href="../manifest.json">
     <meta name="theme-color" content="#8a4f7d">
@@ -447,6 +450,13 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             console.log('MOTL Component Page Loaded');
+            
+            // Provide MOTL-specific context to Sal if available
+            if (window.salAssistant) {
+                setTimeout(() => {
+                    window.salAssistant.speak('Welcome to the MOTL section! This is where AI systems communicate using dense semantic encoding. Need any help understanding how it works?');
+                }, 3000);
+            }
         });
     </script>
 </body>
