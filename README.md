@@ -14,6 +14,7 @@ The project has expanded to include MOTL (Machine-Optimized Thought Language), a
 - **Mobile Optimization**: Touch gestures, responsive design, and fullscreen mode for learning on-the-go
 - **Multilingual Support**: Learn braille in multiple languages including English, Spanish, French, Chinese, Arabic, and Hindi
 - **BBID Recognition System**: Secure identity recognition using braille-encoded fingerprints
+- **Behavioral Fingerprinting**: Advanced user identification through keyboard dynamics, mouse movements, touch patterns, and device motion
 - **BrailleFST Technology**: Efficient rule-based encoder/decoder for braille conversion
 - **Bible Compression Comparison**: Analyze storage efficiency of braille compression across different languages using religious texts
 
@@ -40,6 +41,29 @@ Learning braille offers several benefits for sighted children:
 ### Live Demo
 
 Try BrailleBuddy now: [https://braillebuddy.vercel.app/](https://braillebuddy.vercel.app/)
+
+### BBID API
+
+The BBID (BrailleBuddy Identity) API provides secure and efficient device identification using braille-encoded fingerprints. Key features include:
+
+- **Traditional Fingerprinting**: Converts standard device fingerprints to BBID format
+- **Behavioral Fingerprinting**: Captures unique user interaction patterns for enhanced identification
+- **Comprehensive API Logging**: Tracks all API requests with privacy-focused data collection
+- **Batch Comparison**: Analyzes semantic efficiency across different fingerprinting methods
+
+The behavioral fingerprinting system captures:
+- Keyboard dynamics (typing rhythm and speed)
+- Mouse movement patterns and click behavior
+- Touch interactions on mobile devices
+- Device orientation and motion patterns
+- Scrolling behavior and navigation flow
+
+API Endpoints:
+- `POST /api/convert`: Convert traditional fingerprints to BBID format
+- `GET /api/bbid`: Get a sample BBID with semantic analysis
+- `GET /api/batch-compare`: Compare BBID with traditional fingerprinting methods
+- `POST /api/behavioral-fingerprint`: Generate a behavioral fingerprint
+- `POST /api/log-device`: Log device data for analysis
 
 ### Bible Compression Comparison
 

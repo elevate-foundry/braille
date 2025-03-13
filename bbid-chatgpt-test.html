@@ -226,6 +226,7 @@
         <div class="tab" data-tab="mydevice">My Device</div>
         <div class="tab" data-tab="sample">Sample BBID</div>
         <div class="tab" data-tab="batch">Batch Comparison</div>
+        <div class="tab" data-tab="behavioral">Behavioral Fingerprint</div>
         <div class="tab" data-tab="api">API Reference</div>
     </div>
     
@@ -435,6 +436,103 @@
         </div>
     </div>
     
+    <div id="behavioral-tab" class="tab-content container">
+        <h2>Behavioral Fingerprinting</h2>
+        <p>This advanced fingerprinting method captures your unique interaction patterns with the website, creating a more accurate and harder-to-spoof identifier.</p>
+        
+        <div id="behavioral-loading" class="loading">Collecting behavioral data...</div>
+        <div id="behavioral-error" class="error" style="display: none;"></div>
+        
+        <div id="behavioral-result-container" style="display: none;">
+            <h3>Your Behavioral Fingerprint</h3>
+            <div id="behavioral-bbid" class="braille">-</div>
+            <button id="copy-behavioral-bbid" class="copy-button">Copy Behavioral BBID</button>
+            
+            <h3>Behavioral Metrics</h3>
+            <div class="metrics">
+                <div class="metric-card">
+                    <h4>Keyboard Dynamics</h4>
+                    <div id="keyboard-profile" class="metric-value">-</div>
+                    <p>Based on your typing rhythm and speed</p>
+                </div>
+                <div class="metric-card">
+                    <h4>Mouse Behavior</h4>
+                    <div id="mouse-profile" class="metric-value">-</div>
+                    <p>Based on movement patterns and clicking behavior</p>
+                </div>
+                <div class="metric-card">
+                    <h4>Touch Interaction</h4>
+                    <div id="touch-profile" class="metric-value">-</div>
+                    <p>Based on touch pressure and area (mobile devices)</p>
+                </div>
+                <div class="metric-card">
+                    <h4>Device Motion</h4>
+                    <div id="motion-profile" class="metric-value">-</div>
+                    <p>Based on how you hold and move your device</p>
+                </div>
+            </div>
+            
+            <h3>Interaction Summary</h3>
+            <div class="metrics">
+                <div class="metric-card">
+                    <h4>Active Time</h4>
+                    <div id="active-time" class="metric-value">-</div>
+                </div>
+                <div class="metric-card">
+                    <h4>Scroll Pattern</h4>
+                    <div id="scroll-pattern" class="metric-value">-</div>
+                </div>
+                <div class="metric-card">
+                    <h4>Form Interaction</h4>
+                    <div id="form-interaction" class="metric-value">-</div>
+                </div>
+                <div class="metric-card">
+                    <h4>Uniqueness Score</h4>
+                    <div id="uniqueness-score" class="metric-value">-</div>
+                </div>
+            </div>
+            
+            <h3>Comparison with Traditional Fingerprinting</h3>
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Method</th>
+                        <th>Spoofing Difficulty</th>
+                        <th>Stability</th>
+                        <th>Uniqueness</th>
+                        <th>Privacy Impact</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Traditional Fingerprint</td>
+                        <td>Medium</td>
+                        <td>High</td>
+                        <td>Medium</td>
+                        <td>Medium</td>
+                    </tr>
+                    <tr>
+                        <td>BBID</td>
+                        <td>Medium</td>
+                        <td>High</td>
+                        <td>Medium</td>
+                        <td>Low</td>
+                    </tr>
+                    <tr>
+                        <td>Behavioral BBID</td>
+                        <td>Very High</td>
+                        <td>Medium</td>
+                        <td>Very High</td>
+                        <td>Low</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3>Raw Data</h3>
+            <pre id="behavioral-result" class="result">-</pre>
+        </div>
+    </div>
+    
     <div id="api-tab" class="tab-content container">
         <h2>API Reference</h2>
         <p>Use these API endpoints to test BBID with ChatGPT or other applications.</p>
@@ -457,9 +555,27 @@
         <div class="api-url">GET /api/batch-compare</div>
         <button class="copy-button" data-copy="javascript:navigator.clipboard.writeText(API_BASE_URL + '/api/batch-compare')">Copy URL</button>
         <p>Compares BBID with traditional fingerprinting methods in terms of semantic efficiency.</p>
+        
+        <h3>Behavioral Fingerprinting</h3>
+        <div class="api-url">POST /api/behavioral-fingerprint</div>
+        <button class="copy-button" data-copy="javascript:navigator.clipboard.writeText(API_BASE_URL + '/api/behavioral-fingerprint')">Copy URL</button>
+        <p>Generates a behavioral fingerprint based on user interaction patterns.</p>
+        <h4>Request Body:</h4>
+        <pre class="result">{
+  "deviceId": "your-device-id",
+  "keyboardMetrics": { ... },
+  "mouseMetrics": { ... },
+  "touchMetrics": { ... },
+  "motionMetrics": { ... },
+  "interactionFlow": [ ... ],
+  "timeOnPage": { ... },
+  "scrollPatterns": { ... },
+  "formInteractions": { ... }
+}</pre>
     </div>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fingerprintjs2/2.1.4/fingerprint2.min.js"></script>
+    <script src="/js/bbid-behavioral.js"></script>
     <script>
         // API base URL - automatically detects if we're running locally or on Vercel
         const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
@@ -478,6 +594,11 @@
                 // If switching to My Device tab, generate fingerprint if not already done
                 if (tab.dataset.tab === 'mydevice' && document.getElementById('my-bbid').textContent === '-') {
                     generateDeviceFingerprint();
+                }
+                
+                // If switching to Behavioral tab, initialize behavioral fingerprinting if not already done
+                if (tab.dataset.tab === 'behavioral' && document.getElementById('behavioral-bbid').textContent === '-') {
+                    initBehavioralFingerprinting();
                 }
             });
         });
@@ -639,6 +760,64 @@
             document.getElementById('decline-consent').addEventListener('click', () => {
                 localStorage.setItem('bbid_consent', 'declined');
                 modal.remove();
+            });
+        }
+        
+        // Initialize behavioral fingerprinting
+        function initBehavioralFingerprinting() {
+            document.getElementById('behavioral-loading').style.display = 'block';
+            document.getElementById('behavioral-error').style.display = 'none';
+            document.getElementById('behavioral-result-container').style.display = 'none';
+            
+            // Initialize the behavioral tracking
+            if (window.BBIDBehavioral) {
+                const behavioralTracker = new BBIDBehavioral({
+                    apiEndpoint: `${API_BASE_URL}/api/behavioral-fingerprint`,
+                    collectionTime: 30000, // 30 seconds of data collection
+                    onDataCollected: handleBehavioralData,
+                    onError: (error) => {
+                        document.getElementById('behavioral-loading').style.display = 'none';
+                        document.getElementById('behavioral-error').style.display = 'block';
+                        document.getElementById('behavioral-error').textContent = `Error: ${error.message}`;
+                    }
+                });
+                
+                // Start tracking
+                behavioralTracker.startTracking();
+            } else {
+                document.getElementById('behavioral-loading').style.display = 'none';
+                document.getElementById('behavioral-error').style.display = 'block';
+                document.getElementById('behavioral-error').textContent = 'Behavioral tracking library not loaded';
+            }
+        }
+        
+        // Handle the behavioral data after collection
+        function handleBehavioralData(data) {
+            // Hide loading, show results
+            document.getElementById('behavioral-loading').style.display = 'none';
+            document.getElementById('behavioral-result-container').style.display = 'block';
+            
+            // Display the behavioral BBID
+            document.getElementById('behavioral-bbid').textContent = data.behavioralBBID || '-';
+            
+            // Update metrics
+            document.getElementById('keyboard-profile').textContent = data.metrics.keyboardProfile || 'No data';
+            document.getElementById('mouse-profile').textContent = data.metrics.mouseProfile || 'No data';
+            document.getElementById('touch-profile').textContent = data.metrics.touchProfile || 'No data';
+            document.getElementById('motion-profile').textContent = data.metrics.motionProfile || 'No data';
+            
+            document.getElementById('active-time').textContent = data.metrics.activeTime || 'No data';
+            document.getElementById('scroll-pattern').textContent = data.metrics.scrollPattern || 'No data';
+            document.getElementById('form-interaction').textContent = data.metrics.formInteraction || 'No data';
+            document.getElementById('uniqueness-score').textContent = data.metrics.uniquenessScore || 'No data';
+            
+            // Display raw data
+            document.getElementById('behavioral-result').textContent = JSON.stringify(data, null, 2);
+            
+            // Add copy button functionality
+            document.getElementById('copy-behavioral-bbid').addEventListener('click', () => {
+                navigator.clipboard.writeText(data.behavioralBBID || '');
+                alert('Behavioral BBID copied to clipboard!');
             });
         }
         
