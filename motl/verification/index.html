@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MOTL Communication Tools | BrailleBuddy Ecosystem</title>
+    
+    <!-- Primary Meta Tags -->
+    <meta name="title" content="MOTL Communication Tools">
+    <meta name="description" content="Tools for AI-to-AI communication using dense semantic encoding to accelerate data transfer and learning.">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://braillebuddy-q1yej25s0-elevate-foundry1s-projects.vercel.app/motl/verification/">
+    <meta property="og:title" content="MOTL Communication Tools">
+    <meta property="og:description" content="Tools for AI-to-AI communication using dense semantic encoding to accelerate data transfer and learning.">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="../../images/favicon.svg">
+    
+    <!-- Sal Assistant -->
+    <script src="../../js/sal/sal-include.js"></script>
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="../../css/bbid-design-system.css">
+    <link rel="stylesheet" href="../../css/styles.css">
+    
+    <style>
+        :root {
+            --motl-primary: #8a4f7d;
+            --motl-secondary: #9b59b6;
+            --motl-accent: #7d3c98;
+            --motl-light: #f5eef7;
+            --motl-dark: #34495e;
+            --motl-success: #27ae60;
+            --motl-warning: #f1c40f;
+            --motl-danger: #e74c3c;
+            --motl-info: #3498db;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        
+        .breadcrumb {
+            display: flex;
+            list-style: none;
+            padding: 0;
+            margin: 0 0 20px 0;
+            font-size: 0.9rem;
+        }
+        
+        .breadcrumb li {
+            display: flex;
+            align-items: center;
+        }
+        
+        .breadcrumb li:not(:last-child)::after {
+            content: "›";
+            margin: 0 8px;
+            color: #6c757d;
+        }
+        
+        .breadcrumb a {
+            text-decoration: none;
+            color: #6c757d;
+        }
+        
+        .breadcrumb a:hover {
+            color: var(--motl-primary);
+            text-decoration: underline;
+        }
+        
+        .breadcrumb li:last-child {
+            color: #212529;
+            font-weight: 500;
+        }
+        
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            color: var(--motl-primary);
+        }
+        
+        .verification-tools {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .tool-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            background-color: #fff;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .tool-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        
+        .tool-card h3 {
+            color: var(--motl-primary);
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+        
+        .tool-card p {
+            margin-bottom: 20px;
+            color: #666;
+        }
+        
+        .tool-card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+        }
+        
+        .tool-button {
+            background-color: var(--motl-primary);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .tool-button:hover {
+            background-color: var(--motl-accent);
+        }
+        
+        .tool-tag {
+            background-color: var(--motl-light);
+            color: var(--motl-primary);
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .trust-demo {
+            margin-top: 40px;
+            padding: 30px;
+            background-color: var(--motl-light);
+            border-radius: 8px;
+            border-left: 4px solid var(--motl-primary);
+        }
+        
+        .trust-score-container {
+            margin-top: 30px;
+            text-align: center;
+        }
+        
+        .trust-meter {
+            width: 100%;
+            height: 30px;
+            background-color: #e9ecef;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+            margin: 20px 0;
+        }
+        
+        .trust-meter-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #e74c3c 0%, #f39c12 25%, #f1c40f 50%, #2ecc71 75%, #27ae60 100%);
+            width: 75%;
+            border-radius: 15px;
+        }
+        
+        .trust-meter-marker {
+            position: absolute;
+            top: -10px;
+            left: 75%;
+            transform: translateX(-50%);
+            width: 10px;
+            height: 50px;
+            background-color: #fff;
+            border: 2px solid #495057;
+            border-radius: 5px;
+        }
+        
+        .trust-meter-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+        
+        .trust-score {
+            font-size: 3rem;
+            font-weight: bold;
+            color: var(--motl-primary);
+            margin: 20px 0;
+        }
+        
+        .trust-factors {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .factor-item {
+            background-color: white;
+            padding: 15px;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .factor-item h4 {
+            margin-top: 0;
+            color: var(--motl-primary);
+            display: flex;
+            align-items: center;
+        }
+        
+        .factor-score {
+            margin-left: auto;
+            background-color: var(--motl-light);
+            color: var(--motl-primary);
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 14px;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .nav-links a {
+            text-decoration: none;
+            color: #495057;
+            font-weight: 500;
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        
+        .nav-links a:hover {
+            background-color: #f8f9fa;
+            color: #212529;
+        }
+        
+        .nav-links a.active {
+            background-color: rgba(138, 79, 125, 0.1);
+            color: var(--motl-primary);
+        }
+        
+        .primary-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #dee2e6;
+            margin-bottom: 20px;
+        }
+        
+        .verification-form {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #495057;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        .form-control:focus {
+            border-color: var(--motl-primary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(138, 79, 125, 0.25);
+        }
+        
+        .form-submit {
+            background-color: var(--motl-primary);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .form-submit:hover {
+            background-color: var(--motl-accent);
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .verification-tools {
+                grid-template-columns: 1fr;
+            }
+            
+            .trust-factors {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <nav class="primary-nav">
+                <div class="logo">
+                    <h2>BrailleBuddy Ecosystem</h2>
+                </div>
+                <div class="nav-links">
+                    <a href="../../braillebuddy/">BrailleBuddy</a>
+                    <a href="../../bbes/">BBES</a>
+                    <a href="../../motl/" class="active">MOTL</a>
+                    <a href="../../bbid/">BBID</a>
+                    <a href="../../docs/">Documentation</a>
+                    <a href="../../about/">About</a>
+                </div>
+            </nav>
+            
+            <ul class="breadcrumb">
+                <li><a href="../../">Home</a></li>
+                <li><a href="../../motl/">MOTL</a></li>
+                <li>Communication Tools</li>
+            </ul>
+        </header>
+
+        <h1>MOTL Communication Tools</h1>
+        
+        <p class="lead">Explore our suite of AI-to-AI communication tools that leverage dense semantic encoding to accelerate data transfer and learning between artificial intelligence systems. These tools utilize the BBES encoding system to create highly efficient information exchange channels.</p>
+        
+        <div class="verification-tools">
+            <div class="tool-card">
+                <h3>Semantic Compression</h3>
+                <p>Compress complex information into dense semantic representations for efficient AI-to-AI transfer.</p>
+                <div class="tool-card-footer">
+                    <a href="#semantic-demo" class="tool-button">Try Demo</a>
+                    <span class="tool-tag">Interactive</span>
+                </div>
+            </div>
+            
+            <div class="tool-card">
+                <h3>AI Knowledge Transfer</h3>
+                <p>Accelerate knowledge sharing between AI systems using optimized thought language protocols.</p>
+                <div class="tool-card-footer">
+                    <a href="knowledge-transfer.html" class="tool-button">Try Demo</a>
+                    <span class="tool-tag">Learning</span>
+                </div>
+            </div>
+            
+            <div class="tool-card">
+                <h3>Thought Pattern Analysis</h3>
+                <p>Analyze and optimize AI thought patterns for more efficient reasoning and problem-solving.</p>
+                <div class="tool-card-footer">
+                    <a href="pattern-analysis.html" class="tool-button">Try Demo</a>
+                    <span class="tool-tag">AI-Powered</span>
+                </div>
+            </div>
+            
+            <div class="tool-card">
+                <h3>Real-time AI Collaboration</h3>
+                <p>Enable multiple AI systems to collaborate seamlessly on complex tasks using shared thought language.</p>
+                <div class="tool-card-footer">
+                    <a href="ai-collaboration.html" class="tool-button">Try Demo</a>
+                    <span class="tool-tag">Real-time</span>
+                </div>
+            </div>
+            
+            <div class="tool-card">
+                <h3>Protocol Optimization</h3>
+                <p>Fine-tune communication protocols between AI systems for specific domains and use cases.</p>
+                <div class="tool-card-footer">
+                    <a href="protocol-optimization.html" class="tool-button">Try Demo</a>
+                    <span class="tool-tag">Enterprise</span>
+                </div>
+            </div>
+            
+            <div class="tool-card">
+                <h3>Semantic Efficiency Analysis</h3>
+                <p>Measure and optimize the semantic density and transfer efficiency of AI communication.</p>
+                <div class="tool-card-footer">
+                    <a href="efficiency-analysis.html" class="tool-button">Try Demo</a>
+                    <span class="tool-tag">Analytics</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="trust-demo" id="semantic-demo">
+            <h2>Semantic Compression Demo</h2>
+            <p>This demo demonstrates how MOTL compresses complex information into dense semantic representations for efficient AI-to-AI transfer. The compression ratio is updated in real-time as you interact with the page.</p>
+            
+            <div class="verification-form">
+                <h3>Compress Information</h3>
+                <form id="verification-form">
+                    <div class="form-group">
+                        <label for="identity-id">Input Text</label>
+                        <input type="text" id="identity-id" class="form-control" placeholder="Enter text to compress">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="verification-context">Compression Context</label>
+                        <select id="verification-context" class="form-control">
+                            <option value="login">General Knowledge</option>
+                            <option value="transaction">Technical Information</option>
+                            <option value="access">Creative Content</option>
+                            <option value="communication">Instructional Data</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="form-submit">Calculate Compression Ratio</button>
+                </form>
+            </div>
+            
+            <div class="trust-score-container">
+                <h3>Current Compression Ratio</h3>
+                <div class="trust-score">75</div>
+                
+                <div class="trust-meter">
+                    <div class="trust-meter-fill"></div>
+                    <div class="trust-meter-marker"></div>
+                </div>
+                <div class="trust-meter-labels">
+                    <span>Low</span>
+                    <span>Basic</span>
+                    <span>Standard</span>
+                    <span>High</span>
+                    <span>Optimal</span>
+                </div>
+                
+                <div class="trust-factors">
+                    <div class="factor-item">
+                        <h4>Semantic Density <span class="factor-score">85%</span></h4>
+                        <p>Measures how much meaning is packed into each unit of encoded information.</p>
+                    </div>
+                    
+                    <div class="factor-item">
+                        <h4>Transfer Efficiency <span class="factor-score">78%</span></h4>
+                        <p>Evaluates how quickly the information can be transmitted between AI systems.</p>
+                    </div>
+                    
+                    <div class="factor-item">
+                        <h4>Meaning Preservation <span class="factor-score">92%</span></h4>
+                        <p>Assesses how well the original meaning is preserved after compression.</p>
+                    </div>
+                    
+                    <div class="factor-item">
+                        <h4>Processing Efficiency <span class="factor-score">65%</span></h4>
+                        <p>Measures computational resources required to decode and process the information.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>&copy; 2025 BrailleBuddy Ecosystem | Created with ❤️ for universal braille accessibility</p>
+    </footer>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Provide page-specific context to Sal if available
+            if (window.salAssistant) {
+                setTimeout(() => {
+                    window.salAssistant.speak('Welcome to the MOTL Communication Tools! Here you can explore various tools for AI-to-AI communication using dense semantic encoding.');
+                }, 3000);
+            }
+            
+            // Initialize form submission
+            const verificationForm = document.getElementById('verification-form');
+            if (verificationForm) {
+                verificationForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    // Get form values
+                    const identityId = document.getElementById('identity-id').value;
+                    const context = document.getElementById('verification-context').value;
+                    
+                    // Simulate trust score calculation
+                    calculateTrustScore(identityId, context);
+                });
+            }
+            
+            // Simulate trust score calculation
+            function calculateTrustScore(identityId, context) {
+                // In a real implementation, this would call the BBID API
+                // For demo purposes, we'll generate a random score
+                const baseScore = Math.floor(Math.random() * 30) + 60; // 60-90
+                
+                // Adjust based on context
+                let contextFactor = 0;
+                switch (context) {
+                    case 'login':
+                        contextFactor = 5;
+                        break;
+                    case 'transaction':
+                        contextFactor = -10;
+                        break;
+                    case 'access':
+                        contextFactor = 0;
+                        break;
+                    case 'communication':
+                        contextFactor = 2;
+                        break;
+                }
+                
+                // Calculate final score
+                let finalScore = baseScore + contextFactor;
+                finalScore = Math.max(0, Math.min(100, finalScore)); // Ensure 0-100 range
+                
+                // Update UI
+                updateTrustScore(finalScore);
+                
+                // Update factors
+                updateTrustFactors(finalScore, context);
+            }
+            
+            // Update trust score display
+            function updateTrustScore(score) {
+                const trustScore = document.querySelector('.trust-score');
+                const trustMeterFill = document.querySelector('.trust-meter-fill');
+                const trustMeterMarker = document.querySelector('.trust-meter-marker');
+                
+                // Animate score change
+                animateValue(trustScore, parseInt(trustScore.textContent), score, 1000);
+                
+                // Update meter
+                trustMeterFill.style.width = `${score}%`;
+                trustMeterMarker.style.left = `${score}%`;
+            }
+            
+            // Update trust factors
+            function updateTrustFactors(score, context) {
+                const factorScores = document.querySelectorAll('.factor-score');
+                
+                // Generate random factor scores that average to the overall score
+                const deviceScore = Math.floor(Math.random() * 20) + (score - 10);
+                const behavioralScore = Math.floor(Math.random() * 20) + (score - 10);
+                const sessionScore = Math.floor(Math.random() * 20) + (score - 10);
+                const networkScore = Math.floor(Math.random() * 20) + (score - 10);
+                
+                // Ensure scores are within 0-100 range
+                const scores = [
+                    Math.max(0, Math.min(100, deviceScore)),
+                    Math.max(0, Math.min(100, behavioralScore)),
+                    Math.max(0, Math.min(100, sessionScore)),
+                    Math.max(0, Math.min(100, networkScore))
+                ];
+                
+                // Update factor scores
+                factorScores.forEach((element, index) => {
+                    if (index < scores.length) {
+                        animateValue(element, parseInt(element.textContent), scores[index], 800);
+                    }
+                });
+            }
+            
+            // Animate value change
+            function animateValue(element, start, end, duration) {
+                let startTimestamp = null;
+                const step = (timestamp) => {
+                    if (!startTimestamp) startTimestamp = timestamp;
+                    const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                    const value = Math.floor(progress * (end - start) + start);
+                    element.textContent = `${value}%`;
+                    if (progress < 1) {
+                        window.requestAnimationFrame(step);
+                    }
+                };
+                window.requestAnimationFrame(step);
+            }
+        });
+    </script>
+</body>
+</html>

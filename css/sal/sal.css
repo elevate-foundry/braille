@@ -1,0 +1,287 @@
+/**
+ * Sal - BrailleBuddy's AI Assistant
+ * Styling for the Sal assistant character and speech bubbles
+ */
+
+:root {
+    --sal-primary-color: #4a6fa5;
+    --sal-secondary-color: #e76f51;
+    --sal-text-color: #333;
+    --sal-background-color: #fff;
+    --sal-shadow-color: rgba(0, 0, 0, 0.2);
+    --sal-animation-speed: 0.3s;
+}
+
+/* Main container */
+.sal-container {
+    position: fixed;
+    z-index: 9999;
+    display: none;
+    transition: all var(--sal-animation-speed) ease;
+}
+
+/* Positioning classes */
+.sal-bottom-right {
+    right: 20px;
+    bottom: 20px;
+}
+
+.sal-bottom-left {
+    left: 20px;
+    bottom: 20px;
+}
+
+.sal-top-right {
+    right: 20px;
+    top: 20px;
+}
+
+.sal-top-left {
+    left: 20px;
+    top: 20px;
+}
+
+/* Character styling */
+.sal-character {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background-color: var(--sal-primary-color);
+    box-shadow: 0 4px 8px var(--sal-shadow-color);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    overflow: hidden;
+    user-select: none;
+}
+
+.sal-character:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 12px var(--sal-shadow-color);
+}
+
+.sal-character:active {
+    transform: scale(0.95);
+}
+
+.sal-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Speech bubble */
+.sal-speech-bubble {
+    position: absolute;
+    min-width: 200px;
+    max-width: 300px;
+    background-color: var(--sal-background-color);
+    border-radius: 12px;
+    padding: 15px;
+    box-shadow: 0 4px 12px var(--sal-shadow-color);
+    transition: opacity var(--sal-animation-speed) ease, transform var(--sal-animation-speed) ease;
+    z-index: 10000;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: var(--sal-text-color);
+    line-height: 1.5;
+    font-size: 14px;
+}
+
+/* Speech bubble positioning based on character position */
+.sal-bottom-right .sal-speech-bubble {
+    bottom: 90px;
+    right: 0;
+}
+
+.sal-bottom-left .sal-speech-bubble {
+    bottom: 90px;
+    left: 0;
+}
+
+.sal-top-right .sal-speech-bubble {
+    top: 90px;
+    right: 0;
+}
+
+.sal-top-left .sal-speech-bubble {
+    top: 90px;
+    left: 0;
+}
+
+/* Speech bubble arrow */
+.sal-speech-bubble::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+}
+
+.sal-bottom-right .sal-speech-bubble::after,
+.sal-bottom-left .sal-speech-bubble::after {
+    border-top: 10px solid var(--sal-background-color);
+    bottom: -10px;
+}
+
+.sal-top-right .sal-speech-bubble::after,
+.sal-top-left .sal-speech-bubble::after {
+    border-bottom: 10px solid var(--sal-background-color);
+    top: -10px;
+}
+
+.sal-bottom-right .sal-speech-bubble::after,
+.sal-top-right .sal-speech-bubble::after {
+    right: 20px;
+}
+
+.sal-bottom-left .sal-speech-bubble::after,
+.sal-top-left .sal-speech-bubble::after {
+    left: 20px;
+}
+
+/* Close button for speech bubble */
+.sal-close-bubble {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: #f1f1f1;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: #666;
+    transition: background-color 0.2s ease;
+}
+
+.sal-close-bubble:hover {
+    background-color: #e0e0e0;
+}
+
+/* Speech content */
+.sal-speech-content {
+    margin-right: 15px;
+}
+
+/* Dragging state */
+.sal-dragging {
+    opacity: 0.8;
+    cursor: grabbing;
+}
+
+/* Animations */
+@keyframes sal-enter {
+    from {
+        transform: scale(0);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes sal-exit {
+    from {
+        transform: scale(1);
+        opacity: 1;
+    }
+    to {
+        transform: scale(0);
+        opacity: 0;
+    }
+}
+
+@keyframes sal-blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+@keyframes sal-wave {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(-10deg); }
+    75% { transform: rotate(10deg); }
+}
+
+@keyframes sal-talk {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+@keyframes sal-think {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+}
+
+@keyframes sal-look-around {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+/* Apply animations */
+.sal-animation-enter {
+    animation: sal-enter 0.5s ease forwards;
+}
+
+.sal-animation-exit {
+    animation: sal-exit 0.5s ease forwards;
+}
+
+.sal-animation-blink .sal-image {
+    animation: sal-blink 0.5s ease;
+}
+
+.sal-animation-wave {
+    animation: sal-wave 0.8s ease;
+}
+
+.sal-animation-talk {
+    animation: sal-talk 0.3s ease infinite;
+}
+
+.sal-animation-think {
+    animation: sal-think 1s ease infinite;
+}
+
+.sal-animation-look-around {
+    animation: sal-look-around 1s ease;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .sal-character {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .sal-speech-bubble {
+        min-width: 150px;
+        max-width: 250px;
+        font-size: 12px;
+        padding: 10px;
+    }
+    
+    .sal-bottom-right, .sal-bottom-left {
+        bottom: 10px;
+    }
+    
+    .sal-top-right, .sal-top-left {
+        top: 10px;
+    }
+    
+    .sal-bottom-right, .sal-top-right {
+        right: 10px;
+    }
+    
+    .sal-bottom-left, .sal-top-left {
+        left: 10px;
+    }
+}

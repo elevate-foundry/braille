@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BBID - BrailleBuddy Identity</title>
+    
+    <!-- Primary Meta Tags -->
+    <meta name="title" content="BBID - BrailleBuddy Identity">
+    <meta name="description" content="Comprehensive identity verification system using device fingerprinting, behavioral biometrics, and semantic encoding.">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://braillebuddy-q1yej25s0-elevate-foundry1s-projects.vercel.app/bbid/">
+    <meta property="og:title" content="BBID - BrailleBuddy Identity">
+    <meta property="og:description" content="Comprehensive identity verification system using device fingerprinting, behavioral biometrics, and semantic encoding.">
+    <meta property="og:image" content="https://braillebuddy-q1yej25s0-elevate-foundry1s-projects.vercel.app/images/og-image.svg">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="../images/favicon.svg">
+    <link rel="apple-touch-icon" sizes="180x180" href="../images/apple-touch-icon.svg">
+    
+    <!-- Sal Assistant -->
+    <script src="../js/sal/sal-include.js"></script>
+    
+    <!-- PWA Support -->
+    <link rel="manifest" href="../manifest.json">
+    <meta name="theme-color" content="#e76f51">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="../css/bbid-design-system.css">
+    <link rel="stylesheet" href="../css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bbid-color: #e76f51;
+        }
+        
+        .bbid-accent {
+            color: var(--bbid-color);
+        }
+        
+        .breadcrumb {
+            display: flex;
+            list-style: none;
+            padding: 0;
+            margin: 0 0 20px 0;
+            font-size: 0.9rem;
+        }
+        
+        .breadcrumb li {
+            display: flex;
+            align-items: center;
+        }
+        
+        .breadcrumb li:not(:last-child)::after {
+            content: "›";
+            margin: 0 8px;
+            color: #6c757d;
+        }
+        
+        .breadcrumb a {
+            text-decoration: none;
+            color: #6c757d;
+        }
+        
+        .breadcrumb a:hover {
+            color: var(--bbid-color);
+            text-decoration: underline;
+        }
+        
+        .breadcrumb li:last-child {
+            color: #212529;
+            font-weight: 500;
+        }
+        
+        .sidebar {
+            width: 250px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .sidebar h3 {
+            margin-top: 0;
+            color: var(--bbid-color);
+        }
+        
+        .sidebar-nav {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .sidebar-nav li {
+            margin-bottom: 10px;
+        }
+        
+        .sidebar-nav a {
+            display: block;
+            padding: 8px 10px;
+            text-decoration: none;
+            color: #495057;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+        
+        .sidebar-nav a:hover, .sidebar-nav a.active {
+            background-color: rgba(231, 111, 81, 0.1);
+            color: var(--bbid-color);
+        }
+        
+        .related-links {
+            margin-top: 30px;
+        }
+        
+        .content-area {
+            flex: 1;
+            padding: 0 20px;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .feature-card {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .feature-card h3 {
+            color: var(--bbid-color);
+            margin-top: 0;
+        }
+        
+        .cta-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .cta-primary {
+            background-color: var(--bbid-color);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-block;
+            transition: background-color 0.2s;
+        }
+        
+        .cta-primary:hover {
+            background-color: #d65f41;
+        }
+        
+        .cta-secondary {
+            background-color: transparent;
+            color: var(--bbid-color);
+            padding: 12px 24px;
+            border: 1px solid var(--bbid-color);
+            border-radius: 4px;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-block;
+            transition: background-color 0.2s;
+        }
+        
+        .cta-secondary:hover {
+            background-color: rgba(231, 111, 81, 0.1);
+        }
+        
+        /* Global Navigation Styles */
+        .primary-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #dee2e6;
+            margin-bottom: 20px;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .nav-links a {
+            text-decoration: none;
+            color: #495057;
+            font-weight: 500;
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        
+        .nav-links a:hover {
+            background-color: #f8f9fa;
+            color: #212529;
+        }
+        
+        .nav-links a.active {
+            background-color: rgba(231, 111, 81, 0.1);
+            color: var(--bbid-color);
+        }
+        
+        .main-content {
+            display: flex;
+            margin-top: 20px;
+        }
+        
+        .behavioral-metrics {
+            margin-top: 40px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid var(--bbid-color);
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .metric-item {
+            background-color: white;
+            padding: 15px;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .metric-item h4 {
+            margin-top: 0;
+            color: var(--bbid-color);
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                margin-bottom: 20px;
+            }
+            
+            .content-area {
+                padding: 0;
+            }
+            
+            .cta-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <nav class="primary-nav">
+                <div class="logo">
+                    <h2>BrailleBuddy Ecosystem</h2>
+                </div>
+                <div class="nav-links">
+                    <a href="../braillebuddy/">BrailleBuddy</a>
+                    <a href="../bbes/">BBES</a>
+                    <a href="../motl/">MOTL</a>
+                    <a href="../bbid/" class="active">BBID</a>
+                    <a href="../docs/">Documentation</a>
+                    <a href="../about/">About</a>
+                </div>
+            </nav>
+            
+            <ul class="breadcrumb">
+                <li><a href="../">Home</a></li>
+                <li>BBID</li>
+            </ul>
+        </header>
+        
+        <main>
+            <div class="main-content">
+                <aside class="sidebar">
+                    <h3>BBID</h3>
+                    <ul class="sidebar-nav">
+                        <li><a href="./" class="active">Overview</a></li>
+                        <li><a href="demos/">Interactive Demos</a></li>
+                        <li><a href="demos/login.html">Authentication Demo</a></li>
+                        <li><a href="demos/privacy.html">Privacy Controls</a></li>
+                        <li><a href="demos/recognition.html">Recognition Demo</a></li>
+                        <li><a href="tools/">Fingerprinting Tools</a></li>
+                        <li><a href="tools/semantic-encoding.html">Semantic Encoding</a></li>
+                        <li><a href="tools/behavioral.html">Behavioral Fingerprinting</a></li>
+                        <li><a href="analytics/">Usage Statistics</a></li>
+                    </ul>
+                    
+                    <div class="related-links">
+                        <h3>Related</h3>
+                        <ul class="sidebar-nav">
+                            <li><a href="../motl/">MOTL Trust Metrics</a></li>
+                            <li><a href="../docs/api/">API Documentation</a></li>
+                        </ul>
+                    </div>
+                </aside>
+                
+                <div class="content-area">
+                    <h1><span class="bbid-accent">BBID</span> - BrailleBuddy Identity</h1>
+                    
+                    <p class="lead">A comprehensive identity verification system using device fingerprinting, behavioral biometrics, and semantic encoding to provide secure, privacy-focused authentication.</p>
+                    
+                    <div class="cta-buttons">
+                        <a href="demos/login.html" class="cta-primary">Try Authentication Demo</a>
+                        <a href="tools/behavioral.html" class="cta-secondary">Explore Behavioral Fingerprinting</a>
+                    </div>
+                    
+                    <div class="feature-grid">
+                        <div class="feature-card">
+                            <h3>Device Fingerprinting</h3>
+                            <p>Identify unique devices through a combination of hardware and software characteristics without storing personal data.</p>
+                        </div>
+                        
+                        <div class="feature-card">
+                            <h3>Behavioral Biometrics</h3>
+                            <p>Analyze unique interaction patterns such as typing rhythm, mouse movements, and touch gestures to verify identity.</p>
+                        </div>
+                        
+                        <div class="feature-card">
+                            <h3>Semantic Encoding</h3>
+                            <p>Convert identity attributes into efficient, privacy-preserving representations using our BBES technology.</p>
+                        </div>
+                        
+                        <div class="feature-card">
+                            <h3>Privacy Controls</h3>
+                            <p>Comprehensive user controls for managing identity data and consent preferences.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="behavioral-metrics">
+                        <h2>Behavioral Fingerprinting Metrics</h2>
+                        <p>Our behavioral fingerprinting system collects and analyzes various interaction patterns to create a unique identity profile:</p>
+                        
+                        <div class="metrics-grid">
+                            <div class="metric-item">
+                                <h4>Keyboard Dynamics</h4>
+                                <p>Typing speed, keystroke timing, hold duration, typing patterns, error rate</p>
+                            </div>
+                            
+                            <div class="metric-item">
+                                <h4>Mouse Behavior</h4>
+                                <p>Movement path, click frequency, hold duration, scroll behavior</p>
+                            </div>
+                            
+                            <div class="metric-item">
+                                <h4>Touch Interaction</h4>
+                                <p>Pressure, tap speed, swipe patterns, pinch & zoom behavior</p>
+                            </div>
+                            
+                            <div class="metric-item">
+                                <h4>Motion Sensors</h4>
+                                <p>Accelerometer data, gyroscope data, screen orientation changes</p>
+                            </div>
+                            
+                            <div class="metric-item">
+                                <h4>UI Navigation</h4>
+                                <p>Tab switching, app switching, back button usage, shortcut usage</p>
+                            </div>
+                            
+                            <div class="metric-item">
+                                <h4>Session Patterns</h4>
+                                <p>Time of day usage, geolocation consistency, network patterns</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h2>How It Works</h2>
+                    <p>BBID creates a multi-layered identity verification system that combines passive device recognition with active behavioral analysis. This approach provides stronger security than traditional password systems while maintaining user privacy and convenience.</p>
+                    
+                    <p>The system continuously learns and adapts to subtle changes in user behavior over time, maintaining accuracy while preventing false negatives. All processing is done with privacy-by-design principles, ensuring sensitive behavioral data never leaves the user's device unencrypted.</p>
+                </div>
+            </div>
+        </main>
+        
+        <footer>
+            <p>&copy; 2025 BrailleBuddy Ecosystem | Created with ❤️ for universal braille accessibility</p>
+        </footer>
+    </div>
+    
+    <!-- Load scripts -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('BBID Component Page Loaded');
+        });
+    </script>
+</body>
+</html>

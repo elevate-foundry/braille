@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MOTL - Machine-Optimized Thought Language</title>
+    
+    <!-- Primary Meta Tags -->
+    <meta name="title" content="MOTL - Machine-Optimized Thought Language">
+    <meta name="description" content="A revolutionary AI-to-AI communication system that uses dense semantic encoding to accelerate data transfer and learning between AI systems.">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://braillebuddy-q1yej25s0-elevate-foundry1s-projects.vercel.app/motl/">
+    <meta property="og:title" content="MOTL - Machine-Optimized Thought Language">
+    <meta property="og:description" content="A revolutionary AI-to-AI communication system that uses dense semantic encoding to accelerate data transfer and learning between AI systems.">
+    <meta property="og:image" content="https://braillebuddy-q1yej25s0-elevate-foundry1s-projects.vercel.app/images/og-image.svg">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="../images/favicon.svg">
+    <link rel="apple-touch-icon" sizes="180x180" href="../images/apple-touch-icon.svg">
+    
+    <!-- Sal Assistant -->
+    <script src="../js/sal/sal-include.js"></script>
+    
+    <!-- PWA Support -->
+    <link rel="manifest" href="../manifest.json">
+    <meta name="theme-color" content="#8a4f7d">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="../css/bbid-design-system.css">
+    <link rel="stylesheet" href="../css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --motl-color: #8a4f7d;
+        }
+        
+        .motl-accent {
+            color: var(--motl-color);
+        }
+        
+        .breadcrumb {
+            display: flex;
+            list-style: none;
+            padding: 0;
+            margin: 0 0 20px 0;
+            font-size: 0.9rem;
+        }
+        
+        .breadcrumb li {
+            display: flex;
+            align-items: center;
+        }
+        
+        .breadcrumb li:not(:last-child)::after {
+            content: "›";
+            margin: 0 8px;
+            color: #6c757d;
+        }
+        
+        .breadcrumb a {
+            text-decoration: none;
+            color: #6c757d;
+        }
+        
+        .breadcrumb a:hover {
+            color: var(--motl-color);
+            text-decoration: underline;
+        }
+        
+        .breadcrumb li:last-child {
+            color: #212529;
+            font-weight: 500;
+        }
+        
+        .sidebar {
+            width: 250px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .sidebar h3 {
+            margin-top: 0;
+            color: var(--motl-color);
+        }
+        
+        .sidebar-nav {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .sidebar-nav li {
+            margin-bottom: 10px;
+        }
+        
+        .sidebar-nav a {
+            display: block;
+            padding: 8px 10px;
+            text-decoration: none;
+            color: #495057;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+        
+        .sidebar-nav a:hover, .sidebar-nav a.active {
+            background-color: rgba(138, 79, 125, 0.1);
+            color: var(--motl-color);
+        }
+        
+        .related-links {
+            margin-top: 30px;
+        }
+        
+        .content-area {
+            flex: 1;
+            padding: 0 20px;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .feature-card {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .feature-card h3 {
+            color: var(--motl-color);
+            margin-top: 0;
+        }
+        
+        .cta-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .cta-primary {
+            background-color: var(--motl-color);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-block;
+            transition: background-color 0.2s;
+        }
+        
+        .cta-primary:hover {
+            background-color: #7a3f6d;
+        }
+        
+        .cta-secondary {
+            background-color: transparent;
+            color: var(--motl-color);
+            padding: 12px 24px;
+            border: 1px solid var(--motl-color);
+            border-radius: 4px;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-block;
+            transition: background-color 0.2s;
+        }
+        
+        .cta-secondary:hover {
+            background-color: rgba(138, 79, 125, 0.1);
+        }
+        
+        /* Global Navigation Styles */
+        .primary-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #dee2e6;
+            margin-bottom: 20px;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .nav-links a {
+            text-decoration: none;
+            color: #495057;
+            font-weight: 500;
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        
+        .nav-links a:hover {
+            background-color: #f8f9fa;
+            color: #212529;
+        }
+        
+        .nav-links a.active {
+            background-color: rgba(138, 79, 125, 0.1);
+            color: var(--motl-color);
+        }
+        
+        .main-content {
+            display: flex;
+            margin-top: 20px;
+        }
+        
+        .trust-metrics {
+            margin-top: 40px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid var(--motl-color);
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .metric-item {
+            background-color: white;
+            padding: 15px;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .metric-item h4 {
+            margin-top: 0;
+            color: var(--motl-color);
+        }
+        
+        .trust-score-visual {
+            margin-top: 30px;
+            text-align: center;
+        }
+        
+        .trust-meter {
+            width: 100%;
+            height: 30px;
+            background-color: #e9ecef;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+            margin: 20px 0;
+        }
+        
+        .trust-meter-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #e76f51 0%, #f4a261 25%, #e9c46a 50%, #2a9d8f 75%, #264653 100%);
+            width: 85%;
+            border-radius: 15px;
+        }
+        
+        .trust-meter-marker {
+            position: absolute;
+            top: -10px;
+            left: 85%;
+            transform: translateX(-50%);
+            width: 10px;
+            height: 50px;
+            background-color: #fff;
+            border: 2px solid #495057;
+            border-radius: 5px;
+        }
+        
+        .trust-meter-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                margin-bottom: 20px;
+            }
+            
+            .content-area {
+                padding: 0;
+            }
+            
+            .cta-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <nav class="primary-nav">
+                <div class="logo">
+                    <h2>BrailleBuddy Ecosystem</h2>
+                </div>
+                <div class="nav-links">
+                    <a href="../braillebuddy/">BrailleBuddy</a>
+                    <a href="../bbes/">BBES</a>
+                    <a href="../motl/" class="active">MOTL</a>
+                    <a href="../bbid/">BBID</a>
+                    <a href="../docs/">Documentation</a>
+                    <a href="../about/">About</a>
+                </div>
+            </nav>
+            
+            <ul class="breadcrumb">
+                <li><a href="../">Home</a></li>
+                <li>MOTL</li>
+            </ul>
+        </header>
+        
+        <main>
+            <div class="main-content">
+                <aside class="sidebar">
+                    <h3>MOTL</h3>
+                    <ul class="sidebar-nav">
+                        <li><a href="./" class="active">Overview</a></li>
+                        <li><a href="metrics/">Trust Metrics</a></li>
+                        <li><a href="verification/">Verification Tools</a></li>
+                    </ul>
+                    
+                    <div class="related-links">
+                        <h3>Related</h3>
+                        <ul class="sidebar-nav">
+                            <li><a href="../bbid/">BBID Identity</a></li>
+                            <li><a href="../docs/api/">API Documentation</a></li>
+                        </ul>
+                    </div>
+                </aside>
+                
+                <div class="content-area">
+                    <h1><span class="motl-accent">MOTL</span> - Machine-Optimized Thought Language</h1>
+                    
+                    <p class="lead">A revolutionary AI-to-AI communication system that uses dense semantic encoding to accelerate data transfer and learning between artificial intelligence systems.</p>
+                    
+                    <div class="cta-buttons">
+                        <a href="metrics/" class="cta-primary">Explore Trust Metrics</a>
+                        <a href="verification/" class="cta-secondary">Try Verification Tools</a>
+                    </div>
+                    
+                    <div class="feature-grid">
+                        <div class="feature-card">
+                            <h3>Multi-Factor Trust Scoring</h3>
+                            <p>Evaluate digital identities across multiple dimensions including device consistency, behavioral patterns, and interaction history.</p>
+                        </div>
+                        
+                        <div class="feature-card">
+                            <h3>Risk Assessment</h3>
+                            <p>Identify potential security threats and suspicious activities through advanced pattern recognition and anomaly detection.</p>
+                        </div>
+                        
+                        <div class="feature-card">
+                            <h3>Continuous Verification</h3>
+                            <p>Maintain ongoing validation of user identities throughout sessions rather than just at login points.</p>
+                        </div>
+                        
+                        <div class="feature-card">
+                            <h3>Privacy-Preserving</h3>
+                            <p>Implement trust metrics without compromising user privacy or storing sensitive personal information.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="trust-metrics">
+                        <h2>Trust Scoring Framework</h2>
+                        <p>Our comprehensive trust scoring system evaluates multiple factors to establish a holistic trust profile:</p>
+                        
+                        <div class="metrics-grid">
+                            <div class="metric-item">
+                                <h4>Device Consistency</h4>
+                                <p>Measures how consistently a user accesses from known and verified devices.</p>
+                            </div>
+                            
+                            <div class="metric-item">
+                                <h4>Behavioral Patterns</h4>
+                                <p>Analyzes interaction patterns including typing rhythm, navigation habits, and usage timing.</p>
+                            </div>
+                            
+                            <div class="metric-item">
+                                <h4>Network Legitimacy</h4>
+                                <p>Evaluates the security and consistency of network connections used for access.</p>
+                            </div>
+                            
+                            <div class="metric-item">
+                                <h4>Interaction History</h4>
+                                <p>Considers past interactions, session durations, and feature usage patterns.</p>
+                            </div>
+                            
+                            <div class="metric-item">
+                                <h4>Contextual Coherence</h4>
+                                <p>Assesses whether current behavior aligns with established user context and history.</p>
+                            </div>
+                            
+                            <div class="metric-item">
+                                <h4>Anomaly Detection</h4>
+                                <p>Identifies deviations from established patterns that may indicate compromised access.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="trust-score-visual">
+                            <h3>Trust Score Visualization</h3>
+                            <div class="trust-meter">
+                                <div class="trust-meter-fill"></div>
+                                <div class="trust-meter-marker"></div>
+                            </div>
+                            <div class="trust-meter-labels">
+                                <span>High Risk</span>
+                                <span>Suspicious</span>
+                                <span>Neutral</span>
+                                <span>Trusted</span>
+                                <span>Verified</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h2>How It Works</h2>
+                    <p>MOTL leverages the Braille Binary Encoding Standard (BBES) to create a highly compressed semantic representation of information that can be rapidly processed and understood by AI systems. This dense encoding dramatically reduces the data transfer requirements while preserving semantic meaning.</p>
+                    
+                    <p>The system uses specialized neural networks trained on this compressed format to enable AI systems to communicate with each other more efficiently than with traditional data formats. This accelerates machine learning, reduces computational overhead, and enables new forms of AI collaboration.</p>
+                    
+                    <p>All trust metrics are calculated with privacy preservation as a core principle, ensuring that sensitive user data is never exposed or stored in ways that could compromise security.</p>
+                </div>
+            </div>
+        </main>
+        
+        <footer>
+            <p>&copy; 2025 BrailleBuddy Ecosystem | Created with ❤️ for universal braille accessibility</p>
+        </footer>
+    </div>
+    
+    <!-- Load scripts -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('MOTL Component Page Loaded');
+            
+            // Provide MOTL-specific context to Sal if available
+            if (window.salAssistant) {
+                setTimeout(() => {
+                    window.salAssistant.speak('Welcome to the MOTL section! This is where AI systems communicate using dense semantic encoding. Need any help understanding how it works?');
+                }, 3000);
+            }
+        });
+    </script>
+</body>
+</html>

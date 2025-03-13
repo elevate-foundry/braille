@@ -103,11 +103,18 @@
         </div>
     </div>
 
-    <!-- Load the BBID Manager first -->
-    <script src="js/bbid-manager.js"></script>
+    <!-- Load BBID Integration -->
+    <script src="bbid/demos/js/device-fingerprint.js"></script>
+    <script src="bbid/demos/js/bbid-behavioral.js"></script>
     
-    <!-- Then load Sal Assistant -->
-    <script src="js/sal-assistant.js"></script>
+    <!-- Load Common Scripts -->
+    <script src="js/common.js"></script>
+    
+    <!-- Load Sal CSS -->
+    <link rel="stylesheet" href="css/sal/sal.css">
+    
+    <!-- Load Sal Assistant -->
+    <script src="js/sal/sal.js"></script>
     
     <script>
         // Custom logging to display in the page
@@ -165,7 +172,7 @@
             
             // Check if Sal is available every 500ms
             const checkSalInterval = setInterval(() => {
-                if (window.salAssistant && window.salAssistant.initialized) {
+                if (window.salAssistant && window.salAssistant.isVisible) {
                     clearInterval(checkSalInterval);
                     logToPage('Sal Assistant initialized successfully!', 'success');
                     setupEventListeners();
@@ -175,7 +182,7 @@
             // Timeout after 10 seconds
             setTimeout(() => {
                 clearInterval(checkSalInterval);
-                if (!window.salAssistant || !window.salAssistant.initialized) {
+                if (!window.salAssistant || !window.salAssistant.isVisible) {
                     logToPage('Sal Assistant initialization timed out. Check console for errors.', 'error');
                 }
             }, 10000);
@@ -185,111 +192,179 @@
             // Status section
             document.getElementById('check-status').addEventListener('click', () => {
                 logToPage('Checking Sal status...', 'info');
-                debugSalAdvanced('status');
+                if (window.salAssistant) {
+                    const status = {
+                        isVisible: window.salAssistant.isVisible,
+                        isSpeaking: window.salAssistant.isSpeaking,
+                        currentAnimation: window.salAssistant.currentAnimation,
+                        deviceFingerprint: window.salAssistant.deviceFingerprint ? 'Available' : 'Not available',
+                        behavioralData: window.salAssistant.behavioralData ? 'Available' : 'Not available',
+                        position: window.salAssistant.options.position
+                    };
+                    logToPage('Sal status: ' + JSON.stringify(status, null, 2), 'success');
+                } else {
+                    logToPage('Sal not initialized', 'error');
+                }
             });
             
             document.getElementById('test-greeting').addEventListener('click', () => {
                 logToPage('Testing greeting...', 'info');
-                debugSalAdvanced('greet');
+                if (window.salAssistant) {
+                    window.salAssistant.speak('Hello! I\'m Sal, your BrailleBuddy assistant. I\'m here to help you navigate the BrailleBuddy ecosystem.');
+                    logToPage('Greeting message sent to Sal', 'success');
+                } else {
+                    logToPage('Sal not initialized', 'error');
+                }
             });
             
             document.getElementById('test-identification').addEventListener('click', () => {
                 logToPage('Testing identification...', 'info');
-                debugSalAdvanced('identify');
+                if (window.salAssistant) {
+                    // Get user identity if available
+                    if (window.BBID && typeof window.BBID.getIdentity === 'function') {
+                        window.BBID.getIdentity().then(identity => {
+                            logToPage('Identity retrieved: ' + JSON.stringify(identity), 'success');
+                            window.salAssistant.speak(`I've identified you with ID: ${identity.id}. Your confidence level is ${identity.confidence}.`);
+                        }).catch(error => {
+                            logToPage('Error getting identity: ' + error.message, 'error');
+                        });
+                    } else {
+                        logToPage('BBID identity provider not available', 'error');
+                        window.salAssistant.speak('I cannot identify you at the moment. BBID identity provider is not available.');
+                    }
+                } else {
+                    logToPage('Sal not initialized', 'error');
+                }
             });
             
             document.getElementById('reset-sal').addEventListener('click', () => {
                 logToPage('Resetting Sal...', 'info');
-                debugSalAdvanced('reset');
-            });
-            
-            // Device info section
-            document.getElementById('show-device-info').addEventListener('click', async () => {
-                logToPage('Getting device info...', 'info');
-                const deviceInfoDisplay = document.getElementById('device-info-display');
-                
-                try {
-                    const deviceInfo = await window.salAssistant._getDeviceInfo();
-                    deviceInfoDisplay.innerHTML = '<pre>' + JSON.stringify(deviceInfo, null, 2) + '</pre>';
-                    logToPage('Device info retrieved successfully', 'success');
-                } catch (error) {
-                    logToPage('Error getting device info: ' + error.message, 'error');
+                if (window.salAssistant) {
+                    // Hide Sal
+                    window.salAssistant.hide();
+                    
+                    // Wait a second and show again
+                    setTimeout(() => {
+                        window.salAssistant.show();
+                        window.salAssistant.speak('I\'ve been reset and I\'m ready to help you again!');
+                        logToPage('Sal reset complete', 'success');
+                    }, 1000);
+                } else {
+                    logToPage('Sal not initialized', 'error');
                 }
             });
             
-            document.getElementById('create-test-device').addEventListener('click', async () => {
-                logToPage('Creating test device...', 'info');
-                const deviceName = prompt('Enter a name for this test device:', 'Test User');
+            // Device info section
+            document.getElementById('show-device-info').addEventListener('click', () => {
+                logToPage('Getting device info...', 'info');
+                const deviceInfoDisplay = document.getElementById('device-info-display');
                 
-                if (deviceName) {
-                    try {
-                        const result = await window.salAssistant.createTestBBID(deviceName);
-                        if (result) {
-                            logToPage(`Test device "${deviceName}" created successfully!`, 'success');
-                        } else {
-                            logToPage('Failed to create test device', 'error');
-                        }
-                    } catch (error) {
-                        logToPage('Error creating test device: ' + error.message, 'error');
+                if (window.salAssistant && window.salAssistant.deviceFingerprint) {
+                    const deviceInfo = window.salAssistant.deviceFingerprint;
+                    deviceInfoDisplay.innerHTML = '<pre>' + JSON.stringify(deviceInfo, null, 2) + '</pre>';
+                    logToPage('Device info retrieved successfully', 'success');
+                    
+                    // Have Sal explain the fingerprint
+                    window.salAssistant.speak(`I can see your device fingerprint. Your visitor ID is ${deviceInfo.visitorId.substring(0, 8)}...`);
+                } else {
+                    deviceInfoDisplay.innerHTML = '<p>Device fingerprint not available</p>';
+                    logToPage('Device fingerprint not available', 'error');
+                    
+                    if (window.salAssistant) {
+                        window.salAssistant.speak('I cannot access your device fingerprint at the moment.');
                     }
+                }
+            });
+            
+            document.getElementById('create-test-device').addEventListener('click', () => {
+                logToPage('Creating test behavioral data...', 'info');
+                
+                // Simulate behavioral data collection
+                const simulatedBehavioralData = {
+                    keyboard: {
+                        typingSpeed: Math.floor(Math.random() * 100) + 50, // 50-150 WPM
+                        keyPressTime: Math.floor(Math.random() * 100) + 100, // 100-200ms
+                        errorRate: Math.random() * 0.1, // 0-10% error rate
+                        commonNgrams: ['th', 'he', 'in', 'er', 'an']
+                    },
+                    mouse: {
+                        averageSpeed: Math.floor(Math.random() * 500) + 500, // 500-1000 px/s
+                        clickFrequency: Math.floor(Math.random() * 50) + 10, // 10-60 clicks/min
+                        doubleClickSpeed: Math.floor(Math.random() * 100) + 200, // 200-300ms
+                        scrollPattern: Math.random() > 0.5 ? 'smooth' : 'choppy'
+                    },
+                    session: {
+                        timeOfDay: new Date().getHours(),
+                        sessionDuration: Math.floor(Math.random() * 3600) + 600, // 10-70 minutes
+                        pageViewsPerSession: Math.floor(Math.random() * 10) + 5 // 5-15 pages
+                    }
+                };
+                
+                // Update Sal's behavioral data
+                if (window.salAssistant) {
+                    window.salAssistant.behavioralData = simulatedBehavioralData;
+                    logToPage('Test behavioral data created successfully!', 'success');
+                    
+                    // Display the data
+                    const deviceInfoDisplay = document.getElementById('device-info-display');
+                    deviceInfoDisplay.innerHTML = '<pre>' + JSON.stringify(simulatedBehavioralData, null, 2) + '</pre>';
+                    
+                    // Have Sal explain the behavioral data
+                    window.salAssistant.speak('I\'ve analyzed your behavioral patterns. Your typing speed is ' + 
+                        simulatedBehavioralData.keyboard.typingSpeed + ' words per minute, and your mouse movement is ' + 
+                        simulatedBehavioralData.mouse.scrollPattern + '.');
+                } else {
+                    logToPage('Sal not initialized', 'error');
                 }
             });
             
             // BBID Management section
             document.getElementById('list-devices').addEventListener('click', () => {
-                logToPage('Listing devices...', 'info');
+                logToPage('Checking behavioral data...', 'info');
                 const devicesList = document.getElementById('devices-list');
                 
-                if (window.salAssistant.bbidManager) {
-                    const devices = window.salAssistant.bbidManager.getDevices();
+                if (window.salAssistant && window.salAssistant.behavioralData) {
+                    devicesList.innerHTML = '<pre>' + JSON.stringify(window.salAssistant.behavioralData, null, 2) + '</pre>';
+                    logToPage('Behavioral data retrieved successfully', 'success');
                     
-                    if (devices && devices.length > 0) {
-                        let html = '<ul>';
-                        devices.forEach(device => {
-                            const isCurrent = window.salAssistant.currentBBID && 
-                                             window.salAssistant.currentBBID.id === device.id;
-                            
-                            html += `<li>
-                                <strong>${device.metadata.name}</strong> (${device.metadata.type})
-                                ${isCurrent ? ' - <em>Current Device</em>' : ''}
-                                <br>
-                                <small>ID: ${device.id}</small>
-                                <br>
-                                <small>OS: ${device.metadata.os} ${device.metadata.osVersion || ''}</small>
-                                <br>
-                                <small>Browser: ${device.metadata.browser} ${device.metadata.browserVersion || ''}</small>
-                                ${device.metadata.location ? 
-                                    `<br><small>Location: ${device.metadata.location.city || ''}, 
-                                    ${device.metadata.location.region || ''}, 
-                                    ${device.metadata.location.country || ''}</small>` : ''}
-                            </li>`;
-                        });
-                        html += '</ul>';
-                        devicesList.innerHTML = html;
-                        logToPage(`Found ${devices.length} device(s)`, 'success');
-                    } else {
-                        devicesList.innerHTML = '<p>No devices found</p>';
-                        logToPage('No devices found', 'info');
-                    }
+                    // Have Sal explain the behavioral data
+                    window.salAssistant.speak('Here\'s your behavioral fingerprint data. This helps me recognize you across sessions.');
                 } else {
-                    devicesList.innerHTML = '<p>BBID Manager not available</p>';
-                    logToPage('BBID Manager not available', 'error');
+                    devicesList.innerHTML = '<p>No behavioral data available</p>';
+                    logToPage('No behavioral data available', 'info');
+                    
+                    if (window.salAssistant) {
+                        window.salAssistant.speak('I don\'t have any behavioral data for you yet. Try interacting with the page more.');
+                    }
                 }
             });
             
             document.getElementById('export-current-device').addEventListener('click', () => {
-                logToPage('Exporting current device...', 'info');
+                logToPage('Exporting device data...', 'info');
                 
-                if (window.salAssistant.bbidManager && window.salAssistant.currentBBID) {
+                if (window.salAssistant) {
                     try {
-                        const result = window.salAssistant.bbidManager.exportBBID(window.salAssistant.currentBBID);
-                        if (result) {
-                            logToPage('Current device exported successfully!', 'success');
-                        } else {
-                            logToPage('Failed to export current device', 'error');
-                        }
+                        // Combine device fingerprint and behavioral data
+                        const exportData = {
+                            deviceFingerprint: window.salAssistant.deviceFingerprint || null,
+                            behavioralData: window.salAssistant.behavioralData || null,
+                            timestamp: new Date().toISOString(),
+                            userAgent: navigator.userAgent
+                        };
+                        
+                        // Create a download link
+                        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportData, null, 2));
+                        const downloadAnchorNode = document.createElement('a');
+                        downloadAnchorNode.setAttribute("href", dataStr);
+                        downloadAnchorNode.setAttribute("download", "bbid-export.json");
+                        document.body.appendChild(downloadAnchorNode);
+                        downloadAnchorNode.click();
+                        downloadAnchorNode.remove();
+                        
+                        logToPage('Device data exported successfully!', 'success');
+                        window.salAssistant.speak('I\'ve exported your device data. You can use this file to analyze your behavioral patterns.');
                     } catch (error) {
-                        logToPage('Error exporting current device: ' + error.message, 'error');
+                        logToPage('Error exporting device data: ' + error.message, 'error');
                     }
                 } else {
                     logToPage('No current device identified or BBID Manager not available', 'error');
