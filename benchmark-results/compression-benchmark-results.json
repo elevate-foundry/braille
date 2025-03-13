@@ -1,0 +1,56 @@
+{
+  "compressionRatios": {
+    "gzip": {
+      "quran-sample.txt": 2.0066666666666673
+    },
+    "lzma": {
+      "quran-sample.txt": 1.8907035175879396
+    },
+    "bpe": {
+      "quran-sample.txt": 0.8772983883770378
+    },
+    "motl": {
+      "quran-sample.txt": 0.7753735188047398
+    }
+  },
+  "processingTimes": {
+    "gzip": {
+      "quran-sample.txt": 0.1254681
+    },
+    "lzma": {
+      "quran-sample.txt": 5.383608000000001
+    },
+    "bpe": {
+      "quran-sample.txt": 0.20650059999999998
+    },
+    "motl": {
+      "quran-sample.txt": 0.1429779
+    }
+  },
+  "confidenceIntervals": {
+    "gzip": {
+      "quran-sample.txt": {
+        "lower": 2.0066666666666673,
+        "upper": 2.0066666666666673
+      }
+    },
+    "lzma": {
+      "quran-sample.txt": {
+        "lower": 1.8907035175879396,
+        "upper": 1.8907035175879396
+      }
+    },
+    "bpe": {
+      "quran-sample.txt": {
+        "lower": 0.8725513549845474,
+        "upper": 0.8811566979509236
+      }
+    },
+    "motl": {
+      "quran-sample.txt": {
+        "lower": 0.7753735188047398,
+        "upper": 0.7753735188047398
+      }
+    }
+  }
+}

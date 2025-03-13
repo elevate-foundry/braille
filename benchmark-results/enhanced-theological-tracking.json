@@ -1,0 +1,575 @@
+{
+  "conceptOccurrences": {
+    "tawhid": 0,
+    "risalah": 0,
+    "akhirah": 0,
+    "iman": 0,
+    "taqwa": 0,
+    "ibadah": 0,
+    "adl": 0,
+    "rahmah": 0,
+    "shirk": 0
+  },
+  "conceptCoherence": {
+    "tawhid": {
+      "tawhid": 1,
+      "risalah": 0,
+      "akhirah": 0,
+      "iman": 0,
+      "taqwa": 0,
+      "ibadah": 0,
+      "adl": 0,
+      "rahmah": 0,
+      "shirk": 0
+    },
+    "risalah": {
+      "tawhid": 0,
+      "risalah": 1,
+      "akhirah": 0,
+      "iman": 0,
+      "taqwa": 0,
+      "ibadah": 0,
+      "adl": 0,
+      "rahmah": 0,
+      "shirk": 0
+    },
+    "akhirah": {
+      "tawhid": 0,
+      "risalah": 0,
+      "akhirah": 1,
+      "iman": 0,
+      "taqwa": 0,
+      "ibadah": 0,
+      "adl": 0,
+      "rahmah": 0,
+      "shirk": 0
+    },
+    "iman": {
+      "tawhid": 0,
+      "risalah": 0,
+      "akhirah": 0,
+      "iman": 1,
+      "taqwa": 0,
+      "ibadah": 0,
+      "adl": 0,
+      "rahmah": 0,
+      "shirk": 0
+    },
+    "taqwa": {
+      "tawhid": 0,
+      "risalah": 0,
+      "akhirah": 0,
+      "iman": 0,
+      "taqwa": 1,
+      "ibadah": 0,
+      "adl": 0,
+      "rahmah": 0,
+      "shirk": 0
+    },
+    "ibadah": {
+      "tawhid": 0,
+      "risalah": 0,
+      "akhirah": 0,
+      "iman": 0,
+      "taqwa": 0,
+      "ibadah": 1,
+      "adl": 0,
+      "rahmah": 0,
+      "shirk": 0
+    },
+    "adl": {
+      "tawhid": 0,
+      "risalah": 0,
+      "akhirah": 0,
+      "iman": 0,
+      "taqwa": 0,
+      "ibadah": 0,
+      "adl": 1,
+      "rahmah": 0,
+      "shirk": 0
+    },
+    "rahmah": {
+      "tawhid": 0,
+      "risalah": 0,
+      "akhirah": 0,
+      "iman": 0,
+      "taqwa": 0,
+      "ibadah": 0,
+      "adl": 0,
+      "rahmah": 1,
+      "shirk": 0
+    },
+    "shirk": {
+      "tawhid": 0,
+      "risalah": 0,
+      "akhirah": 0,
+      "iman": 0,
+      "taqwa": 0,
+      "ibadah": 0,
+      "adl": 0,
+      "rahmah": 0,
+      "shirk": 1
+    }
+  },
+  "crossReferenceMap": {
+    "tawhid": [],
+    "risalah": [],
+    "akhirah": [],
+    "iman": [],
+    "taqwa": [],
+    "ibadah": [],
+    "adl": [],
+    "rahmah": [],
+    "shirk": []
+  },
+  "conceptualEvolution": {
+    "tawhid": [
+      {
+        "stage": 0.2,
+        "semanticDensity": 0,
+        "contextualModifiers": [
+          "prerequisite:iman",
+          "subconcept:uluhiyyah",
+          "subconcept:rububiyyah",
+          "subconcept:asma"
+        ],
+        "bitDepthAllocation": 0
+      },
+      {
+        "stage": 0.4,
+        "semanticDensity": 0,
+        "contextualModifiers": [
+          "prerequisite:iman",
+          "subconcept:uluhiyyah",
+          "subconcept:rububiyyah",
+          "subconcept:asma"
+        ],
+        "bitDepthAllocation": 0
+      },
+      {
+        "stage": 0.6,
+        "semanticDensity": 0,
+        "contextualModifiers": [
+          "prerequisite:iman",
+          "subconcept:uluhiyyah",
+          "subconcept:rububiyyah",
+          "subconcept:asma"
+        ],
+        "bitDepthAllocation": 0
+      },
+      {
+        "stage": 0.8,
+        "semanticDensity": 0,
+        "contextualModifiers": [
+          "prerequisite:iman",
+          "subconcept:uluhiyyah",
+          "subconcept:rububiyyah",
+          "subconcept:asma"
+        ],
+        "bitDepthAllocation": 0
+      },
+      {
+        "stage": 1,
+        "semanticDensity": 0,
+        "contextualModifiers": [],
+        "bitDepthAllocation": 0
+      }
+    ],
+    "risalah": [
+      {
+        "stage": 0.2,
+        "semanticDensity": 0,
+        "contextualModifiers": [
+          "component:iman",
+          "subconcept:nubuwwah",
+          "subconcept:wahy"
+        ],
+        "bitDepthAllocation": 0
+      },
+      {
+        "stage": 0.4,
+        "semanticDensity": 0,
+        "contextualModifiers": [
+          "component:iman",
+          "subconcept:nubuwwah",
+          "subconcept:wahy"
+        ],
+        "bitDepthAllocation": 0
+      },
+      {
+        "stage": 0.6,
+        "semanticDensity": 0,
+        "contextualModifiers": [
+          "component:iman",
+          "subconcept:nubuwwah",
+          "subconcept:wahy"
+        ],
+        "bitDepthAllocation": 0
+      },
+      {
+        "stage": 0.8,
+        "semanticDensity": 0,
+        "contextualModifiers": [
+          "component:iman",
+          "subconcept:nubuwwah",
+          "subconcept:wahy"
+        ],
+        "bitDepthAllocation": 0
+      },
+      {
+        "stage": 1,
+        "semanticDensity": 0,
+        "contextualModifiers": [],
+        "bitDepthAllocation": 0
+      }
+    ],
+    "akhirah": [
+      {
+        "stage": 0.2,
+        "semanticDensity": 0,
+        "contextualModifiers": [
+          "motivates:taqwa",
+          "manifests_in:adl",
+          "subconcept:qiyamah",
+          "subconcept:jannah",
+          "subconcept:jahannam"
+        ],
+        "bitDepthAllocation": 0
+      },
+      {
+        "stage": 0.4,
+        "semanticDensity": 0,
+        "contextualModifiers": [
+          "motivates:taqwa",
+          "manifests_in:adl",
+          "subconcept:qiyamah",
+          "subconcept:jannah",
+          "subconcept:jahannam"
+        ],
+        "bitDepthAllocation": 0
+      },
+      {
+        "stage": 0.6,
+        "semanticDensity": 0,
+        "contextualModifiers": [
+          "motivates:taqwa",
+          "manifests_in:adl",
+          "subconcept:qiyamah",
+          "subconcept:jannah",
+          "subconcept:jahannam"
+        ],
+        "bitDepthAllocation": 0
+      },
+      {
+        "stage": 0.8,
+        "semanticDensity": 0,
+        "contextualModifiers": [
+          "motivates:taqwa",
+          "subconcept:qiyamah"
+        ],
+        "bitDepthAllocation": 0
+      },
+      {
+        "stage": 1,
+        "semanticDensity": 0,
+        "contextualModifiers": [],
+        "bitDepthAllocation": 0
+      }
+    ],
+    "iman": [
+      {
+        "stage": 0.2,
+        "semanticDensity": 0,
+        "contextualModifiers": [
+          "prerequisite:tawhid",
+          "leads_to:taqwa",
+          "component:risalah",
+          "subconcept:yaqin",
+          "subconcept:tasawwur"
+        ],
+        "bitDepthAllocation": 0
+      },
+      {
+        "stage": 0.4,
+        "semanticDensity": 0,
+        "contextualModifiers": [
+          "prerequisite:tawhid",
+          "leads_to:taqwa",
+          "component:risalah",
+          "subconcept:yaqin",
+          "subconcept:tasawwur"
+        ],
+        "bitDepthAllocation": 0
+      },
+      {
+        "stage": 0.6,
+        "semanticDensity": 0,
+        "contextualModifiers": [
+          "prerequisite:tawhid",
+          "leads_to:taqwa",
+          "component:risalah",
+          "subconcept:yaqin",
+          "subconcept:tasawwur"
+        ],
+        "bitDepthAllocation": 0
+      },
+      {
+        "stage": 0.8,
+        "semanticDensity": 0,
+        "contextualModifiers": [
+          "prerequisite:tawhid",
+          "leads_to:taqwa",
+          "component:risalah"
+        ],
+        "bitDepthAllocation": 0
+      },
+      {
+        "stage": 1,
+        "semanticDensity": 0,
+        "contextualModifiers": [],
+        "bitDepthAllocation": 0
+      }
+    ],
+    "taqwa": [
+      {
+        "stage": 0.2,
+        "semanticDensity": 0,
+        "contextualModifiers": [
+          "leads_to:iman",
+          "motivates:ibadah",
+          "motivates:akhirah",
+          "subconcept:wara",
+          "subconcept:muhasabah"
+        ],
+        "bitDepthAllocation": 0
+      },
+      {
+        "stage": 0.4,
+        "semanticDensity": 0,
+        "contextualModifiers": [
+          "leads_to:iman",
+          "motivates:ibadah",
+          "motivates:akhirah",
+          "subconcept:wara",
+          "subconcept:muhasabah"
+        ],
+        "bitDepthAllocation": 0
+      },
+      {
+        "stage": 0.6,
+        "semanticDensity": 0,
+        "contextualModifiers": [
+          "leads_to:iman",
+          "motivates:ibadah",
+          "motivates:akhirah",
+          "subconcept:wara",
+          "subconcept:muhasabah"
+        ],
+        "bitDepthAllocation": 0
+      },
+      {
+        "stage": 0.8,
+        "semanticDensity": 0,
+        "contextualModifiers": [
+          "leads_to:iman",
+          "motivates:ibadah",
+          "motivates:akhirah"
+        ],
+        "bitDepthAllocation": 0
+      },
+      {
+        "stage": 1,
+        "semanticDensity": 0,
+        "contextualModifiers": [],
+        "bitDepthAllocation": 0
+      }
+    ],
+    "ibadah": [
+      {
+        "stage": 0.2,
+        "semanticDensity": 0,
+        "contextualModifiers": [
+          "motivates:taqwa",
+          "subconcept:salat",
+          "subconcept:sawm",
+          "subconcept:zakat",
+          "subconcept:hajj"
+        ],
+        "bitDepthAllocation": 0
+      },
+      {
+        "stage": 0.4,
+        "semanticDensity": 0,
+        "contextualModifiers": [
+          "motivates:taqwa",
+          "subconcept:salat",
+          "subconcept:sawm",
+          "subconcept:zakat",
+          "subconcept:hajj"
+        ],
+        "bitDepthAllocation": 0
+      },
+      {
+        "stage": 0.6,
+        "semanticDensity": 0,
+        "contextualModifiers": [
+          "motivates:taqwa",
+          "subconcept:salat",
+          "subconcept:sawm",
+          "subconcept:zakat",
+          "subconcept:hajj"
+        ],
+        "bitDepthAllocation": 0
+      },
+      {
+        "stage": 0.8,
+        "semanticDensity": 0,
+        "contextualModifiers": [
+          "motivates:taqwa",
+          "subconcept:salat"
+        ],
+        "bitDepthAllocation": 0
+      },
+      {
+        "stage": 1,
+        "semanticDensity": 0,
+        "contextualModifiers": [],
+        "bitDepthAllocation": 0
+      }
+    ],
+    "adl": [
+      {
+        "stage": 0.2,
+        "semanticDensity": 0,
+        "contextualModifiers": [
+          "manifests_in:akhirah",
+          "balances:rahmah",
+          "subconcept:qist",
+          "subconcept:mizan"
+        ],
+        "bitDepthAllocation": 0
+      },
+      {
+        "stage": 0.4,
+        "semanticDensity": 0,
+        "contextualModifiers": [
+          "manifests_in:akhirah",
+          "balances:rahmah",
+          "subconcept:qist",
+          "subconcept:mizan"
+        ],
+        "bitDepthAllocation": 0
+      },
+      {
+        "stage": 0.6,
+        "semanticDensity": 0,
+        "contextualModifiers": [
+          "manifests_in:akhirah",
+          "balances:rahmah",
+          "subconcept:qist",
+          "subconcept:mizan"
+        ],
+        "bitDepthAllocation": 0
+      },
+      {
+        "stage": 0.8,
+        "semanticDensity": 0,
+        "contextualModifiers": [],
+        "bitDepthAllocation": 0
+      },
+      {
+        "stage": 1,
+        "semanticDensity": 0,
+        "contextualModifiers": [],
+        "bitDepthAllocation": 0
+      }
+    ],
+    "rahmah": [
+      {
+        "stage": 0.2,
+        "semanticDensity": 0,
+        "contextualModifiers": [
+          "balances:adl",
+          "subconcept:maghfirah",
+          "subconcept:lutf"
+        ],
+        "bitDepthAllocation": 0
+      },
+      {
+        "stage": 0.4,
+        "semanticDensity": 0,
+        "contextualModifiers": [
+          "balances:adl",
+          "subconcept:maghfirah",
+          "subconcept:lutf"
+        ],
+        "bitDepthAllocation": 0
+      },
+      {
+        "stage": 0.6,
+        "semanticDensity": 0,
+        "contextualModifiers": [
+          "balances:adl",
+          "subconcept:maghfirah",
+          "subconcept:lutf"
+        ],
+        "bitDepthAllocation": 0
+      },
+      {
+        "stage": 0.8,
+        "semanticDensity": 0,
+        "contextualModifiers": [],
+        "bitDepthAllocation": 0
+      },
+      {
+        "stage": 1,
+        "semanticDensity": 0,
+        "contextualModifiers": [],
+        "bitDepthAllocation": 0
+      }
+    ],
+    "shirk": [
+      {
+        "stage": 0.2,
+        "semanticDensity": 0,
+        "contextualModifiers": [
+          "subconcept:akbar",
+          "subconcept:asghar"
+        ],
+        "bitDepthAllocation": 0
+      },
+      {
+        "stage": 0.4,
+        "semanticDensity": 0,
+        "contextualModifiers": [
+          "subconcept:akbar",
+          "subconcept:asghar"
+        ],
+        "bitDepthAllocation": 0
+      },
+      {
+        "stage": 0.6,
+        "semanticDensity": 0,
+        "contextualModifiers": [
+          "subconcept:akbar",
+          "subconcept:asghar"
+        ],
+        "bitDepthAllocation": 0
+      },
+      {
+        "stage": 0.8,
+        "semanticDensity": 0,
+        "contextualModifiers": [
+          "subconcept:akbar"
+        ],
+        "bitDepthAllocation": 0
+      },
+      {
+        "stage": 1,
+        "semanticDensity": 0,
+        "contextualModifiers": [],
+        "bitDepthAllocation": 0
+      }
+    ]
+  }
+}

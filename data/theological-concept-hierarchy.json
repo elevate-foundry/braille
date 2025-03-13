@@ -1,0 +1,234 @@
+{
+  "concepts": {
+    "tawhid": {
+      "name": "Tawhid (Oneness of God)",
+      "description": "The indivisible oneness and monotheism concept in Islam",
+      "importance": 1.0,
+      "subconcepts": {
+        "uluhiyyah": {
+          "name": "Tawhid al-Uluhiyyah",
+          "description": "Oneness of Worship",
+          "importance": 0.9
+        },
+        "rububiyyah": {
+          "name": "Tawhid ar-Rububiyyah",
+          "description": "Oneness of Lordship",
+          "importance": 0.9
+        },
+        "asma": {
+          "name": "Tawhid al-Asma wa-Sifat",
+          "description": "Oneness of Names and Attributes",
+          "importance": 0.8
+        }
+      },
+      "opposites": ["shirk"]
+    },
+    "risalah": {
+      "name": "Risalah (Prophethood)",
+      "description": "The concept of messengership and prophethood in Islam",
+      "importance": 0.9,
+      "subconcepts": {
+        "nubuwwah": {
+          "name": "Nubuwwah",
+          "description": "Prophethood",
+          "importance": 0.8
+        },
+        "wahy": {
+          "name": "Wahy",
+          "description": "Divine revelation",
+          "importance": 0.8
+        }
+      }
+    },
+    "akhirah": {
+      "name": "Akhirah (Hereafter)",
+      "description": "The concept of afterlife in Islam",
+      "importance": 0.9,
+      "subconcepts": {
+        "qiyamah": {
+          "name": "Qiyamah",
+          "description": "Day of Judgment",
+          "importance": 0.8
+        },
+        "jannah": {
+          "name": "Jannah",
+          "description": "Paradise",
+          "importance": 0.7
+        },
+        "jahannam": {
+          "name": "Jahannam",
+          "description": "Hellfire",
+          "importance": 0.7
+        }
+      }
+    },
+    "iman": {
+      "name": "Iman (Faith)",
+      "description": "The concept of faith in Islam",
+      "importance": 0.9,
+      "subconcepts": {
+        "yaqin": {
+          "name": "Yaqin",
+          "description": "Certainty",
+          "importance": 0.7
+        },
+        "tasawwur": {
+          "name": "Tasawwur",
+          "description": "Conceptualization",
+          "importance": 0.6
+        }
+      }
+    },
+    "taqwa": {
+      "name": "Taqwa (God-consciousness)",
+      "description": "The concept of God-consciousness and piety in Islam",
+      "importance": 0.8,
+      "subconcepts": {
+        "wara": {
+          "name": "Wara",
+          "description": "Caution against sin",
+          "importance": 0.7
+        },
+        "muhasabah": {
+          "name": "Muhasabah",
+          "description": "Self-accountability",
+          "importance": 0.7
+        }
+      }
+    },
+    "ibadah": {
+      "name": "Ibadah (Worship)",
+      "description": "The concept of worship in Islam",
+      "importance": 0.8,
+      "subconcepts": {
+        "salat": {
+          "name": "Salat",
+          "description": "Prayer",
+          "importance": 0.8
+        },
+        "sawm": {
+          "name": "Sawm",
+          "description": "Fasting",
+          "importance": 0.7
+        },
+        "zakat": {
+          "name": "Zakat",
+          "description": "Charity",
+          "importance": 0.7
+        },
+        "hajj": {
+          "name": "Hajj",
+          "description": "Pilgrimage",
+          "importance": 0.7
+        }
+      }
+    },
+    "adl": {
+      "name": "Adl (Justice)",
+      "description": "The concept of justice in Islam",
+      "importance": 0.8,
+      "subconcepts": {
+        "qist": {
+          "name": "Qist",
+          "description": "Equity",
+          "importance": 0.7
+        },
+        "mizan": {
+          "name": "Mizan",
+          "description": "Balance",
+          "importance": 0.7
+        }
+      }
+    },
+    "rahmah": {
+      "name": "Rahmah (Mercy)",
+      "description": "The concept of mercy in Islam",
+      "importance": 0.8,
+      "subconcepts": {
+        "maghfirah": {
+          "name": "Maghfirah",
+          "description": "Forgiveness",
+          "importance": 0.7
+        },
+        "lutf": {
+          "name": "Lutf",
+          "description": "Kindness",
+          "importance": 0.7
+        }
+      }
+    },
+    "shirk": {
+      "name": "Shirk (Polytheism)",
+      "description": "The concept of associating partners with Allah",
+      "importance": 0.9,
+      "subconcepts": {
+        "akbar": {
+          "name": "Shirk al-Akbar",
+          "description": "Major polytheism",
+          "importance": 0.8
+        },
+        "asghar": {
+          "name": "Shirk al-Asghar",
+          "description": "Minor polytheism",
+          "importance": 0.7
+        }
+      },
+      "opposites": ["tawhid"]
+    }
+  },
+  "relationships": [
+    {
+      "source": "tawhid",
+      "target": "iman",
+      "type": "prerequisite",
+      "strength": 0.9
+    },
+    {
+      "source": "iman",
+      "target": "taqwa",
+      "type": "leads_to",
+      "strength": 0.8
+    },
+    {
+      "source": "taqwa",
+      "target": "ibadah",
+      "type": "motivates",
+      "strength": 0.8
+    },
+    {
+      "source": "risalah",
+      "target": "iman",
+      "type": "component",
+      "strength": 0.9
+    },
+    {
+      "source": "akhirah",
+      "target": "taqwa",
+      "type": "motivates",
+      "strength": 0.8
+    },
+    {
+      "source": "adl",
+      "target": "akhirah",
+      "type": "manifests_in",
+      "strength": 0.7
+    },
+    {
+      "source": "rahmah",
+      "target": "adl",
+      "type": "balances",
+      "strength": 0.7
+    }
+  ],
+  "crossReligiousMapping": {
+    "tawhid": ["monotheism", "covenant", "faith"],
+    "risalah": ["prophecy", "revelation", "covenant"],
+    "akhirah": ["afterlife", "judgment", "resurrection"],
+    "iman": ["faith", "belief", "covenant"],
+    "taqwa": ["piety", "fear_of_god", "righteousness"],
+    "ibadah": ["worship", "service", "devotion"],
+    "adl": ["justice", "righteousness", "judgment"],
+    "rahmah": ["mercy", "grace", "compassion"],
+    "shirk": ["idolatry", "polytheism", "unfaithfulness"]
+  }
+}
