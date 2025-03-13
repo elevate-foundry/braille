@@ -582,6 +582,9 @@
             ? 'http://localhost:3001' 
             : window.location.origin;
             
+        // Global variable to store the fingerprint hash
+        let globalFingerprintHash = '';
+            
         // Tab switching
         document.querySelectorAll('.tab').forEach(tab => {
             tab.addEventListener('click', () => {
@@ -615,6 +618,9 @@
                     // Create fingerprint values
                     const values = components.map(component => component.value);
                     const fingerprint = Fingerprint2.x64hash128(values.join(''), 31);
+                    
+                    // Store fingerprint in global variable for behavioral fingerprinting
+                    globalFingerprintHash = fingerprint;
                     
                     // Extract browser info
                     const browserInfo = {};
@@ -774,7 +780,7 @@
                 const behavioralTracker = new BBIDBehavioral({
                     apiEndpoint: `${API_BASE_URL}/api/behavioral-fingerprint`,
                     collectionTime: 30000, // 30 seconds of data collection
-                    deviceId: fpHash, // Use the device fingerprint as the ID
+                    deviceId: globalFingerprintHash, // Use the device fingerprint as the ID
                     onFingerprintGenerated: (bbidFingerprint) => {
                         // Create a data object similar to what the API would return
                         const data = {
