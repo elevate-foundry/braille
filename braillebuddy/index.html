@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BrailleBuddy - Learn Braille Through Play</title>
+    
+    <!-- Primary Meta Tags -->
+    <meta name="title" content="BrailleBuddy - Learn Braille Through Play">
+    <meta name="description" content="An interactive web application designed to help sighted children learn and practice braille in a fun and engaging way.">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://braillebuddy-q1yej25s0-elevate-foundry1s-projects.vercel.app/braillebuddy/">
+    <meta property="og:title" content="BrailleBuddy - Learn Braille Through Play">
+    <meta property="og:description" content="An interactive web application designed to help sighted children learn and practice braille in a fun and engaging way.">
+    <meta property="og:image" content="https://braillebuddy-q1yej25s0-elevate-foundry1s-projects.vercel.app/images/og-image.svg">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="../images/favicon.svg">
+    <link rel="apple-touch-icon" sizes="180x180" href="../images/apple-touch-icon.svg">
+    
+    <!-- PWA Support -->
+    <link rel="manifest" href="../manifest.json">
+    <meta name="theme-color" content="#4a6fa5">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="../css/bbid-design-system.css">
+    <link rel="stylesheet" href="../css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --braillebuddy-color: #4a6fa5;
+        }
+        
+        .braillebuddy-accent {
+            color: var(--braillebuddy-color);
+        }
+        
+        .breadcrumb {
+            display: flex;
+            list-style: none;
+            padding: 0;
+            margin: 0 0 20px 0;
+            font-size: 0.9rem;
+        }
+        
+        .breadcrumb li {
+            display: flex;
+            align-items: center;
+        }
+        
+        .breadcrumb li:not(:last-child)::after {
+            content: "›";
+            margin: 0 8px;
+            color: #6c757d;
+        }
+        
+        .breadcrumb a {
+            text-decoration: none;
+            color: #6c757d;
+        }
+        
+        .breadcrumb a:hover {
+            color: var(--braillebuddy-color);
+            text-decoration: underline;
+        }
+        
+        .breadcrumb li:last-child {
+            color: #212529;
+            font-weight: 500;
+        }
+        
+        .sidebar {
+            width: 250px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .sidebar h3 {
+            margin-top: 0;
+            color: var(--braillebuddy-color);
+        }
+        
+        .sidebar-nav {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .sidebar-nav li {
+            margin-bottom: 10px;
+        }
+        
+        .sidebar-nav a {
+            display: block;
+            padding: 8px 10px;
+            text-decoration: none;
+            color: #495057;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+        
+        .sidebar-nav a:hover, .sidebar-nav a.active {
+            background-color: rgba(74, 111, 165, 0.1);
+            color: var(--braillebuddy-color);
+        }
+        
+        .related-links {
+            margin-top: 30px;
+        }
+        
+        .content-area {
+            flex: 1;
+            padding: 0 20px;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .feature-card {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .feature-card h3 {
+            color: var(--braillebuddy-color);
+            margin-top: 0;
+        }
+        
+        .cta-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .cta-primary {
+            background-color: var(--braillebuddy-color);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-block;
+            transition: background-color 0.2s;
+        }
+        
+        .cta-primary:hover {
+            background-color: #3d5d8a;
+        }
+        
+        .cta-secondary {
+            background-color: transparent;
+            color: var(--braillebuddy-color);
+            padding: 12px 24px;
+            border: 1px solid var(--braillebuddy-color);
+            border-radius: 4px;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-block;
+            transition: background-color 0.2s;
+        }
+        
+        .cta-secondary:hover {
+            background-color: rgba(74, 111, 165, 0.1);
+        }
+        
+        /* Global Navigation Styles */
+        .primary-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #dee2e6;
+            margin-bottom: 20px;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .nav-links a {
+            text-decoration: none;
+            color: #495057;
+            font-weight: 500;
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        
+        .nav-links a:hover {
+            background-color: #f8f9fa;
+            color: #212529;
+        }
+        
+        .nav-links a.active {
+            background-color: rgba(74, 111, 165, 0.1);
+            color: var(--braillebuddy-color);
+        }
+        
+        .main-content {
+            display: flex;
+            margin-top: 20px;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                margin-bottom: 20px;
+            }
+            
+            .content-area {
+                padding: 0;
+            }
+            
+            .cta-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <nav class="primary-nav">
+                <div class="logo">
+                    <h2>BrailleBuddy Ecosystem</h2>
+                </div>
+                <div class="nav-links">
+                    <a href="../braillebuddy/" class="active">BrailleBuddy</a>
+                    <a href="../bbes/">BBES</a>
+                    <a href="../motl/">MOTL</a>
+                    <a href="../bbid/">BBID</a>
+                    <a href="../docs/">Documentation</a>
+                    <a href="../about/">About</a>
+                </div>
+            </nav>
+            
+            <ul class="breadcrumb">
+                <li><a href="../">Home</a></li>
+                <li>BrailleBuddy</li>
+            </ul>
+        </header>
+        
+        <main>
+            <div class="main-content">
+                <aside class="sidebar">
+                    <h3>BrailleBuddy</h3>
+                    <ul class="sidebar-nav">
+                        <li><a href="./" class="active">Overview</a></li>
+                        <li><a href="play.html">Play Game</a></li>
+                        <li><a href="learn/">Learning Resources</a></li>
+                    </ul>
+                    
+                    <div class="related-links">
+                        <h3>Related</h3>
+                        <ul class="sidebar-nav">
+                            <li><a href="../bbes/">BBES Encoding</a></li>
+                            <li><a href="../docs/getting-started/">Getting Started</a></li>
+                        </ul>
+                    </div>
+                </aside>
+                
+                <div class="content-area">
+                    <h1><span class="braillebuddy-accent">BrailleBuddy</span> - Learn Braille Through Play</h1>
+                    
+                    <p class="lead">An interactive web application designed to help sighted children learn and practice braille in a fun and engaging way.</p>
+                    
+                    <div class="cta-buttons">
+                        <a href="play.html" class="cta-primary">Start Playing</a>
+                        <a href="learn/" class="cta-secondary">Learning Resources</a>
+                    </div>
+                    
+                    <div class="feature-grid">
+                        <div class="feature-card">
+                            <h3>Haptic Feedback</h3>
+                            <p>Experience braille through vibration feedback on compatible devices, creating a more immersive learning experience.</p>
+                        </div>
+                        
+                        <div class="feature-card">
+                            <h3>Adaptive Learning</h3>
+                            <p>Our system adjusts to your skill level, providing personalized challenges that grow with you.</p>
+                        </div>
+                        
+                        <div class="feature-card">
+                            <h3>Interactive Games</h3>
+                            <p>Learn through play with our collection of engaging games designed to reinforce braille concepts.</p>
+                        </div>
+                        
+                        <div class="feature-card">
+                            <h3>Progress Tracking</h3>
+                            <p>Monitor your learning journey with detailed statistics and achievement badges.</p>
+                        </div>
+                    </div>
+                    
+                    <h2>How It Works</h2>
+                    <p>BrailleBuddy combines tactile learning principles with gamification to create an engaging educational experience. Through a series of interactive exercises and games, users gradually build their braille literacy skills while having fun.</p>
+                    
+                    <p>The application adapts to each user's learning pace, providing appropriate challenges and reinforcement. With haptic feedback on compatible devices, users can experience a more immersive learning environment that bridges the gap between digital and tactile learning.</p>
+                </div>
+            </div>
+        </main>
+        
+        <footer>
+            <p>&copy; 2025 BrailleBuddy Ecosystem | Created with ❤️ for universal braille accessibility</p>
+        </footer>
+    </div>
+    
+    <!-- Load scripts -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('BrailleBuddy Component Page Loaded');
+        });
+    </script>
+</body>
+</html>

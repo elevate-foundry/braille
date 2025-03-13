@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BBID Passwordless Login Demo</title>
+    <link rel="stylesheet" href="../../css/bbid-design-system.css">
+    <style>
+        :root {
+            --primary-color: #e76f51;
+            --secondary-color: #2ecc71;
+            --accent-color: #f39c12;
+            --dark-color: #2c3e50;
+            --light-color: #ecf0f1;
+            --text-color: #333;
+            --background-color: #fff;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--background-color);
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Breadcrumb navigation */
+        .breadcrumb {
+            display: flex;
+            list-style: none;
+            padding: 0;
+            margin: 0 0 20px 0;
+            font-size: 0.9rem;
+        }
+        
+        .breadcrumb li {
+            display: flex;
+            align-items: center;
+        }
+        
+        .breadcrumb li:not(:last-child)::after {
+            content: "›";
+            margin: 0 8px;
+            color: #6c757d;
+        }
+        
+        .breadcrumb a {
+            text-decoration: none;
+            color: #6c757d;
+        }
+        
+        .breadcrumb a:hover {
+            color: var(--primary-color);
+            text-decoration: underline;
+        }
+        
+        .breadcrumb li:last-child {
+            color: #212529;
+            font-weight: 500;
+        }
+
+        /* Global Navigation Styles */
+        .primary-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #dee2e6;
+            margin-bottom: 20px;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .nav-links a {
+            text-decoration: none;
+            color: #495057;
+            font-weight: 500;
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        
+        .nav-links a:hover {
+            background-color: #f8f9fa;
+            color: #212529;
+        }
+        
+        .nav-links a.active {
+            background-color: rgba(231, 111, 81, 0.1);
+            color: var(--primary-color);
+        }
+
+        header {
+            background-color: var(--dark-color);
+            color: white;
+            padding: 1rem 0;
+            text-align: center;
+        }
+
+        .section {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+            padding: 2rem;
+        }
+
+        h2 {
+            color: var(--primary-color);
+            margin-top: 0;
+        }
+
+        .login-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .login-method {
+            flex: 1;
+            min-width: 300px;
+            padding: 1.5rem;
+            background-color: var(--light-color);
+            border-radius: 8px;
+        }
+
+        .qr-container {
+            background-color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            display: inline-block;
+            margin: 1rem 0;
+        }
+
+        .fingerprint-display {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 10px;
+            margin: 1rem 0;
+        }
+
+        .fingerprint-bit {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--light-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .fingerprint-bit.active {
+            background-color: var(--primary-color);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .device-info {
+            background-color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+
+        .fingerprint-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .tab-button {
+            padding: 0.5rem 1rem;
+            background-color: var(--light-color);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .tab-button.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .info-row {
+            display: flex;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-label {
+            font-weight: bold;
+            width: 150px;
+            flex-shrink: 0;
+        }
+
+        .info-value {
+            flex-grow: 1;
+        }
+
+        .demo-controls {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #d65f41;
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #27ae60;
+        }
+
+        .btn-accent {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        .btn-accent:hover {
+            background-color: #e67e22;
+        }
+
+        .status-message {
+            padding: 1rem;
+            border-radius: 4px;
+            margin-top: 1rem;
+            font-weight: 500;
+        }
+
+        .status-success {
+            background-color: rgba(46, 204, 113, 0.2);
+            color: var(--success-color);
+        }
+
+        .status-warning {
+            background-color: rgba(243, 156, 18, 0.2);
+            color: var(--warning-color);
+        }
+
+        .status-error {
+            background-color: rgba(231, 76, 60, 0.2);
+            color: var(--danger-color);
+        }
+
+        .feature-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .feature-list li {
+            padding: 0.5rem 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .feature-list li:before {
+            content: "✓";
+            color: var(--success-color);
+            font-weight: bold;
+            margin-right: 0.5rem;
+        }
+
+        .haptic-mode {
+            margin-top: 1rem;
+        }
+
+        .haptic-mode label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <nav class="primary-nav">
+                <div class="logo">
+                    <h2>BrailleBuddy Ecosystem</h2>
+                </div>
+                <div class="nav-links">
+                    <a href="../../braillebuddy/">BrailleBuddy</a>
+                    <a href="../../bbes/">BBES</a>
+                    <a href="../../motl/">MOTL</a>
+                    <a href="../../bbid/" class="active">BBID</a>
+                    <a href="../../docs/">Documentation</a>
+                    <a href="../../about/">About</a>
+                </div>
+            </nav>
+            
+            <ul class="breadcrumb">
+                <li><a href="../../">Home</a></li>
+                <li><a href="../../bbid/">BBID</a></li>
+                <li><a href="../demos/">Demos</a></li>
+                <li>Login Demo</li>
+            </ul>
+        </header>
+        
+        <div class="section">
+            <h2>Passwordless Login Demo</h2>
+            <p>This demo showcases how BBID can be used for passwordless authentication across devices. The system verifies your device identity using your unique BBES fingerprint without requiring passwords or centralized identity providers.</p>
+            
+            <div class="login-container">
+                <div class="login-method">
+                    <h3>QR Code Login</h3>
+                    <p>Scan this QR code with your mobile device to authenticate</p>
+                    
+                    <div class="qr-container" id="qrCode"></div>
+                    
+                    <button id="generateQrBtn" class="btn btn-secondary">Generate New QR Code</button>
+                </div>
+                
+                <div class="login-method">
+                    <h3>Haptic Verification</h3>
+                    <p>Feel your BBID fingerprint through haptic feedback</p>
+                    
+                    <div class="fingerprint-display" id="fingerprintDisplay">
+                        <!-- Fingerprint bits will be generated here -->
+                    </div>
+                    
+                    <div class="haptic-mode">
+                        <label>
+                            <input type="checkbox" id="hapticEnabled" checked>
+                            Enable haptic feedback
+                        </label>
+                    </div>
+                    
+                    <button id="playHapticBtn" class="btn btn-secondary">Play Haptic Pattern</button>
+                    
+                    <div class="device-info" id="deviceInfo">
+                        <h4>Your Digital Fingerprint</h4>
+                        <div class="fingerprint-tabs">
+                            <button class="tab-button active" data-tab="summary">Summary</button>
+                            <button class="tab-button" data-tab="device">Device</button>
+                            <button class="tab-button" data-tab="browser">Browser</button>
+                            <button class="tab-button" data-tab="behavioral">Behavioral</button>
+                        </div>
+                        
+                        <div class="tab-content active" id="summaryTab">
+                            <div class="info-row">
+                                <div class="info-label">Fingerprint:</div>
+                                <div class="info-value" id="fingerprintValue">Loading...</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">Last Verified:</div>
+                                <div class="info-value" id="lastVerifiedValue">Never</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">Trust Score:</div>
+                                <div class="info-value" id="trustScoreValue">Calculating...</div>
+                            </div>
+                        </div>
+                        
+                        <div class="tab-content" id="deviceTab">
+                            <div class="info-row">
+                                <div class="info-label">Device Type:</div>
+                                <div class="info-value" id="deviceTypeValue">Loading...</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">Operating System:</div>
+                                <div class="info-value" id="osValue">Loading...</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">Screen Resolution:</div>
+                                <div class="info-value" id="screenValue">Loading...</div>
+                            </div>
+                        </div>
+                        
+                        <div class="tab-content" id="browserTab">
+                            <div class="info-row">
+                                <div class="info-label">Browser:</div>
+                                <div class="info-value" id="browserValue">Loading...</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">Language:</div>
+                                <div class="info-value" id="languageValue">Loading...</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">Time Zone:</div>
+                                <div class="info-value" id="timezoneValue">Loading...</div>
+                            </div>
+                        </div>
+                        
+                        <div class="tab-content" id="behavioralTab">
+                            <div class="info-row">
+                                <div class="info-label">Typing Pattern:</div>
+                                <div class="info-value" id="typingPatternValue">Collecting data...</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">Mouse Movement:</div>
+                                <div class="info-value" id="mousePatternValue">Collecting data...</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">Interaction Style:</div>
+                                <div class="info-value" id="interactionStyleValue">Collecting data...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="statusMessage" class="status-message" style="display: none;"></div>
+            
+            <div class="demo-controls">
+                <button id="simulateLoginBtn" class="btn btn-primary">Simulate Login</button>
+                <button id="verifyDeviceBtn" class="btn btn-accent">Verify This Device</button>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>About BBID Authentication</h2>
+            <p>BBID (BrailleBuddy Identity) is a revolutionary approach to device authentication that combines:</p>
+            <ul class="feature-list">
+                <li>Device fingerprinting for hardware-level identification</li>
+                <li>Behavioral biometrics to verify the human behind the device</li>
+                <li>BBES semantic encoding for efficient identity representation</li>
+                <li>Haptic feedback for multi-sensory authentication</li>
+                <li>Zero-knowledge proofs for privacy-preserving verification</li>
+            </ul>
+            <p>This approach eliminates the need for passwords while providing stronger security and improved user experience.</p>
+        </div>
+    </div>
+
+    <script src="../../js/device-fingerprint.js"></script>
+    <script src="../../js/bbid-manager.js"></script>
+    <script src="../../js/bbid-behavioral.js"></script>
+    <script>
+        // DOM Elements
+        const fingerprintDisplay = document.getElementById('fingerprintDisplay');
+        const generateQrBtn = document.getElementById('generateQrBtn');
+        const playHapticBtn = document.getElementById('playHapticBtn');
+        const simulateLoginBtn = document.getElementById('simulateLoginBtn');
+        const verifyDeviceBtn = document.getElementById('verifyDeviceBtn');
+        const hapticEnabledCheckbox = document.getElementById('hapticEnabled');
+        const statusMessage = document.getElementById('statusMessage');
+        
+        // Fingerprint display elements
+        const fingerprintValue = document.getElementById('fingerprintValue');
+        const lastVerifiedValue = document.getElementById('lastVerifiedValue');
+        const trustScoreValue = document.getElementById('trustScoreValue');
+        
+        // Device info elements
+        const deviceTypeValue = document.getElementById('deviceTypeValue');
+        const osValue = document.getElementById('osValue');
+        const screenValue = document.getElementById('screenValue');
+        
+        // Browser info elements
+        const browserValue = document.getElementById('browserValue');
+        const languageValue = document.getElementById('languageValue');
+        const timezoneValue = document.getElementById('timezoneValue');
+        
+        // Behavioral info elements
+        const typingPatternValue = document.getElementById('typingPatternValue');
+        const mousePatternValue = document.getElementById('mousePatternValue');
+        const interactionStyleValue = document.getElementById('interactionStyleValue');
+        
+        // Initialize the demo
+        function initializeDemo() {
+            // Create fingerprint display
+            const fingerprint = BBID.getDeviceFingerprint();
+            const bits = fingerprint.substring(0, 24).split('');
+            
+            fingerprintDisplay.innerHTML = '';
+            bits.forEach((bit, index) => {
+                const bitElement = document.createElement('div');
+                bitElement.className = 'fingerprint-bit';
+                bitElement.textContent = bit;
+                bitElement.dataset.index = index;
+                fingerprintDisplay.appendChild(bitElement);
+            });
+            
+            // Initialize behavioral tracking
+            initBehavioralTracking();
+            
+            // Set up tabs
+            setupTabs();
+            
+            // Update device info
+            updateDeviceInfo();
+        }
+        
+        function updateDeviceInfo() {
+            const fingerprint = BBID.getDeviceFingerprint();
+            fingerprintValue.textContent = truncateFingerprint(fingerprint);
+            
+            // Set a random trust score between 85 and 98
+            const trustScore = Math.floor(Math.random() * 14) + 85;
+            trustScoreValue.textContent = `${trustScore}%`;
+            
+            // Device info
+            const deviceInfo = detectDeviceInfo();
+            deviceTypeValue.textContent = deviceInfo.type;
+            osValue.textContent = deviceInfo.os;
+            screenValue.textContent = deviceInfo.screen;
+            
+            // Browser info
+            const browserInfo = detectBrowserInfo();
+            browserValue.textContent = browserInfo.browser;
+            languageValue.textContent = browserInfo.language;
+            timezoneValue.textContent = browserInfo.timezone;
+        }
+        
+        function generateQRCode() {
+            const qrContainer = document.getElementById('qrCode');
+            qrContainer.innerHTML = '';
+            
+            // Create a canvas element for the QR code
+            const canvas = document.createElement('canvas');
+            canvas.width = 200;
+            canvas.height = 200;
+            qrContainer.appendChild(canvas);
+            
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw a fake QR code pattern
+            ctx.fillStyle = '#000000';
+            
+            // Draw positioning squares
+            ctx.fillRect(10, 10, 30, 30);
+            ctx.fillRect(160, 10, 30, 30);
+            ctx.fillRect(10, 160, 30, 30);
+            
+            // Draw random pattern
+            for (let i = 0; i < 100; i++) {
+                const x = Math.floor(Math.random() * 140) + 30;
+                const y = Math.floor(Math.random() * 140) + 30;
+                const size = Math.floor(Math.random() * 8) + 2;
+                ctx.fillRect(x, y, size, size);
+            }
+            
+            showStatus('New QR code generated. Scan with your mobile device to authenticate.', 'success');
+        }
+        
+        function playHapticPattern() {
+            const bits = document.querySelectorAll('.fingerprint-bit');
+            let index = 0;
+            
+            const interval = setInterval(() => {
+                // Reset previous bit
+                if (index > 0) {
+                    bits[index - 1].classList.remove('active');
+                }
+                
+                // Activate current bit
+                if (index < bits.length) {
+                    bits[index].classList.add('active');
+                    
+                    // Trigger haptic feedback if enabled
+                    if (hapticEnabledCheckbox.checked && 'vibrate' in navigator) {
+                        navigator.vibrate(bits[index].textContent === '1' ? 100 : 50);
+                    }
+                    
+                    index++;
+                } else {
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        bits[bits.length - 1].classList.remove('active');
+                    }, 300);
+                }
+            }, 300);
+            
+            showStatus('Playing haptic fingerprint pattern...', 'info');
+        }
+        
+        function simulateLogin() {
+            showStatus('Authenticating...', 'warning');
+            
+            setTimeout(() => {
+                showStatus('Authentication successful! Welcome back.', 'success');
+                lastVerifiedValue.textContent = formatDate(new Date().toISOString());
+            }, 2000);
+        }
+        
+        function verifyDevice() {
+            showStatus('Verifying device fingerprint...', 'warning');
+            
+            // Simulate verification process
+            setTimeout(() => {
+                const fingerprint = BBID.getDeviceFingerprint();
+                const bits = document.querySelectorAll('.fingerprint-bit');
+                
+                // Highlight bits in sequence
+                let index = 0;
+                const interval = setInterval(() => {
+                    // Reset previous bit
+                    if (index > 0) {
+                        bits[index - 1].classList.remove('active');
+                    }
+                    
+                    // Activate current bit
+                    if (index < bits.length) {
+                        bits[index].classList.add('active');
+                        index++;
+                    } else {
+                        clearInterval(interval);
+                        
+                        // Show verification result
+                        showStatus('Device verified successfully! Trust score: ' + trustScoreValue.textContent, 'success');
+                        lastVerifiedValue.textContent = formatDate(new Date().toISOString());
+                        
+                        setTimeout(() => {
+                            bits.forEach(bit => bit.classList.remove('active'));
+                        }, 500);
+                    }
+                }, 100);
+            }, 1500);
+        }
+        
+        function showStatus(message, type) {
+            statusMessage.textContent = message;
+            statusMessage.className = 'status-message status-' + type;
+            statusMessage.style.display = 'block';
+        }
+        
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+        
+        function truncateFingerprint(fingerprint) {
+            if (fingerprint.length <= 16) return fingerprint;
+            const start = fingerprint.substring(0, 8);
+            const end = fingerprint.substring(fingerprint.length - 8);
+            return `${start}...${end}`;
+        }
+        
+        function detectDeviceInfo() {
+            const userAgent = navigator.userAgent;
+            let deviceType = 'Desktop';
+            let os = 'Unknown';
+            
+            // Detect device type
+            if (/Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent)) {
+                if (/iPad|Android 3|Android 4.[3-9]/i.test(userAgent)) {
+                    deviceType = 'Tablet';
+                } else {
+                    deviceType = 'Mobile';
+                }
+            }
+            
+            // Detect OS
+            if (/Windows/i.test(userAgent)) {
+                os = 'Windows';
+            } else if (/Macintosh|Mac OS X/i.test(userAgent)) {
+                os = 'macOS';
+            } else if (/Linux/i.test(userAgent)) {
+                os = 'Linux';
+            } else if (/Android/i.test(userAgent)) {
+                os = 'Android';
+            } else if (/iPhone|iPad|iPod/i.test(userAgent)) {
+                os = 'iOS';
+            }
+            
+            // Get screen resolution
+            const screenResolution = `${window.screen.width}x${window.screen.height}`;
+            
+            return {
+                type: deviceType,
+                os: os,
+                screen: screenResolution
+            };
+        }
+        
+        function detectBrowserInfo() {
+            const userAgent = navigator.userAgent;
+            let browserName = 'Unknown';
+            
+            // Detect browser
+            if (/Edge/i.test(userAgent)) {
+                browserName = 'Microsoft Edge';
+            } else if (/Chrome/i.test(userAgent)) {
+                browserName = 'Google Chrome';
+            } else if (/Firefox/i.test(userAgent)) {
+                browserName = 'Mozilla Firefox';
+            } else if (/Safari/i.test(userAgent)) {
+                browserName = 'Apple Safari';
+            } else if (/Opera|OPR/i.test(userAgent)) {
+                browserName = 'Opera';
+            } else if (/Trident/i.test(userAgent)) {
+                browserName = 'Internet Explorer';
+            }
+            
+            // Get language
+            const language = navigator.language || 'en-US';
+            
+            // Get timezone
+            const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+            
+            return {
+                browser: browserName,
+                language: language,
+                timezone: timezone
+            };
+        }
+        
+        function getTimePattern() {
+            const now = new Date();
+            const hours = now.getHours();
+            
+            if (hours >= 5 && hours < 12) {
+                return 'Morning User';
+            } else if (hours >= 12 && hours < 17) {
+                return 'Afternoon User';
+            } else if (hours >= 17 && hours < 22) {
+                return 'Evening User';
+            } else {
+                return 'Night Owl';
+            }
+        }
+        
+        function setupTabs() {
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    // Remove active class from all buttons and contents
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    tabContents.forEach(content => content.classList.remove('active'));
+                    
+                    // Add active class to clicked button and corresponding content
+                    button.classList.add('active');
+                    const tabId = button.dataset.tab + 'Tab';
+                    document.getElementById(tabId).classList.add('active');
+                });
+            });
+        }
+        
+        function initBehavioralTracking() {
+            // Initialize BBID behavioral tracking
+            if (typeof BBIDBehavioral !== 'undefined') {
+                const fingerprint = BBID.getDeviceFingerprint();
+                
+                // Start behavioral tracking with the device ID
+                BBIDBehavioral.start(fingerprint, {
+                    onFingerprintGenerated: function(data) {
+                        // Update behavioral data display
+                        typingPatternValue.textContent = data.keyboard ? 
+                            `${data.keyboard.averageSpeed} ms between keys` : 
+                            'No typing data yet';
+                            
+                        mousePatternValue.textContent = data.mouse ? 
+                            `${data.mouse.movementCount} movements tracked` : 
+                            'No mouse data yet';
+                            
+                        interactionStyleValue.textContent = getTimePattern();
+                    }
+                });
+                
+                // Update status to show behavioral tracking is active
+                setTimeout(() => {
+                    typingPatternValue.textContent = 'Analyzing...';
+                    mousePatternValue.textContent = 'Tracking movements...';
+                    interactionStyleValue.textContent = getTimePattern();
+                }, 1000);
+            } else {
+                console.error('BBIDBehavioral module not loaded');
+            }
+        }
+            
+        // Event listeners
+        generateQrBtn.addEventListener('click', generateQRCode);
+        playHapticBtn.addEventListener('click', playHapticPattern);
+        simulateLoginBtn.addEventListener('click', simulateLogin);
+        verifyDeviceBtn.addEventListener('click', verifyDevice);
+        
+        // Initialize demo when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeDemo();
+            generateQRCode();
+        });
+    </script>
+</body>
+</html>

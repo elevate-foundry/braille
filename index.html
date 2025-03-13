@@ -3,25 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BrailleBuddy - Learn Braille Through Play</title>
+    <title>BrailleBuddy Ecosystem</title>
     
     <!-- Primary Meta Tags -->
-    <meta name="title" content="BrailleBuddy - Learn Braille Through Play">
-    <meta name="description" content="An interactive web application designed to help sighted children learn and practice braille in a fun and engaging way. Features haptic feedback, games, and adaptive learning.">
+    <meta name="title" content="BrailleBuddy Ecosystem">
+    <meta name="description" content="A comprehensive platform for braille education, semantic encoding, AI-to-AI communication, and identity verification.">
     
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://braillebuddy-ckk4n0ntj-elevate-foundry1s-projects.vercel.app/">
-    <meta property="og:title" content="BrailleBuddy - Learn Braille Through Play">
-    <meta property="og:description" content="An interactive web application designed to help sighted children learn and practice braille in a fun and engaging way. Features haptic feedback, games, and adaptive learning.">
-    <meta property="og:image" content="https://braillebuddy-ckk4n0ntj-elevate-foundry1s-projects.vercel.app/images/og-image.svg">
+    <meta property="og:url" content="https://braillebuddy-q1yej25s0-elevate-foundry1s-projects.vercel.app/">
+    <meta property="og:title" content="BrailleBuddy Ecosystem">
+    <meta property="og:description" content="A comprehensive platform for braille education, semantic encoding, AI-to-AI communication, and identity verification.">
+    <meta property="og:image" content="https://braillebuddy-q1yej25s0-elevate-foundry1s-projects.vercel.app/images/og-image.svg">
     
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://braillebuddy-ckk4n0ntj-elevate-foundry1s-projects.vercel.app/">
-    <meta property="twitter:title" content="BrailleBuddy - Learn Braille Through Play">
-    <meta property="twitter:description" content="An interactive web application designed to help sighted children learn and practice braille in a fun and engaging way. Features haptic feedback, games, and adaptive learning.">
-    <meta property="twitter:image" content="https://braillebuddy-ckk4n0ntj-elevate-foundry1s-projects.vercel.app/images/og-image.svg">
+    <meta property="twitter:url" content="https://braillebuddy-q1yej25s0-elevate-foundry1s-projects.vercel.app/">
+    <meta property="twitter:title" content="BrailleBuddy Ecosystem">
+    <meta property="twitter:description" content="A comprehensive platform for braille education, semantic encoding, AI-to-AI communication, and identity verification.">
+    <meta property="twitter:image" content="https://braillebuddy-q1yej25s0-elevate-foundry1s-projects.vercel.app/images/og-image.svg">
     
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
@@ -32,67 +32,161 @@
     <meta name="theme-color" content="#4a6fa5">
     
     <!-- Stylesheets -->
+    <link rel="stylesheet" href="css/bbid-design-system.css">
     <link rel="stylesheet" href="css/styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
     
-    <!-- Additional styles for MOTL integration -->
     <style>
-        .highlight-nav-item {
-            background-color: #2a9d8f;
-            border-radius: 4px;
-            margin-left: 10px;
+        :root {
+            --braillebuddy-color: #4a6fa5;
+            --bbes-color: #2a9d8f;
+            --motl-color: #8a4f7d;
+            --bbid-color: #e76f51;
         }
         
-        .highlight-nav-item a {
-            color: white !important;
+        .component-card {
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
         
-        .motl-promo-banner {
-            background: linear-gradient(135deg, #14213d 0%, #2a9d8f 100%);
-            color: white;
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        .component-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
         }
         
-        .motl-promo-content {
+        .braillebuddy-card {
+            border-left: 5px solid var(--braillebuddy-color);
+        }
+        
+        .bbes-card {
+            border-left: 5px solid var(--bbes-color);
+        }
+        
+        .motl-card {
+            border-left: 5px solid var(--motl-color);
+        }
+        
+        .bbid-card {
+            border-left: 5px solid var(--bbid-color);
+        }
+        
+        .hero-section {
+            text-align: center;
+            padding: 60px 20px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 12px;
+            margin-bottom: 40px;
+        }
+        
+        .hero-section h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+        
+        .hero-section p {
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin: 0 auto 30px;
+        }
+        
+        .featured-tools {
+            margin-top: 40px;
+        }
+        
+        .updates-section {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 40px;
+        }
+        
+        .quick-access {
             display: flex;
             flex-wrap: wrap;
-            align-items: center;
-            justify-content: space-between;
-            gap: 15px;
+            gap: 10px;
+            margin-top: 20px;
         }
         
-        .motl-promo-content h3 {
-            margin: 0;
-            font-size: 1.2rem;
-        }
-        
-        .motl-promo-content p {
-            margin: 0;
-            flex: 1;
-            min-width: 200px;
-        }
-        
-        .motl-promo-button {
-            background-color: white;
-            color: #14213d;
+        .quick-access a {
             padding: 8px 16px;
-            border-radius: 4px;
+            background-color: #e9ecef;
+            border-radius: 20px;
             text-decoration: none;
-            font-weight: bold;
-            transition: background-color 0.3s;
+            color: #212529;
+            font-size: 0.9rem;
+            transition: background-color 0.2s;
         }
         
-        .motl-promo-button:hover {
-            background-color: #f1f1f1;
+        .quick-access a:hover {
+            background-color: #dee2e6;
         }
         
+        /* Global Navigation Styles */
+        .primary-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #dee2e6;
+            margin-bottom: 30px;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .nav-links a {
+            text-decoration: none;
+            color: #495057;
+            font-weight: 500;
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        
+        .nav-links a:hover {
+            background-color: #f8f9fa;
+            color: #212529;
+        }
+        
+        .nav-braillebuddy:hover {
+            color: var(--braillebuddy-color) !important;
+        }
+        
+        .nav-bbes:hover {
+            color: var(--bbes-color) !important;
+        }
+        
+        .nav-motl:hover {
+            color: var(--motl-color) !important;
+        }
+        
+        .nav-bbid:hover {
+            color: var(--bbid-color) !important;
+        }
+        
+        /* Responsive adjustments */
         @media (max-width: 768px) {
-            .motl-promo-content {
+            .component-cards {
+                grid-template-columns: 1fr;
+            }
+            
+            .hero-section h1 {
+                font-size: 2.5rem;
+            }
+            
+            .primary-nav {
                 flex-direction: column;
-                align-items: flex-start;
+                gap: 15px;
+            }
+            
+            .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
             }
         }
     </style>
@@ -100,396 +194,105 @@
 <body>
     <div class="container">
         <header>
-            <h1>BrailleBuddy</h1>
-            <p class="tagline">Learn Braille Through Play!</p>
-            <div id="user-profile" class="user-profile">
-                <button id="profile-button" class="profile-button">Set Your Name</button>
-                <div id="profile-info" class="profile-info hidden">
-                    <span id="user-display-name">Guest</span>
-                    <span id="streak-days" class="streak-badge" title="Your learning streak">0 days</span>
+            <nav class="primary-nav">
+                <div class="logo">
+                    <h2>BrailleBuddy Ecosystem</h2>
                 </div>
-            </div>
+                <div class="nav-links">
+                    <a href="braillebuddy/" class="nav-braillebuddy">BrailleBuddy</a>
+                    <a href="bbes/" class="nav-bbes">BBES</a>
+                    <a href="motl/" class="nav-motl">MOTL</a>
+                    <a href="bbid/" class="nav-bbid">BBID</a>
+                    <a href="docs/">Documentation</a>
+                    <a href="about/">About</a>
+                </div>
+            </nav>
         </header>
         
-        <nav>
-            <ul>
-                <li><a href="#" class="active" data-section="learn">Learn</a></li>
-                <li><a href="#" data-section="contractions">Contractions</a></li>
-                <li><a href="#" data-section="practice">Practice</a></li>
-                <li><a href="#" data-section="games">Games</a></li>
-                <li><a href="#" data-section="compression">Compression</a></li>
-                <li><a href="#" data-section="about">About</a></li>
-                <li class="highlight-nav-item"><a href="motl.html">MOTL Technology</a></li>
-            </ul>
-        </nav>
-        
-        <div class="motl-promo-banner">
-            <div class="motl-promo-content">
-                <h3>NEW: Machine-Optimized Thought Language (MOTL)</h3>
-                <p>Discover our breakthrough in AI-driven semantic compression, built on the Braille Binary Encoding Standard (BBES).</p>
-                <a href="motl.html" class="motl-promo-button">Learn More</a>
-            </div>
-        </div>
-        
         <main>
-            <section id="learn" class="active-section">
-                <h2>Learn Braille Alphabet</h2>
-                <div class="braille-grid">
-                    <!-- Braille characters will be dynamically loaded here -->
-                </div>
-                <div class="braille-display">
-                    <div class="braille-cell">
-                        <div class="dot" id="dot1"></div>
-                        <div class="dot" id="dot2"></div>
-                        <div class="dot" id="dot3"></div>
-                        <div class="dot" id="dot4"></div>
-                        <div class="dot" id="dot5"></div>
-                        <div class="dot" id="dot6"></div>
-                    </div>
-                    <div class="braille-info">
-                        <h3 id="current-letter">Select a letter</h3>
-                        <p id="letter-description">Click on a letter to see its braille representation</p>
-                    </div>
-                    <!-- Number sign container (hidden by default, shown for numbers) -->
-                    <div id="number-sign-container" class="number-sign-container" style="display: none;">
-                        <p>Number Sign (indicates that the following character is a number):</p>
-                        <div class="braille-cell number-sign-cell">
-                            <div class="dot" id="number-sign-dot1"></div>
-                            <div class="dot" id="number-sign-dot2"></div>
-                            <div class="dot" id="number-sign-dot3"></div>
-                            <div class="dot" id="number-sign-dot4"></div>
-                            <div class="dot" id="number-sign-dot5"></div>
-                            <div class="dot" id="number-sign-dot6"></div>
-                        </div>
-                    </div>
+            <section class="hero-section">
+                <h1>Welcome to the BrailleBuddy Ecosystem</h1>
+                <p>A comprehensive platform for braille education, semantic encoding, AI-to-AI communication, and identity verification.</p>
+                <div class="quick-access">
+                    <a href="braillebuddy/play.html">Play BrailleBuddy</a>
+                    <a href="bbid/demos/login.html">Try BBID Login</a>
+                    <a href="bbes/tools/">Encoding Tools</a>
+                    <a href="docs/getting-started/">Get Started</a>
                 </div>
             </section>
             
-            <section id="contractions" class="hidden-section">
-                <h2>Learn Braille Contractions</h2>
-                <div class="grade-selector">
-                    <button class="grade-button active" data-grade="2">Grade 2 (Contracted)</button>
-                </div>
-                <div class="contractions-info">
-                    <p>Grade 2 Braille uses contractions to make reading and writing more efficient. Learn these common contractions below:</p>
-                </div>
-                <div class="contractions-categories">
-                    <button class="category-button active" data-category="two-letter">Two-Letter</button>
-                    <button class="category-button" data-category="whole-word">Whole-Word</button>
-                    <button class="category-button" data-category="partial">Partial Word</button>
-                    <button class="category-button" data-category="prefix-suffix">Prefix/Suffix</button>
-                </div>
-                <div class="contractions-grid">
-                    <!-- Contractions will be dynamically loaded here -->
-                </div>
-                <div class="braille-display">
-                    <div class="braille-cell">
-                        <div class="dot" id="contraction-dot1"></div>
-                        <div class="dot" id="contraction-dot2"></div>
-                        <div class="dot" id="contraction-dot3"></div>
-                        <div class="dot" id="contraction-dot4"></div>
-                        <div class="dot" id="contraction-dot5"></div>
-                        <div class="dot" id="contraction-dot6"></div>
-                    </div>
-                    <div class="braille-info">
-                        <h3 id="current-contraction">Select a contraction</h3>
-                        <p id="contraction-description">Click on a contraction to see its braille representation</p>
-                    </div>
-                </div>
-                <div class="grade-info">
-                    <h3>About Grade 2 Braille</h3>
-                    <p>Grade 2 Braille is a more advanced form of braille that uses contractions to represent common letter combinations and words. This makes braille reading faster and reduces the size of braille books.</p>
-                    <p>For example, the word "the" can be written with a single character instead of three separate letters.</p>
-                </div>
-            </section>
-            
-            <section id="practice" class="hidden-section">
-                <h2>Practice Braille</h2>
-                <div class="practice-modes">
-                    <button class="mode-button active" data-mode="recognition">Recognition Mode</button>
-                    <button class="mode-button" data-mode="typing">Typing Mode</button>
+            <section class="component-cards">
+                <h2>Our Components</h2>
+                
+                <div class="component-card braillebuddy-card">
+                    <h3>BrailleBuddy</h3>
+                    <p>An educational game designed to help sighted children learn and practice braille in a fun and engaging way. Features haptic feedback, games, and adaptive learning.</p>
+                    <a href="braillebuddy/" class="btn">Explore BrailleBuddy</a>
                 </div>
                 
-                <!-- Recognition Mode (Original Practice Mode) -->
-                <div class="practice-area" id="recognition-mode">
-                    <div class="practice-prompt">
-                        <p>What letter is this?</p>
-                        <div class="braille-cell large">
-                            <div class="dot" id="practice-dot1"></div>
-                            <div class="dot" id="practice-dot2"></div>
-                            <div class="dot" id="practice-dot3"></div>
-                            <div class="dot" id="practice-dot4"></div>
-                            <div class="dot" id="practice-dot5"></div>
-                            <div class="dot" id="practice-dot6"></div>
-                        </div>
-                    </div>
-                    <div class="answer-area">
-                        <input type="text" id="practice-answer" maxlength="1" placeholder="Type your answer">
-                        <button id="check-answer">Check</button>
-                    </div>
-                    <div class="feedback" id="practice-feedback"></div>
-                    <button id="next-practice">Next</button>
+                <div class="component-card bbes-card">
+                    <h3>BrailleBuddy Encoding System (BBES)</h3>
+                    <p>A revolutionary encoding system that leverages braille patterns for efficient data compression and representation.</p>
+                    <a href="bbes/" class="btn">Explore BBES</a>
                 </div>
                 
-                <!-- Typing Mode (New Braille Keyboard Mode) -->
-                <div class="practice-area hidden" id="typing-mode">
-                    <div class="practice-prompt">
-                        <p>Type this letter in braille: <span id="typing-target" class="typing-target">A</span></p>
-                        <p class="typing-instructions">Use keys F, D, S (left hand) and J, K, L (right hand) to type braille dots.</p>
-                    </div>
-                    <div class="braille-cell large typing-cell">
-                        <div class="dot" id="typing-dot1" data-key="f">F</div>
-                        <div class="dot" id="typing-dot2" data-key="d">D</div>
-                        <div class="dot" id="typing-dot3" data-key="s">S</div>
-                        <div class="dot" id="typing-dot4" data-key="j">J</div>
-                        <div class="dot" id="typing-dot5" data-key="k">K</div>
-                        <div class="dot" id="typing-dot6" data-key="l">L</div>
-                    </div>
-                    <div class="typing-controls">
-                        <button id="submit-typing">Submit (Space)</button>
-                        <button id="clear-typing">Clear (Backspace)</button>
-                    </div>
-                    <div class="feedback" id="typing-feedback"></div>
-                    <button id="next-typing">Next</button>
-                    <button id="open-keyboard" class="keyboard-button">Open Braille Keyboard</button>
+                <div class="component-card motl-card">
+                    <h3>Machine-Optimized Thought Language (MOTL)</h3>
+                    <p>A revolutionary AI-to-AI communication system that uses dense semantic encoding to accelerate data transfer and learning between AI systems.</p>
+                    <a href="motl/" class="btn">Explore MOTL</a>
+                </div>
+                
+                <div class="component-card bbid-card">
+                    <h3>BrailleBuddy Identity (BBID)</h3>
+                    <p>Comprehensive identity verification system using device fingerprinting, behavioral biometrics, and semantic encoding.</p>
+                    <a href="bbid/" class="btn">Explore BBID</a>
                 </div>
             </section>
             
-            <section id="games" class="hidden-section">
-                <h2>Fun Braille Games</h2>
-                <div class="games-container">
-                    <div class="game-card">
-                        <h3>Braille Memory Match</h3>
-                        <p>Match letters with their braille patterns</p>
-                        <button class="play-button" data-game="memory">Play</button>
-                    </div>
-                    <div class="game-card">
-                        <h3>Braille Word Builder</h3>
-                        <p>Build words using braille characters</p>
-                        <button class="play-button" data-game="word-builder">Play</button>
-                    </div>
-                    <div class="game-card">
-                        <h3>Braille Speedster</h3>
-                        <p>How fast can you identify braille characters?</p>
-                        <button class="play-button" data-game="speedster">Play</button>
-                    </div>
-                </div>
-                <div id="game-area" class="hidden-section"></div>
-            </section>
-            
-            <section id="compression" class="hidden-section">
-                <h2>Braille as a Compression System</h2>
-                <div class="compression-intro">
-                    <p>Braille is more than just a tactile writing system—it's one of the most efficient data compression formats for written language ever created.</p>
-                    <p>This interactive demo explores how Braille compresses language and demonstrates how we can enhance this compression even further with haptic feedback and AI optimization.</p>
-                    
-                    <div class="compression-facts">
-                        <div class="fact-card">
-                            <h3>6 Dots = 26 Letters</h3>
-                            <p>Braille uses just 6 dots to encode the entire alphabet, numbers, and punctuation. This is remarkably space-efficient compared to visual text.</p>
-                        </div>
-                        
-                        <div class="fact-card">
-                            <h3>Grade 2 Contractions</h3>
-                            <p>Grade 2 Braille uses contractions to represent common words and letter combinations. For example, "the" is just one character (⠮) instead of three.</p>
-                        </div>
-                        
-                        <div class="fact-card">
-                            <h3>Haptic Compression</h3>
-                            <p>Our haptic engine takes compression further by encoding words as unique vibration patterns inspired by biological rhythms.</p>
-                        </div>
+            <section class="featured-tools">
+                <h2>Featured Tools</h2>
+                <div class="component-cards">
+                    <div class="component-card">
+                        <h3>BBID Authentication Demo</h3>
+                        <p>Experience secure, passwordless authentication using behavioral biometrics and device fingerprinting.</p>
+                        <a href="bbid/demos/login.html" class="btn">Try Demo</a>
                     </div>
                     
-                    <div class="demo-button-container">
-                        <button id="launch-compression-demo" class="primary-button">Launch Interactive Demo</button>
+                    <div class="component-card">
+                        <h3>BBES Encoding Tool</h3>
+                        <p>Convert text to our efficient BrailleBuddy Encoding System and see the compression benefits.</p>
+                        <a href="bbes/tools/semantic-encoding.html" class="btn">Try Tool</a>
+                    </div>
+                    
+                    <div class="component-card">
+                        <h3>Behavioral Fingerprinting</h3>
+                        <p>See how your unique behavioral patterns can be used for secure identity verification.</p>
+                        <a href="bbid/tools/behavioral.html" class="btn">Try Tool</a>
                     </div>
                 </div>
             </section>
             
-            <section id="about" class="hidden-section">
-                <h2>About Braille</h2>
-                <div class="about-content">
-                    <p>Braille is a tactile writing system used by people who are visually impaired. It was invented by Louis Braille in 1824, who was blind himself.</p>
-                    <p>Each braille character or "cell" is made up of 6 dots arranged in a 2×3 grid. By raising different combinations of these dots, different letters, numbers, and symbols can be represented.</p>
-                    <!-- Placeholder for Louis Braille image -->
-                    <div class="about-image-placeholder">
-                        <p>Portrait of Louis Braille</p>
-                    </div>
-                    <h3>Why Learn Braille?</h3>
-                    <p>Learning braille promotes:</p>
-                    <ul>
-                        <li>Empathy and understanding for visually impaired people</li>
-                        <li>Cognitive development and pattern recognition</li>
-                        <li>Tactile sensitivity and fine motor skills</li>
-                        <li>Accessibility awareness from an early age</li>
-                    </ul>
-                    <p>BrailleBuddy aims to make learning braille fun and accessible for sighted children, fostering inclusivity and awareness.</p>
-                </div>
+            <section class="updates-section">
+                <h2>Latest Updates</h2>
+                <ul>
+                    <li><strong>March 2025:</strong> Site restructuring completed for improved navigation and user experience</li>
+                    <li><strong>February 2025:</strong> BBID behavioral fingerprinting system enhanced with new metrics</li>
+                    <li><strong>January 2025:</strong> BBES compression algorithm optimized for better performance</li>
+                </ul>
             </section>
         </main>
         
         <footer>
-            <p>&copy; 2025 BrailleBuddy | Created with ❤️ for universal braille accessibility</p>
+            <p>&copy; 2025 BrailleBuddy Ecosystem | Created with ❤️ for universal braille accessibility</p>
         </footer>
     </div>
     
-    <!-- Achievement notification system -->
-    <div id="achievement-notification" class="achievement-notification">
-        <div class="achievement-content">
-            <h3>Achievement Unlocked!</h3>
-            <p id="achievement-name"></p>
-            <p id="achievement-description"></p>
-        </div>
-    </div>
-    
-    <!-- Settings modal -->
-    <div id="settings-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal">&times;</span>
-            <h2>Settings</h2>
-            <div class="settings-form">
-                <div class="setting-group">
-                    <label for="username-input">Username:</label>
-                    <input type="text" id="username-input" placeholder="Enter your name">
-                </div>
-                <div class="setting-group">
-                    <label for="display-name-input">Display Name:</label>
-                    <input type="text" id="display-name-input" placeholder="How we should call you">
-                </div>
-                <div class="setting-group checkbox">
-                    <input type="checkbox" id="keyboard-input-setting">
-                    <label for="keyboard-input-setting">Enable Keyboard Input</label>
-                </div>
-                <div class="setting-group checkbox">
-                    <input type="checkbox" id="sound-effects-setting" checked>
-                    <label for="sound-effects-setting">Sound Effects</label>
-                </div>
-                <div class="setting-group checkbox">
-                    <input type="checkbox" id="high-contrast-setting">
-                    <label for="high-contrast-setting">High Contrast Mode</label>
-                </div>
-                <div class="setting-group checkbox">
-                    <input type="checkbox" id="adaptive-learning-setting" checked>
-                    <label for="adaptive-learning-setting">Adaptive Learning</label>
-                </div>
-                
-                <h3 class="settings-section-title">Haptic Feedback</h3>
-                <div class="setting-group checkbox">
-                    <input type="checkbox" id="haptic-feedback-setting" checked>
-                    <label for="haptic-feedback-setting">Enable Haptic Feedback</label>
-                </div>
-                <div class="setting-group">
-                    <label for="haptic-mode-select">Haptic Mode:</label>
-                    <select id="haptic-mode-select">
-                        <option value="standard">Standard</option>
-                        <option value="rhythmic">Rhythmic</option>
-                        <option value="frequency">Frequency-based</option>
-                        <option value="biological">Biological Contractions</option>
-                        <option value="custom">Custom</option>
-                    </select>
-                </div>
-                <div class="setting-info" id="haptic-mode-description">
-                    <p class="setting-description" id="standard-description">Standard mode provides a simple dot-by-dot vibration pattern that directly corresponds to the braille cell.</p>
-                    <p class="setting-description" id="rhythmic-description" style="display: none;">Rhythmic mode creates patterns with varying durations that help distinguish between different characters.</p>
-                    <p class="setting-description" id="frequency-description" style="display: none;">Frequency-based mode varies the intensity of vibrations based on the number and position of dots in the braille cell.</p>
-                    <p class="setting-description" id="biological-description" style="display: none;">Biological Contractions mode mimics physiological contractions with wave-like patterns that build up, peak, and taper off. This creates an intuitive tactile experience for learning braille contractions.</p>
-                    <p class="setting-description" id="custom-description" style="display: none;">Custom mode allows you to create and save your own vibration patterns for each braille character.</p>
-                </div>
-                
-                <h3 class="settings-section-title">Braille Settings</h3>
-                <div class="setting-group">
-                    <label for="braille-grade-select">Default Braille Grade:</label>
-                    <select id="braille-grade-select">
-                        <option value="1">Grade 1 (Uncontracted)</option>
-                        <option value="2">Grade 2 (Contracted)</option>
-                    </select>
-                </div>
-                <div class="setting-group checkbox">
-                    <input type="checkbox" id="show-contractions-setting" checked>
-                    <label for="show-contractions-setting">Show Contractions in Learn Mode</label>
-                </div>
-                <div class="setting-group">
-                    <label for="haptic-intensity">Vibration Intensity:</label>
-                    <input type="range" id="haptic-intensity" min="1" max="10" value="5">
-                    <span id="haptic-intensity-value">5</span>
-                </div>
-                <div class="setting-group">
-                    <button id="test-haptic" class="test-button">Test Haptic Feedback</button>
-                </div>
-                
-                <h3 class="settings-section-title">Mobile Options</h3>
-                <div class="setting-group checkbox">
-                    <input type="checkbox" id="touch-gestures-setting" checked>
-                    <label for="touch-gestures-setting">Enable Touch Gestures</label>
-                </div>
-                
-                <!-- Language Settings -->
-                <div class="setting-section">
-                    <h3>Language Settings</h3>
-                    <div id="language-selector-container"></div>
-                </div>
-                <div class="setting-group checkbox">
-                    <input type="checkbox" id="fullscreen-on-start-setting">
-                    <label for="fullscreen-on-start-setting">Fullscreen on Start</label>
-                </div>
-                <div class="setting-group checkbox mobile-only" style="display: none;">
-                    <input type="checkbox" id="bluetooth-setting">
-                    <label for="bluetooth-setting">Connect to Braille Hardware</label>
-                </div>
-                
-                <button id="save-settings" class="save-settings-btn">Save Settings</button>
-            </div>
-        </div>
-    </div>
-    
     <!-- Load scripts -->
-    <script src="js/progress-tracker.js"></script>
-    <script src="js/keyboard-input.js"></script>
-    <script src="js/adaptive-learning.js"></script>
-    <script src="js/haptic-feedback.js"></script>
-    <script src="js/mobile-optimization.js"></script>
-    <script src="js/games.js"></script>
-    <script src="js/braille-contractions.js"></script>
-    <script src="js/contractions-handler.js"></script>
-    <!-- Multilingual support modules -->
-    <script src="js/braille-language-manager.js"></script>
-    <script src="js/language-selector.js"></script>
-    <script src="js/script.js"></script>
-    <script src="js/service-worker-registration.js"></script>
-    <script src="js/url-handler.js"></script>
-    <script src="js/braille-keyboard.js"></script>
-    <script src="js/braille-typing.js"></script>
-    <!-- BrailleCore components -->
-    <script src="src/braille-core/braille-fst.js"></script>
-    <script src="src/braille-core/braille-fst-grade3.js"></script>
-    <script src="src/braille-core/braille-ae.js"></script>
-    <!-- BBID Manager and Sal Assistant -->
-    <script src="js/bbid-manager.js"></script>
-    <script src="js/sal-assistant.js"></script>
-    
-    <!-- Offline mode notification -->
-    <div id="offline-notification" class="offline-notification">
-        <div class="offline-content">
-            <p>You are currently offline. Some features may be limited.</p>
-        </div>
-    </div>
-    
     <script>
-        // Check if the user is offline and show notification
-        function updateOnlineStatus() {
-            const offlineNotification = document.getElementById('offline-notification');
-            if (!navigator.onLine) {
-                offlineNotification.classList.add('show');
-            } else {
-                offlineNotification.classList.remove('show');
-            }
-        }
-
-        window.addEventListener('online', updateOnlineStatus);
-        window.addEventListener('offline', updateOnlineStatus);
-        
-        // Initial check
-        updateOnlineStatus();
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add any homepage-specific functionality here
+            console.log('BrailleBuddy Ecosystem Homepage Loaded');
+        });
     </script>
 </body>
 </html>
