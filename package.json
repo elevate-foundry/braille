@@ -1,0 +1,27 @@
+{
+  "name": "bbid-api",
+  "version": "1.0.0",
+  "description": "BBID API for testing semantic encoding density with ChatGPT",
+  "main": "api/index.js",
+  "scripts": {
+    "start": "node bbid-api.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "engines": {
+    "node": ">=14.x"
+  },
+  "keywords": [
+    "bbid",
+    "braille",
+    "api",
+    "semantic",
+    "encoding",
+    "fingerprinting"
+  ],
+  "author": "BrailleBuddy",
+  "license": "MIT",
+  "dependencies": {
+    "crypto": "^1.0.1",
+    "mongodb": "^4.17.2"
+  }
+}
