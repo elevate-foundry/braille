@@ -15,6 +15,11 @@ git commit -m "Add Bible Compression Comparison feature
 - Update documentation with new feature details"
 
 echo -e "\nPushing changes to remote repository..."
-git push
+# Get current branch name
+BRANCH=$(git symbolic-ref --short HEAD)
+echo "Current branch: $BRANCH"
+
+# Push with upstream tracking
+git push --set-upstream origin $BRANCH
 
 echo -e "\nDone! All changes have been pushed to git."
