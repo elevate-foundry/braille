@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MOTL Compression Animation</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+            color: #212529;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            color: #14213d;
+            margin-bottom: 10px;
+        }
+        .header p {
+            color: #6c757d;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .animation-container {
+            position: relative;
+            height: 400px;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .text-block {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.5s ease;
+        }
+        .text-original {
+            background-color: #f8f9fa;
+            font-size: 0.8rem;
+            padding: 20px;
+            text-align: justify;
+            overflow: auto;
+        }
+        .text-compressed {
+            background-color: #e9ecef;
+            font-family: monospace;
+            font-size: 0.7rem;
+            padding: 20px;
+            text-align: justify;
+            overflow: auto;
+        }
+        .text-motl {
+            background-color: #2a9d8f;
+            color: white;
+            font-family: monospace;
+            font-size: 1.2rem;
+            padding: 20px;
+            text-align: center;
+        }
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .control-button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            background-color: #14213d;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .control-button:hover {
+            background-color: #233a66;
+        }
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+            text-align: center;
+        }
+        .stat {
+            flex: 1;
+            padding: 10px;
+        }
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #14213d;
+        }
+        .stat-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        .braille-pattern {
+            font-size: 2rem;
+            margin: 5px 0;
+        }
+        .footer {
+            margin-top: 40px;
+            text-align: center;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        .progress-container {
+            width: 100%;
+            background-color: #e9ecef;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+        .progress-bar {
+            height: 10px;
+            border-radius: 4px;
+            background: linear-gradient(90deg, #14213d 0%, #2a9d8f 100%);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        .compression-label {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>MOTL Compression in Action</h1>
+            <p>Watch how Machine-Optimized Thought Language compresses text at the conceptual level</p>
+        </div>
+        
+        <div class="controls">
+            <button id="play-button" class="control-button">Play Animation</button>
+            <button id="reset-button" class="control-button">Reset</button>
+        </div>
+        
+        <div class="animation-container">
+            <div id="text-original" class="text-block text-original">
+                <p>In the name of Allah, the Entirely Merciful, the Especially Merciful. All praise is due to Allah, Lord of the worlds - The Entirely Merciful, The Especially Merciful, Master of the Day of Judgment. It is You we worship and You we ask for help. Guide us to the straight path - The path of those upon whom You have bestowed favor, not of those who have evoked Your anger or of those who are astray.</p>
+                <p>This is Al-Fatiha, the opening chapter of the Quran. It embodies the concept of tawhid (the oneness of God), emphasizes Allah's mercy (rahmah), acknowledges divine justice (adl), and expresses the essence of worship (ibadah). The surah establishes the relationship between humanity and the divine through faith (iman) and God-consciousness (taqwa).</p>
+                <p>Al-Fatiha is recited in every prayer unit (rak'ah), making it the most frequently repeated passage in Islamic practice. It serves as both supplication and declaration of faith, connecting believers to the core theological concepts that define Islam's spiritual framework.</p>
+            </div>
+            <div id="text-compressed" class="text-block text-compressed" style="opacity: 0; transform: translateY(100%);">
+                <p>BISMILLAH_TOKEN[tawhid,rahmah] PRAISE_TOKEN[adl,ibadah] MERCY_TOKEN[rahmah,2] JUDGMENT_TOKEN[adl,akhirah] WORSHIP_TOKEN[ibadah,iman] GUIDANCE_TOKEN[risalah,taqwa] PATH_TOKEN[taqwa,iman] FAVOR_TOKEN[rahmah,adl] ERROR_TOKEN[taqwa,adl]</p>
+                <p>FATIHA_TOKEN[quran,1] CONCEPT_TOKEN[tawhid,primary] CONCEPT_TOKEN[rahmah,emphasis] CONCEPT_TOKEN[adl,acknowledgment] CONCEPT_TOKEN[ibadah,expression] RELATIONSHIP_TOKEN[human,divine] CONCEPT_TOKEN[iman,connection] CONCEPT_TOKEN[taqwa,consciousness]</p>
+                <p>RECITATION_TOKEN[prayer,all] FREQUENCY_TOKEN[max] FUNCTION_TOKEN[supplication,declaration] CONNECTION_TOKEN[believers,concepts] FRAMEWORK_TOKEN[islam,spiritual]</p>
+            </div>
+            <div id="text-motl" class="text-block text-motl" style="opacity: 0; transform: translateY(100%);">
+                <div class="braille-pattern">⠞⠁⠺⠓⠊⠙</div>
+                <div class="braille-pattern">⠗⠁⠓⠍⠁⠓</div>
+                <div class="braille-pattern">⠊⠍⠁⠝</div>
+                <div class="braille-pattern">⠊⠃⠁⠙⠁⠓</div>
+                <p>8.04x Compression</p>
+                <p>18.83x Semantic Efficiency</p>
+            </div>
+        </div>
+        
+        <div class="progress-container">
+            <div id="progress-bar" class="progress-bar"></div>
+            <div class="compression-label">
+                <span>Original Text</span>
+                <span>MOTL Compressed</span>
+            </div>
+        </div>
+        
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-value">8.04x</div>
+                <div class="stat-label">Compression Ratio</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value">18.83x</div>
+                <div class="stat-label">Semantic Efficiency</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value">94%</div>
+                <div class="stat-label">Semantic Preservation</div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>© 2025 MOTL - Machine-Optimized Thought Language</p>
+            <p>Built on the Braille Binary Encoding Standard (BBES)</p>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const textOriginal = document.getElementById('text-original');
+            const textCompressed = document.getElementById('text-compressed');
+            const textMotl = document.getElementById('text-motl');
+            const playButton = document.getElementById('play-button');
+            const resetButton = document.getElementById('reset-button');
+            const progressBar = document.getElementById('progress-bar');
+            
+            let animationState = 0;
+            let animationInterval;
+            
+            function playAnimation() {
+                if (animationInterval) {
+                    clearInterval(animationInterval);
+                }
+                
+                animationState = 0;
+                updateAnimation();
+                
+                animationInterval = setInterval(() => {
+                    animationState += 1;
+                    if (animationState > 10) {
+                        clearInterval(animationInterval);
+                        return;
+                    }
+                    updateAnimation();
+                }, 1000);
+            }
+            
+            function updateAnimation() {
+                switch(animationState) {
+                    case 0:
+                        // Initial state
+                        textOriginal.style.opacity = 1;
+                        textOriginal.style.transform = 'translateY(0)';
+                        textCompressed.style.opacity = 0;
+                        textCompressed.style.transform = 'translateY(100%)';
+                        textMotl.style.opacity = 0;
+                        textMotl.style.transform = 'translateY(100%)';
+                        progressBar.style.width = '0%';
+                        break;
+                    case 1:
+                        // Start transition to compressed
+                        textOriginal.style.opacity = 0.7;
+                        textOriginal.style.transform = 'translateY(-10%)';
+                        progressBar.style.width = '10%';
+                        break;
+                    case 2:
+                        // Continue transition
+                        textOriginal.style.opacity = 0.5;
+                        textOriginal.style.transform = 'translateY(-20%)';
+                        progressBar.style.width = '20%';
+                        break;
+                    case 3:
+                        // Show compressed
+                        textOriginal.style.opacity = 0.3;
+                        textOriginal.style.transform = 'translateY(-30%)';
+                        textCompressed.style.opacity = 0.3;
+                        textCompressed.style.transform = 'translateY(30%)';
+                        progressBar.style.width = '30%';
+                        break;
+                    case 4:
+                        // Increase compressed visibility
+                        textOriginal.style.opacity = 0.1;
+                        textOriginal.style.transform = 'translateY(-40%)';
+                        textCompressed.style.opacity = 0.6;
+                        textCompressed.style.transform = 'translateY(10%)';
+                        progressBar.style.width = '40%';
+                        break;
+                    case 5:
+                        // Full compressed view
+                        textOriginal.style.opacity = 0;
+                        textOriginal.style.transform = 'translateY(-100%)';
+                        textCompressed.style.opacity = 1;
+                        textCompressed.style.transform = 'translateY(0)';
+                        progressBar.style.width = '50%';
+                        break;
+                    case 6:
+                        // Start transition to MOTL
+                        textCompressed.style.opacity = 0.7;
+                        textCompressed.style.transform = 'translateY(-10%)';
+                        progressBar.style.width = '60%';
+                        break;
+                    case 7:
+                        // Continue MOTL transition
+                        textCompressed.style.opacity = 0.5;
+                        textCompressed.style.transform = 'translateY(-20%)';
+                        textMotl.style.opacity = 0.3;
+                        textMotl.style.transform = 'translateY(30%)';
+                        progressBar.style.width = '70%';
+                        break;
+                    case 8:
+                        // Increase MOTL visibility
+                        textCompressed.style.opacity = 0.3;
+                        textCompressed.style.transform = 'translateY(-30%)';
+                        textMotl.style.opacity = 0.6;
+                        textMotl.style.transform = 'translateY(10%)';
+                        progressBar.style.width = '80%';
+                        break;
+                    case 9:
+                        // Full MOTL view
+                        textCompressed.style.opacity = 0.1;
+                        textCompressed.style.transform = 'translateY(-40%)';
+                        textMotl.style.opacity = 0.8;
+                        textMotl.style.transform = 'translateY(0)';
+                        progressBar.style.width = '90%';
+                        break;
+                    case 10:
+                        // Final state
+                        textCompressed.style.opacity = 0;
+                        textCompressed.style.transform = 'translateY(-100%)';
+                        textMotl.style.opacity = 1;
+                        textMotl.style.transform = 'translateY(0)';
+                        progressBar.style.width = '100%';
+                        break;
+                }
+            }
+            
+            function resetAnimation() {
+                if (animationInterval) {
+                    clearInterval(animationInterval);
+                }
+                
+                animationState = 0;
+                updateAnimation();
+            }
+            
+            playButton.addEventListener('click', playAnimation);
+            resetButton.addEventListener('click', resetAnimation);
+        });
+    </script>
+</body>
+</html>
