@@ -5,6 +5,33 @@ const path = require('path');
 const url = require('url');
 const crypto = require('crypto');
 
+// Generate a behavioral fingerprint based on user interaction data
+function generateBehavioralFingerprint(data) {
+    // Extract key metrics from the behavioral data
+    const keyboardMetrics = data.keyboardMetrics || {};
+    const mouseMetrics = data.mouseMetrics || {};
+    const touchMetrics = data.touchMetrics || {};
+    const scrollPatterns = data.scrollPatterns || {};
+    
+    // Create a unique string based on the behavioral metrics
+    const behavioralString = [
+        data.deviceId,
+        keyboardMetrics.averageTypingSpeed,
+        keyboardMetrics.keyPressCount,
+        mouseMetrics.averageSpeed,
+        mouseMetrics.clickCount,
+        touchMetrics.touchCount,
+        scrollPatterns.scrollEvents,
+        data.timeOnPage ? data.timeOnPage.activeTime : 0
+    ].join('_');
+    
+    // Generate a hash from the behavioral string
+    const behavioralHash = crypto.createHash('sha256').update(behavioralString).digest('hex');
+    
+    // Convert to BBES format
+    return convertToBBES(behavioralHash);
+}
+
 // Utility function to convert traditional fingerprint to BBES format
 function convertToBBES(fingerprint) {
     // This is a simplified implementation - in production, use the full BBES encoding
@@ -138,6 +165,46 @@ const server = http.createServer((req, res) => {
                 res.statusCode = 400;
                 res.setHeader('Content-Type', 'application/json');
                 res.end(JSON.stringify({ error: error.message }));
+            }
+        });
+        
+        return;
+    }
+    
+    // Handle POST request for behavioral fingerprinting
+    if (parsedUrl.pathname === '/api/behavioral-fingerprint' && req.method === 'POST') {
+        let body = '';
+        
+        req.on('data', chunk => {
+            body += chunk.toString();
+        });
+        
+        req.on('end', () => {
+            try {
+                const data = JSON.parse(body);
+                
+                if (!data.deviceId) {
+                    res.statusCode = 400;
+                    res.setHeader('Content-Type', 'application/json');
+                    res.end(JSON.stringify({ error: 'Missing deviceId parameter', success: false }));
+                    return;
+                }
+                
+                // Generate a behavioral fingerprint based on the data
+                const behavioralFingerprint = generateBehavioralFingerprint(data);
+                
+                const result = {
+                    success: true,
+                    bbidFingerprint: behavioralFingerprint,
+                    message: 'Behavioral fingerprint generated successfully'
+                };
+                
+                res.setHeader('Content-Type', 'application/json');
+                res.end(JSON.stringify(result, null, 2));
+            } catch (error) {
+                res.statusCode = 400;
+                res.setHeader('Content-Type', 'application/json');
+                res.end(JSON.stringify({ error: error.message, success: false }));
             }
         });
         
@@ -318,6 +385,7 @@ server.listen(PORT, () => {
     console.log(`BBID API available at http://localhost:${PORT}/api/bbid`);
     console.log(`Fingerprint conversion API: http://localhost:${PORT}/api/convert`);
     console.log(`Batch comparison API: http://localhost:${PORT}/api/batch-compare`);
+    console.log(`Behavioral fingerprinting API: http://localhost:${PORT}/api/behavioral-fingerprint`);
     console.log(`\nExample curl commands:`);
     console.log(`  curl http://localhost:${PORT}/api/bbid | jq`);
     console.log(`  curl -X POST -H "Content-Type: application/json" -d '{"fingerprint":"my-device-fingerprint"}' http://localhost:${PORT}/api/convert | jq`);
