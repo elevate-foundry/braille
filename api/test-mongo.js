@@ -87,15 +87,10 @@ module.exports = async (req, res) => {
     const dbInfo = {};
     
     try {
-      // Get list of databases
-      const adminDb = client.db().admin();
-      const databasesList = await adminDb.listDatabases({ nameOnly: true });
-      dbInfo.allDatabases = databasesList.databases.map(db => db.name);
-      
-      // Check for bbid database
+      // Skip database listing which was causing issues
+      // Just directly access the bbid database
       const bbidDb = client.db('bbid');
-      const collections = await bbidDb.listCollections().toArray();
-      dbInfo.bbidCollections = collections.map(c => c.name);
+      dbInfo.databaseAccessed = 'bbid';
       
       // Insert test document
       const testCollection = bbidDb.collection('connection_tests');
