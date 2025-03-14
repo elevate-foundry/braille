@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MongoDB Connection Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+            color: #333;
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        button {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 10px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            border: 1px solid #e9ecef;
+            font-size: 14px;
+        }
+        .status {
+            font-weight: bold;
+            margin: 20px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            color: #155724;
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            color: #721c24;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+        }
+        .warning {
+            color: #856404;
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+        }
+        .info {
+            color: #0c5460;
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+        }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0,0,0,0.3);
+            border-radius: 50%;
+            border-top-color: #4CAF50;
+            animation: spin 1s ease-in-out infinite;
+            margin-left: 10px;
+            vertical-align: middle;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            border: 1px solid #e9ecef;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 10px;
+        }
+        .tab {
+            padding: 10px 15px;
+            cursor: pointer;
+            border: 1px solid #dee2e6;
+            border-bottom: none;
+            background-color: #f8f9fa;
+            border-radius: 5px 5px 0 0;
+            margin-right: 5px;
+        }
+        .tab.active {
+            background-color: white;
+            border-bottom: 1px solid white;
+            margin-bottom: -1px;
+            font-weight: bold;
+        }
+        .tab-content {
+            display: none;
+            padding: 15px;
+            border: 1px solid #dee2e6;
+            border-radius: 0 5px 5px 5px;
+            background-color: white;
+        }
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <h1>MongoDB Connection Test</h1>
+    
+    <p>This page tests the connection to MongoDB from your Vercel deployment. It will help diagnose any issues with your MongoDB connection configuration.</p>
+    
+    <div class="section">
+        <h2>Test Options</h2>
+        <button id="testDirectConnection">Test Direct Connection</button>
+        <button id="testBehavioralEndpoint">Test Behavioral Endpoint</button>
+        <button id="clearResults">Clear Results</button>
+    </div>
+    
+    <div class="status" id="status">Click a button to test the connection.</div>
+    
+    <div class="section">
+        <h2>Results</h2>
+        <div class="tabs">
+            <div class="tab active" data-tab="formatted">Formatted</div>
+            <div class="tab" data-tab="raw">Raw JSON</div>
+        </div>
+        <div class="tab-content active" id="formatted-content">
+            <p>No results yet. Click one of the test buttons above.</p>
+        </div>
+        <div class="tab-content" id="raw-content">
+            <pre id="results">No results yet.</pre>
+        </div>
+    </div>
+    
+    <div class="section">
+        <h2>Troubleshooting Tips</h2>
+        <ul>
+            <li><strong>Connection String Format</strong>: Make sure your MongoDB connection string is properly formatted without any extra spaces or invalid characters.</li>
+            <li><strong>Environment Variables</strong>: Check that the MONGODB_URI environment variable is correctly set in your Vercel deployment.</li>
+            <li><strong>Network Access</strong>: Ensure your MongoDB Atlas cluster is configured to allow connections from Vercel's IP addresses.</li>
+            <li><strong>Database Name</strong>: Verify that the database name in your connection string matches the one you're trying to access.</li>
+            <li><strong>User Permissions</strong>: Confirm that the MongoDB user has the necessary permissions to read/write to the database.</li>
+        </ul>
+    </div>
+    
+    <script>
+        // Tab functionality
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                tab.classList.add('active');
+                document.getElementById(`${tab.dataset.tab}-content`).classList.add('active');
+            });
+        });
+        
+        // Format results for better readability
+        function formatResults(data) {
+            const container = document.getElementById('formatted-content');
+            container.innerHTML = '';
+            
+            if (!data) {
+                container.innerHTML = '<p>No data received.</p>';
+                return;
+            }
+            
+            // Success or error header
+            const header = document.createElement('h3');
+            header.textContent = data.success ? 'Connection Successful' : 'Connection Failed';
+            header.className = data.success ? 'success' : 'error';
+            container.appendChild(header);
+            
+            // Message
+            if (data.message) {
+                const message = document.createElement('p');
+                message.innerHTML = `<strong>Message:</strong> ${data.message}`;
+                container.appendChild(message);
+            }
+            
+            // Environment info
+            if (data.environmentInfo) {
+                const envSection = document.createElement('div');
+                envSection.innerHTML = `
+                    <h4>Environment Information</h4>
+                    <ul>
+                        <li><strong>Node Environment:</strong> ${data.environmentInfo.nodeEnv}</li>
+                        <li><strong>MongoDB URI Configured:</strong> ${data.environmentInfo.hasMongoUri ? 'Yes' : 'No'}</li>
+                        <li><strong>MongoDB URI Length:</strong> ${data.environmentInfo.mongoUriLength} characters</li>
+                        <li><strong>Vercel Environment:</strong> ${data.environmentInfo.vercelEnv}</li>
+                        <li><strong>Vercel Region:</strong> ${data.environmentInfo.region}</li>
+                    </ul>
+                    <p><strong>Available Environment Variables:</strong> ${data.environmentInfo.allEnvVars.join(', ')}</p>
+                `;
+                container.appendChild(envSection);
+            }
+            
+            // Database info
+            if (data.databaseInfo) {
+                const dbSection = document.createElement('div');
+                dbSection.innerHTML = '<h4>Database Information</h4>';
+                
+                if (data.databaseInfo.error) {
+                    dbSection.innerHTML += `<p class="error">Error: ${data.databaseInfo.error}</p>`;
+                } else {
+                    if (data.databaseInfo.allDatabases) {
+                        dbSection.innerHTML += `
+                            <p><strong>Available Databases:</strong></p>
+                            <ul>
+                                ${data.databaseInfo.allDatabases.map(db => `<li>${db}</li>`).join('')}
+                            </ul>
+                        `;
+                    }
+                    
+                    if (data.databaseInfo.bbidCollections) {
+                        dbSection.innerHTML += `
+                            <p><strong>Collections in 'bbid' Database:</strong></p>
+                            <ul>
+                                ${data.databaseInfo.bbidCollections.length > 0 
+                                    ? data.databaseInfo.bbidCollections.map(col => `<li>${col}</li>`).join('') 
+                                    : '<li>No collections found</li>'}
+                            </ul>
+                        `;
+                    }
+                    
+                    if (data.databaseInfo.testInsertId) {
+                        dbSection.innerHTML += `<p><strong>Test Document Inserted:</strong> ${data.databaseInfo.testInsertId}</p>`;
+                    }
+                }
+                
+                container.appendChild(dbSection);
+            }
+            
+            // Error details
+            if (data.errorDetails) {
+                const errorSection = document.createElement('div');
+                errorSection.innerHTML = `
+                    <h4>Error Details</h4>
+                    <ul>
+                        <li><strong>Error Name:</strong> ${data.errorDetails.name || 'N/A'}</li>
+                        <li><strong>Error Code:</strong> ${data.errorDetails.code || 'N/A'}</li>
+                        <li><strong>Error Message:</strong> ${data.message || 'N/A'}</li>
+                    </ul>
+                `;
+                
+                if (data.errorDetails.stack) {
+                    const stackTrace = document.createElement('details');
+                    stackTrace.innerHTML = `
+                        <summary>Stack Trace</summary>
+                        <pre>${data.errorDetails.stack}</pre>
+                    `;
+                    errorSection.appendChild(stackTrace);
+                }
+                
+                container.appendChild(errorSection);
+            }
+        }
+        
+        // Test direct connection
+        document.getElementById('testDirectConnection').addEventListener('click', async () => {
+            const statusEl = document.getElementById('status');
+            const resultsEl = document.getElementById('results');
+            const button = document.getElementById('testDirectConnection');
+            
+            statusEl.textContent = 'Testing MongoDB connection...';
+            statusEl.className = 'status info';
+            button.disabled = true;
+            
+            // Add loading spinner
+            const loader = document.createElement('span');
+            loader.className = 'loading';
+            statusEl.appendChild(loader);
+            
+            try {
+                const response = await fetch('https://braillebuddy.vercel.app/api/test-mongo');
+                let data;
+                
+                try {
+                    data = await response.json();
+                } catch (jsonError) {
+                    // If JSON parsing fails, get the raw text
+                    const rawText = await response.text();
+                    throw new Error(`Failed to parse JSON response: ${rawText}`);
+                }
+                
+                if (data.success) {
+                    statusEl.textContent = 'MongoDB connection successful!';
+                    statusEl.className = 'status success';
+                } else {
+                    statusEl.textContent = 'MongoDB connection failed!';
+                    statusEl.className = 'status error';
+                }
+                
+                resultsEl.textContent = JSON.stringify(data, null, 2);
+                formatResults(data);
+            } catch (error) {
+                statusEl.textContent = 'Connection error: ' + error.message;
+                statusEl.className = 'status error';
+                resultsEl.textContent = error.toString();
+                
+                // Format error for the formatted view
+                formatResults({
+                    success: false,
+                    message: error.message,
+                    errorDetails: {
+                        name: error.name,
+                        message: error.message
+                    }
+                });
+            } finally {
+                button.disabled = false;
+            }
+        });
+        
+        // Test behavioral endpoint
+        document.getElementById('testBehavioralEndpoint').addEventListener('click', async () => {
+            const statusEl = document.getElementById('status');
+            const resultsEl = document.getElementById('results');
+            const button = document.getElementById('testBehavioralEndpoint');
+            
+            statusEl.textContent = 'Testing behavioral fingerprinting endpoint...';
+            statusEl.className = 'status info';
+            button.disabled = true;
+            
+            // Add loading spinner
+            const loader = document.createElement('span');
+            loader.className = 'loading';
+            statusEl.appendChild(loader);
+            
+            try {
+                // Create a simple test payload
+                const testPayload = {
+                    deviceId: 'test-device-' + Date.now(),
+                    timestamp: new Date().toISOString(),
+                    keyboardMetrics: { typingSpeed: 50, keyPressIntervals: [200, 220, 180, 210] },
+                    mouseMetrics: { averageSpeed: 200, movementPattern: 'direct' },
+                    touchMetrics: null,
+                    motionMetrics: null,
+                    interactionFlow: ['click', 'type', 'scroll', 'click'],
+                    timeOnPage: 120,
+                    scrollPatterns: { direction: 'vertical', speed: 'medium' },
+                    additionalData: {
+                        isTest: true,
+                        testTimestamp: Date.now(),
+                        userAgent: navigator.userAgent,
+                        screenResolution: `${window.screen.width}x${window.screen.height}`
+                    }
+                };
+                
+                const response = await fetch('https://braillebuddy.vercel.app/api/behavioral-fingerprint', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(testPayload)
+                });
+                
+                let data;
+                try {
+                    data = await response.json();
+                } catch (jsonError) {
+                    // If JSON parsing fails, get the raw text
+                    const rawText = await response.text();
+                    throw new Error(`Failed to parse JSON response: ${rawText}`);
+                }
+                
+                if (data.success) {
+                    statusEl.textContent = 'Behavioral fingerprinting test successful!';
+                    statusEl.className = 'status success';
+                } else {
+                    statusEl.textContent = 'Behavioral fingerprinting test failed!';
+                    statusEl.className = 'status error';
+                }
+                
+                resultsEl.textContent = JSON.stringify(data, null, 2);
+                formatResults(data);
+            } catch (error) {
+                statusEl.textContent = 'Behavioral endpoint error: ' + error.message;
+                statusEl.className = 'status error';
+                resultsEl.textContent = error.toString();
+                
+                // Format error for the formatted view
+                formatResults({
+                    success: false,
+                    message: error.message,
+                    errorDetails: {
+                        name: error.name,
+                        message: error.message
+                    }
+                });
+            } finally {
+                button.disabled = false;
+            }
+        });
+        
+        // Clear results
+        document.getElementById('clearResults').addEventListener('click', () => {
+            document.getElementById('status').textContent = 'Results cleared. Click a test button to start again.';
+            document.getElementById('status').className = 'status';
+            document.getElementById('results').textContent = 'No results yet.';
+            document.getElementById('formatted-content').innerHTML = '<p>No results yet. Click one of the test buttons above.</p>';
+        });
+    </script>
+</body>
+</html>
