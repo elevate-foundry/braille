@@ -1,6 +1,38 @@
 // Test MongoDB Connection API Endpoint
 const { MongoClient } = require('mongodb');
 
+// Create a cached connection variable
+let cachedClient = null;
+let cachedDb = null;
+
+// Function to connect to MongoDB
+async function connectToDatabase(uri) {
+  // If we already have a connection, use it
+  if (cachedClient && cachedDb) {
+    return { client: cachedClient, db: cachedDb };
+  }
+  
+  // If no connection, create a new one
+  try {
+    const client = new MongoClient(uri, {
+      serverSelectionTimeoutMS: 5000,
+      connectTimeoutMS: 5000
+    });
+    
+    await client.connect();
+    const db = client.db('bbid');
+    
+    // Cache the connection
+    cachedClient = client;
+    cachedDb = db;
+    
+    return { client, db };
+  } catch (error) {
+    console.error('MongoDB connection error:', error);
+    throw error;
+  }
+}
+
 module.exports = async (req, res) => {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -33,67 +65,62 @@ module.exports = async (req, res) => {
   console.log('Environment info:', {
     hasMongoUri: !!process.env.MONGODB_URI,
     mongoUriLength: process.env.MONGODB_URI ? process.env.MONGODB_URI.length : 0,
-    nodeEnv: process.env.NODE_ENV
+    nodeEnv: process.env.NODE_ENV,
+    vercelEnv: process.env.VERCEL_ENV || 'not set',
+    region: process.env.VERCEL_REGION || 'not set'
   });
 
   try {
     // Try connecting with the environment variable first
-    let client = null;
+    let connection = null;
     let connectionSource = '';
     let connectionError = null;
     
     try {
       if (process.env.MONGODB_URI) {
         connectionSource = 'environment variable';
-        client = new MongoClient(process.env.MONGODB_URI, { 
-          serverSelectionTimeoutMS: 5000,
-          connectTimeoutMS: 5000
-        });
-        await client.connect();
+        console.log('Attempting connection with environment variable');
+        connection = await connectToDatabase(process.env.MONGODB_URI);
+        console.log('Connected successfully with environment variable');
       }
     } catch (envError) {
-      console.error('Failed to connect with environment variable:', envError);
+      console.error('Failed to connect with environment variable:', {
+        name: envError.name,
+        message: envError.message,
+        code: envError.code
+      });
       connectionError = envError;
       
       // If that fails, try the hardcoded URI
       try {
         connectionSource = 'hardcoded string';
         console.log('Attempting connection with hardcoded string');
-        client = new MongoClient(hardcodedUri, { 
-          serverSelectionTimeoutMS: 5000,
-          connectTimeoutMS: 5000
-        });
-        
-        // Log the connection attempt
-        console.log('Before client.connect() call');
-        await client.connect();
-        console.log('After client.connect() call - Connection successful');
+        connection = await connectToDatabase(hardcodedUri);
+        console.log('Connected successfully with hardcoded string');
       } catch (hardcodedError) {
         console.error('Failed to connect with hardcoded string:', {
           name: hardcodedError.name,
           message: hardcodedError.message,
-          code: hardcodedError.code,
-          stack: hardcodedError.stack
+          code: hardcodedError.code
         });
         throw hardcodedError; // Re-throw to be caught by the outer catch
       }
     }
 
-    if (!client) {
-      throw new Error('No MongoDB client available');
+    if (!connection) {
+      throw new Error('No MongoDB connection available');
     }
     
     // Successfully connected - gather info
     const dbInfo = {};
     
     try {
-      // Skip database listing which was causing issues
-      // Just directly access the bbid database
-      const bbidDb = client.db('bbid');
+      // Access the bbid database from our connection
+      const { client, db } = connection;
       dbInfo.databaseAccessed = 'bbid';
       
       // Insert test document
-      const testCollection = bbidDb.collection('connection_tests');
+      const testCollection = db.collection('connection_tests');
       const testDoc = {
         timestamp: new Date(),
         source: 'API test endpoint',
@@ -103,12 +130,13 @@ module.exports = async (req, res) => {
       
       const insertResult = await testCollection.insertOne(testDoc);
       dbInfo.testInsertId = insertResult.insertedId?.toString();
+      
+      // Note: We don't close the connection when using connection pooling
+      // This allows for better performance in serverless environments
     } catch (dbError) {
+      console.error('Database operation error:', dbError);
       dbInfo.error = dbError.message;
     }
-    
-    // Close connection
-    await client.close();
     
     // Return success response
     return res.status(200).json({

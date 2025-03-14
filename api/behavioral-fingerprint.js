@@ -4,6 +4,38 @@ const crypto = require('crypto');
 const { setCorsHeaders, convertToBBID, calculateMetrics } = require('./utils');
 const { logApiRequest } = require('./middleware');
 
+// Create a cached connection variable for connection pooling
+let cachedClient = null;
+let cachedDb = null;
+
+// Function to connect to MongoDB with connection pooling
+async function connectToDatabase(uri) {
+  // If we already have a connection, use it
+  if (cachedClient && cachedDb) {
+    return { client: cachedClient, db: cachedDb };
+  }
+  
+  // If no connection, create a new one
+  try {
+    const client = new MongoClient(uri, {
+      serverSelectionTimeoutMS: 5000,
+      connectTimeoutMS: 5000
+    });
+    
+    await client.connect();
+    const db = client.db('bbid');
+    
+    // Cache the connection
+    cachedClient = client;
+    cachedDb = db;
+    
+    return { client, db };
+  } catch (error) {
+    console.error('MongoDB connection error:', error);
+    throw error;
+  }
+}
+
 module.exports = async (req, res) => {
   // Set CORS headers
   setCorsHeaders(res);
@@ -71,16 +103,11 @@ module.exports = async (req, res) => {
     if (uri) {
       try {
         console.log('Connecting to MongoDB for behavioral fingerprint storage...');
-        const client = new MongoClient(uri, {
-          serverSelectionTimeoutMS: 5000,
-          connectTimeoutMS: 5000
-        });
-        
-        await client.connect();
+        // Use connection pooling for better performance
+        const { db } = await connectToDatabase(uri);
         console.log('Connected to MongoDB successfully');
         
-        const database = client.db('bbid');
-        const behavioralCollection = database.collection('behavioral_fingerprints');
+        const behavioralCollection = db.collection('behavioral_fingerprints');
         
         const result = await behavioralCollection.insertOne({
           ...behavioralFingerprint,
@@ -92,9 +119,14 @@ module.exports = async (req, res) => {
         console.log('Behavioral fingerprint stored with ID:', result.insertedId.toString());
         mongoSuccess = true;
         
-        await client.close();
+        // Note: We don't close the connection when using connection pooling
+        // This allows for better performance in serverless environments
       } catch (error) {
-        console.error('MongoDB storage error:', error.message);
+        console.error('MongoDB storage error:', {
+          name: error.name,
+          message: error.message,
+          code: error.code
+        });
         mongoError = error.message;
       }
     } else {
