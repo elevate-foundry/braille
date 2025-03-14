@@ -77,8 +77,8 @@
             statusEl.className = 'status';
             
             try {
-                // Use the direct URL to our latest deployment
-                const response = await fetch('https://braillebuddy-kldcbg2n0-elevate-foundry1s-projects.vercel.app/api/test-mongo');
+                // Use the main production URL
+                const response = await fetch('https://braillebuddy.vercel.app/api/test-mongo');
                 
                 // Get the response as text first to avoid JSON parsing issues
                 const responseText = await response.text();

@@ -293,7 +293,7 @@
             statusEl.appendChild(loader);
             
             try {
-                const response = await fetch('https://braillebuddy-epqfvjfil-elevate-foundry1s-projects.vercel.app/api/test-mongo');
+                const response = await fetch('https://braillebuddy.vercel.app/api/test-mongo');
                 let data;
                 
                 // Clone the response before reading it
@@ -375,7 +375,7 @@
                     }
                 };
                 
-                const response = await fetch('https://braillebuddy-epqfvjfil-elevate-foundry1s-projects.vercel.app/api/behavioral-fingerprint', {
+                const response = await fetch('https://braillebuddy.vercel.app/api/behavioral-fingerprint', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
