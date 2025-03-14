@@ -59,6 +59,13 @@ class BBIDRecognition {
             rtt: document.getElementById('rtt'),
             ipType: document.getElementById('ip-type')
         };
+    }
+    
+    /**
+     * Initialize the recognition system
+     */
+    initialize() {
+        console.log('Initializing BBID Recognition System');
         
         // Initialize tab switching
         this.initializeTabs();
@@ -210,7 +217,7 @@ class BBIDRecognition {
         if (typeof BBIDIdentityLinker !== 'undefined') {
             // Initialize the identity linker
             this.identityLinker = new BBIDIdentityLinker({
-                apiUrl: 'https://braillebuddy-5nxc9s4bm-elevate-foundry1s-projects.vercel.app/api/link-identity',
+                apiUrl: 'https://braillebuddy.vercel.app/api/link-identity',
                 debug: true,
                 onIdentityLinked: (data) => this.onIdentityLinked(data),
                 onError: (error) => console.error('Identity linking error:', error)

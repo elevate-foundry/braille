@@ -268,12 +268,19 @@ class BBIDIdentityLinker {
             try {
                 statusElement.innerHTML = '<div class="bbid-info">Linking identity...</div>';
                 
-                // Get the device ID from FingerprintJS if available
+                // Get the device ID from DeviceFingerprint if available
                 let deviceId = 'unknown';
-                if (window.FingerprintJS) {
-                    const fp = await FingerprintJS.load();
-                    const result = await fp.get();
-                    deviceId = result.visitorId;
+                if (typeof DeviceFingerprint !== 'undefined') {
+                    try {
+                        const fp = await DeviceFingerprint.load();
+                        const result = await fp.get();
+                        deviceId = result.visitorId;
+                        console.log('Using device ID:', deviceId);
+                    } catch (error) {
+                        console.error('Error getting device fingerprint:', error);
+                    }
+                } else {
+                    console.warn('DeviceFingerprint not available, using unknown device ID');
                 }
                 
                 const result = await this.linkIdentity(identifier, deviceId);

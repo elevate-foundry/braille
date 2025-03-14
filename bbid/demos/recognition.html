@@ -686,8 +686,67 @@
     <!-- Load dependencies -->
     <script src="../../js/device-fingerprint.js" defer></script>
     <script src="../../js/bbid-behavioral.js" defer></script>
-    <script src="../js/bbid-identity-linker.js" defer></script>
+    <script src="../../bbid/js/bbid-identity-linker.js" defer></script>
     <script src="js/bbid-recognition.js" defer></script>
+    
+    <script>
+        // Initialize everything when the DOM is fully loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM fully loaded');
+            
+            // Manual tab switching implementation
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            console.log('Found tab buttons:', tabButtons.length);
+            console.log('Found tab contents:', tabContents.length);
+            
+            tabButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    console.log('Tab clicked:', this.getAttribute('data-tab'));
+                    
+                    // Remove active class from all buttons and contents
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    tabContents.forEach(content => content.classList.remove('active'));
+                    
+                    // Add active class to clicked button
+                    this.classList.add('active');
+                    
+                    // Show corresponding tab content
+                    const tabId = this.getAttribute('data-tab');
+                    const tabContent = document.getElementById(tabId + '-tab');
+                    if (tabContent) {
+                        tabContent.classList.add('active');
+                    } else {
+                        console.error('Tab content not found:', tabId + '-tab');
+                    }
+                });
+            });
+            
+            // Initialize the identity form
+            const identityForm = document.getElementById('identity-form');
+            const identityInput = document.getElementById('identity-input');
+            const identitySubmit = document.getElementById('identity-submit');
+            
+            if (identityForm && identityInput && identitySubmit) {
+                identitySubmit.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    console.log('Identity submit clicked');
+                    const name = identityInput.value.trim();
+                    if (name) {
+                        // If we have a recognition system, use it
+                        if (window.recognitionSystem) {
+                            window.recognitionSystem.confirmIdentity(name);
+                        }
+                    }
+                });
+            }
+            
+            // Initialize recognition system
+            window.recognitionSystem = new BBIDRecognition();
+            window.recognitionSystem.initialize();
+        });
+    </script>
     
     <footer>
         <p>&copy; 2025 BrailleBuddy Ecosystem | Created with ❤️ for universal braille accessibility</p>
