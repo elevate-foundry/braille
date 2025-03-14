@@ -226,6 +226,90 @@
             transition: width 1s ease-in-out;
         }
         
+        /* Identity Linking Styles */
+        .identity-linking-section {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: var(--bbid-light);
+            border-radius: 8px;
+            border-left: 4px solid var(--bbid-primary);
+        }
+        
+        .bbid-identity-linker {
+            margin-top: 15px;
+        }
+        
+        .bbid-form-group {
+            margin-bottom: 15px;
+        }
+        
+        .bbid-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        .bbid-button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .bbid-button-primary {
+            background-color: var(--bbid-primary);
+            color: white;
+        }
+        
+        .bbid-button-primary:hover {
+            background-color: var(--bbid-accent);
+        }
+        
+        .bbid-button-secondary {
+            background-color: #f8f9fa;
+            color: var(--bbid-dark);
+            border: 1px solid #ddd;
+        }
+        
+        .bbid-button-secondary:hover {
+            background-color: #e9ecef;
+        }
+        
+        .bbid-status {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        
+        .bbid-success {
+            background-color: rgba(39, 174, 96, 0.1);
+            color: var(--bbid-success);
+            border-left: 3px solid var(--bbid-success);
+        }
+        
+        .bbid-error {
+            background-color: rgba(231, 76, 60, 0.1);
+            color: var(--bbid-danger);
+            border-left: 3px solid var(--bbid-danger);
+        }
+        
+        .bbid-info {
+            background-color: rgba(52, 152, 219, 0.1);
+            color: var(--bbid-info);
+            border-left: 3px solid var(--bbid-info);
+        }
+        
+        .bbid-token-preview {
+            font-family: monospace;
+            font-size: 12px;
+            margin-top: 5px;
+            opacity: 0.7;
+        }
+        
         .confidence-label {
             display: flex;
             justify-content: space-between;
@@ -591,11 +675,18 @@
                 <!-- Device cards will be inserted here by JavaScript -->
             </div>
         </div>
+        
+        <div class="identity-linking-section">
+            <h3>Cross-Device Recognition</h3>
+            <p>Link your identity across devices so Sal can recognize you anywhere.</p>
+            <div id="identity-linker-container"></div>
+        </div>
     </div>
     
     <!-- Load dependencies -->
     <script src="../../js/device-fingerprint.js" defer></script>
     <script src="../../js/bbid-behavioral.js" defer></script>
+    <script src="../js/bbid-identity-linker.js" defer></script>
     <script src="js/bbid-recognition.js" defer></script>
     
     <footer>

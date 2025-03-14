@@ -11,6 +11,7 @@ class BBIDRecognition {
         this.confidenceScore = 0;
         this.knownDevices = [];
         this.currentUser = null;
+        this.identityLinker = null;
         
         // DOM elements
         this.elements = {
@@ -131,6 +132,7 @@ class BBIDRecognition {
                     this.deviceFingerprint = result;
                     this.updateDeviceInfo(result);
                     this.initializeBehavioralFingerprinting(result.visitorId);
+                    this.initializeIdentityLinker(result.visitorId);
                 })
                 .catch(error => {
                     console.error('Error generating device fingerprint:', error);
@@ -197,6 +199,61 @@ class BBIDRecognition {
         
         // Update status
         this.elements.recognitionStatus.textContent = 'Behavioral fingerprint generated';
+    }
+    
+    /**
+     * Initialize identity linking functionality
+     * @param {string} deviceId - The device fingerprint ID
+     */
+    initializeIdentityLinker(deviceId) {
+        // Check if the identity linker is available
+        if (typeof BBIDIdentityLinker !== 'undefined') {
+            // Initialize the identity linker
+            this.identityLinker = new BBIDIdentityLinker({
+                apiUrl: 'https://braillebuddy-5nxc9s4bm-elevate-foundry1s-projects.vercel.app/api/link-identity',
+                debug: true,
+                onIdentityLinked: (data) => this.onIdentityLinked(data),
+                onError: (error) => console.error('Identity linking error:', error)
+            });
+            
+            // Create the identity linking UI
+            this.identityLinker.createLinkUI('identity-linker-container');
+            
+            // If there's already a linked identity, update the recognition
+            if (this.identityLinker.hasLinkedIdentity()) {
+                this.onIdentityLinked({
+                    identityToken: this.identityLinker.getIdentityToken(),
+                    isExisting: true
+                });
+            }
+        } else {
+            console.error('BBIDIdentityLinker library not loaded');
+        }
+    }
+    
+    /**
+     * Handle identity linking completion
+     * @param {Object} data - The identity linking result
+     */
+    onIdentityLinked(data) {
+        console.log('Identity linked:', data);
+        
+        // Update the identity status
+        this.identityStatus = 'linked';
+        
+        // Increase confidence score
+        this.confidenceScore = Math.min(this.confidenceScore + 30, 100);
+        this.updateConfidenceDisplay();
+        
+        // Update recognition status
+        this.elements.recognitionStatus.textContent = 'Identity linked across devices';
+        
+        // Update the greeting if we have a current user
+        if (this.currentUser) {
+            this.updateGreeting(`Welcome back, ${this.currentUser}!`, 'Your identity is now linked across all your devices.');
+        } else {
+            this.updateGreeting('Identity Linked!', 'Sal will now recognize you across all your devices.');
+        }
     }
     
     /**
