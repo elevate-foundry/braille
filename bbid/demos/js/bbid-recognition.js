@@ -164,7 +164,7 @@ class BBIDRecognition {
                 trackUI: true,
                 debug: true,
                 // Add API URL for sending data to MongoDB
-                apiUrl: 'https://braillebuddy-q1yej25s0-elevate-foundry1s-projects.vercel.app/api/behavioral-fingerprint',
+                apiUrl: 'https://braillebuddy-5nxc9s4bm-elevate-foundry1s-projects.vercel.app/api/behavioral-fingerprint',
                 onFingerprintGenerated: (data) => this.onBehavioralFingerprintGenerated(data)
             });
             
