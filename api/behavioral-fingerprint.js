@@ -12,26 +12,41 @@ let cachedDb = null;
 async function connectToDatabase(uri) {
   // If we already have a connection, use it
   if (cachedClient && cachedDb) {
+    console.log('Using cached MongoDB connection');
     return { client: cachedClient, db: cachedDb };
   }
   
   // If no connection, create a new one
   try {
+    console.log('Creating new MongoDB client with enhanced options');
     const client = new MongoClient(uri, {
-      serverSelectionTimeoutMS: 5000,
-      connectTimeoutMS: 5000
+      serverSelectionTimeoutMS: 10000, // Increased timeout
+      connectTimeoutMS: 10000,        // Increased timeout
+      socketTimeoutMS: 30000,         // Added socket timeout
+      maxPoolSize: 1,                // Limit pool size for serverless
+      minPoolSize: 0
     });
     
+    console.log('Attempting to connect to MongoDB...');
     await client.connect();
+    console.log('MongoDB connection established successfully');
+    
     const db = client.db('bbid');
+    console.log('Accessed bbid database');
     
     // Cache the connection
     cachedClient = client;
     cachedDb = db;
+    console.log('MongoDB connection cached for reuse');
     
     return { client, db };
   } catch (error) {
-    console.error('MongoDB connection error:', error);
+    console.error('MongoDB connection error:', {
+      name: error.name,
+      message: error.message,
+      code: error.code,
+      stack: error.stack
+    });
     throw error;
   }
 }
@@ -102,19 +117,35 @@ module.exports = async (req, res) => {
     
     if (uri) {
       try {
+        // Redact the password from the URI for logging
+        const redactedUri = uri.replace(/:[^:@]*@/, ':***@');
+        console.log('MongoDB URI available:', redactedUri);
+        console.log('Vercel environment:', process.env.VERCEL_ENV || 'not set');
+        console.log('Vercel region:', process.env.VERCEL_REGION || 'not set');
+        
         console.log('Connecting to MongoDB for behavioral fingerprint storage...');
         // Use connection pooling for better performance
         const { db } = await connectToDatabase(uri);
         console.log('Connected to MongoDB successfully');
         
+        console.log('Accessing behavioral_fingerprints collection...');
         const behavioralCollection = db.collection('behavioral_fingerprints');
         
-        const result = await behavioralCollection.insertOne({
+        console.log('Preparing to insert behavioral fingerprint document...');
+        const documentToInsert = {
           ...behavioralFingerprint,
           traditionalFingerprint,
           bbidFingerprint,
-          metrics
-        });
+          metrics,
+          createdAt: new Date(),
+          environment: {
+            vercelEnv: process.env.VERCEL_ENV || 'not set',
+            vercelRegion: process.env.VERCEL_REGION || 'not set',
+            nodeEnv: process.env.NODE_ENV || 'not set'
+          }
+        };
+        
+        const result = await behavioralCollection.insertOne(documentToInsert);
         
         console.log('Behavioral fingerprint stored with ID:', result.insertedId.toString());
         mongoSuccess = true;
@@ -125,7 +156,8 @@ module.exports = async (req, res) => {
         console.error('MongoDB storage error:', {
           name: error.name,
           message: error.message,
-          code: error.code
+          code: error.code,
+          stack: error.stack
         });
         mongoError = error.message;
       }
