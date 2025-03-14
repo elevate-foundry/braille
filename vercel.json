@@ -29,11 +29,5 @@
   "env": {
     "NODE_ENV": "production",
     "MONGODB_URI": "mongodb+srv://ryanbarrett:FqGIrOXVyPRynEB0@braille.8iv6f.mongodb.net/bbid?retryWrites=true&w=majority"
-  },
-  "functions": {
-    "api/*.js": {
-      "memory": 1024,
-      "maxDuration": 10
-    }
   }
 }
