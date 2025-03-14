@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BBID Comprehensive Test</title>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2ecc71;
+            --error-color: #e74c3c;
+            --warning-color: #f39c12;
+            --text-color: #333;
+            --background-color: #f8f9fa;
+            --card-background: #fff;
+            --border-color: #e9ecef;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--background-color);
+        }
+        
+        h1, h2, h3 {
+            color: #2c3e50;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+        
+        .card {
+            background-color: var(--card-background);
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        button {
+            background-color: var(--primary-color);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 10px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        button.secondary {
+            background-color: var(--secondary-color);
+        }
+        
+        button.secondary:hover {
+            background-color: #27ae60;
+        }
+        
+        pre {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            border: 1px solid var(--border-color);
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .status {
+            font-weight: bold;
+            margin: 20px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        
+        .success {
+            color: #155724;
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .error {
+            color: #721c24;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .warning {
+            color: #856404;
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+        }
+        
+        .info {
+            color: #0c5460;
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+        }
+        
+        .test-section {
+            margin-bottom: 30px;
+        }
+        
+        .logs {
+            font-family: monospace;
+            font-size: 14px;
+            line-height: 1.4;
+            background-color: #282c34;
+            color: #abb2bf;
+            padding: 15px;
+            border-radius: 5px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .log-entry {
+            margin-bottom: 5px;
+        }
+        
+        .log-info {
+            color: #61afef;
+        }
+        
+        .log-success {
+            color: #98c379;
+        }
+        
+        .log-error {
+            color: #e06c75;
+        }
+        
+        .log-warning {
+            color: #e5c07b;
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            border-bottom: none;
+            margin-right: 5px;
+            border-radius: 4px 4px 0 0;
+        }
+        
+        .tab.active {
+            background-color: var(--card-background);
+            border-color: var(--border-color);
+            border-bottom: 1px solid var(--card-background);
+            margin-bottom: -1px;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <h1>BBID Comprehensive Test</h1>
+    
+    <div class="card">
+        <h2>Test Configuration</h2>
+        <div class="form-group">
+            <label for="apiUrl">API Base URL:</label>
+            <input type="text" id="apiUrl" value="https://braillebuddy.vercel.app" style="width: 100%; padding: 8px; margin-bottom: 10px;">
+        </div>
+    </div>
+    
+    <div class="tabs">
+        <div class="tab active" data-tab="mongo-test">MongoDB Test</div>
+        <div class="tab" data-tab="behavioral-test">Behavioral Fingerprinting Test</div>
+        <div class="tab" data-tab="environment">Environment Info</div>
+    </div>
+    
+    <div class="tab-content active" id="mongo-test">
+        <div class="card test-section">
+            <h2>MongoDB Connection Test</h2>
+            <p>This test checks if the API can connect to MongoDB and store data.</p>
+            
+            <div class="button-group">
+                <button id="testMongoConnection">Test MongoDB Connection</button>
+                <button id="testSimpleMongoConnection" class="secondary">Test Simple MongoDB Connection</button>
+            </div>
+            
+            <div class="status" id="mongoStatus">Click a button to test the connection.</div>
+            
+            <h3>Results:</h3>
+            <pre id="mongoResults">No results yet.</pre>
+        </div>
+    </div>
+    
+    <div class="tab-content" id="behavioral-test">
+        <div class="card test-section">
+            <h2>Behavioral Fingerprinting Test</h2>
+            <p>This test checks if the behavioral fingerprinting API endpoint is working correctly.</p>
+            
+            <div class="button-group">
+                <button id="testBehavioralFingerprinting">Test Behavioral Fingerprinting</button>
+            </div>
+            
+            <div class="status" id="behavioralStatus">Click the button to test behavioral fingerprinting.</div>
+            
+            <h3>Results:</h3>
+            <pre id="behavioralResults">No results yet.</pre>
+        </div>
+    </div>
+    
+    <div class="tab-content" id="environment">
+        <div class="card test-section">
+            <h2>Environment Information</h2>
+            <p>This section displays information about the current environment.</p>
+            
+            <h3>Browser Information:</h3>
+            <pre id="browserInfo">Loading browser information...</pre>
+            
+            <h3>Network Information:</h3>
+            <pre id="networkInfo">Loading network information...</pre>
+        </div>
+    </div>
+    
+    <div class="card">
+        <h2>Logs</h2>
+        <div class="logs" id="logs"></div>
+    </div>
+    
+    <script>
+        // Logging functions
+        function log(message, type = 'info') {
+            const logsEl = document.getElementById('logs');
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry log-${type}`;
+            logEntry.textContent = `[${new Date().toISOString()}] ${message}`;
+            logsEl.appendChild(logEntry);
+            logsEl.scrollTop = logsEl.scrollHeight;
+            console.log(`[${type}] ${message}`);
+        }
+        
+        // Tab functionality
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Remove active class from all tabs and content
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                // Add active class to clicked tab
+                tab.classList.add('active');
+                
+                // Show corresponding content
+                const tabId = tab.getAttribute('data-tab');
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+        
+        // MongoDB Connection Test
+        document.getElementById('testMongoConnection').addEventListener('click', async () => {
+            const statusEl = document.getElementById('mongoStatus');
+            const resultsEl = document.getElementById('mongoResults');
+            const apiBaseUrl = document.getElementById('apiUrl').value.trim();
+            
+            statusEl.textContent = 'Testing MongoDB connection...';
+            statusEl.className = 'status info';
+            
+            log('Testing MongoDB connection via test-mongo endpoint');
+            
+            try {
+                const response = await fetch(`${apiBaseUrl}/api/test-mongo`);
+                
+                // Get the response as text first to avoid JSON parsing issues
+                const responseText = await response.text();
+                
+                try {
+                    // Try to parse as JSON
+                    const data = JSON.parse(responseText);
+                    
+                    if (data.success) {
+                        statusEl.textContent = 'MongoDB connection successful!';
+                        statusEl.className = 'status success';
+                        log('MongoDB connection successful', 'success');
+                    } else {
+                        statusEl.textContent = 'MongoDB connection failed!';
+                        statusEl.className = 'status error';
+                        log(`MongoDB connection failed: ${data.error}`, 'error');
+                    }
+                    
+                    resultsEl.textContent = JSON.stringify(data, null, 2);
+                } catch (jsonError) {
+                    // If JSON parsing fails, show the raw text
+                    statusEl.textContent = 'Failed to parse response as JSON';
+                    statusEl.className = 'status error';
+                    log(`Failed to parse response as JSON: ${jsonError.message}`, 'error');
+                    resultsEl.textContent = responseText;
+                }
+            } catch (error) {
+                statusEl.textContent = 'Connection error: ' + error.message;
+                statusEl.className = 'status error';
+                log(`Connection error: ${error.message}`, 'error');
+                resultsEl.textContent = error.toString();
+            }
+        });
+        
+        // Simple MongoDB Connection Test
+        document.getElementById('testSimpleMongoConnection').addEventListener('click', async () => {
+            const statusEl = document.getElementById('mongoStatus');
+            const resultsEl = document.getElementById('mongoResults');
+            const apiBaseUrl = document.getElementById('apiUrl').value.trim();
+            
+            statusEl.textContent = 'Testing simple MongoDB connection...';
+            statusEl.className = 'status info';
+            
+            log('Testing MongoDB connection via simple-mongo-test endpoint');
+            
+            try {
+                const response = await fetch(`${apiBaseUrl}/api/simple-mongo-test`);
+                
+                // Get the response as text first to avoid JSON parsing issues
+                const responseText = await response.text();
+                
+                try {
+                    // Try to parse as JSON
+                    const data = JSON.parse(responseText);
+                    
+                    if (data.success) {
+                        statusEl.textContent = 'MongoDB connection successful!';
+                        statusEl.className = 'status success';
+                        log('MongoDB connection successful', 'success');
+                    } else {
+                        statusEl.textContent = 'MongoDB connection failed!';
+                        statusEl.className = 'status error';
+                        log(`MongoDB connection failed: ${data.error}`, 'error');
+                    }
+                    
+                    resultsEl.textContent = JSON.stringify(data, null, 2);
+                } catch (jsonError) {
+                    // If JSON parsing fails, show the raw text
+                    statusEl.textContent = 'Failed to parse response as JSON';
+                    statusEl.className = 'status error';
+                    log(`Failed to parse response as JSON: ${jsonError.message}`, 'error');
+                    resultsEl.textContent = responseText;
+                }
+            } catch (error) {
+                statusEl.textContent = 'Connection error: ' + error.message;
+                statusEl.className = 'status error';
+                log(`Connection error: ${error.message}`, 'error');
+                resultsEl.textContent = error.toString();
+            }
+        });
+        
+        // Behavioral Fingerprinting Test
+        document.getElementById('testBehavioralFingerprinting').addEventListener('click', async () => {
+            const statusEl = document.getElementById('behavioralStatus');
+            const resultsEl = document.getElementById('behavioralResults');
+            const apiBaseUrl = document.getElementById('apiUrl').value.trim();
+            
+            statusEl.textContent = 'Testing behavioral fingerprinting...';
+            statusEl.className = 'status info';
+            
+            log('Testing behavioral fingerprinting endpoint');
+            
+            try {
+                // Create a mock behavioral fingerprint
+                const mockFingerprint = {
+                    deviceId: 'test-device-' + Date.now(),
+                    traditionalFingerprint: 'test-fingerprint-' + Date.now(),
+                    bbidFingerprint: 'test-bbid-' + Date.now(),
+                    keyboardMetrics: {
+                        typingSpeed: Math.random() * 100,
+                        keystrokeTiming: Math.random() * 100,
+                        holdDuration: Math.random() * 100
+                    },
+                    mouseMetrics: {
+                        movementPath: Math.random() * 100,
+                        clickFrequency: Math.random() * 100,
+                        holdDuration: Math.random() * 100
+                    },
+                    sessionMetrics: {
+                        timeOfDay: new Date().getHours(),
+                        sessionDuration: Math.random() * 3600
+                    }
+                };
+                
+                const response = await fetch(`${apiBaseUrl}/api/behavioral-fingerprint`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(mockFingerprint)
+                });
+                
+                // Get the response as text first to avoid JSON parsing issues
+                const responseText = await response.text();
+                
+                try {
+                    // Try to parse as JSON
+                    const data = JSON.parse(responseText);
+                    
+                    if (data.success) {
+                        statusEl.textContent = 'Behavioral fingerprinting successful!';
+                        statusEl.className = 'status success';
+                        log('Behavioral fingerprinting successful', 'success');
+                    } else {
+                        statusEl.textContent = 'Behavioral fingerprinting failed!';
+                        statusEl.className = 'status error';
+                        log(`Behavioral fingerprinting failed: ${data.error}`, 'error');
+                    }
+                    
+                    resultsEl.textContent = JSON.stringify(data, null, 2);
+                } catch (jsonError) {
+                    // If JSON parsing fails, show the raw text
+                    statusEl.textContent = 'Failed to parse response as JSON';
+                    statusEl.className = 'status error';
+                    log(`Failed to parse response as JSON: ${jsonError.message}`, 'error');
+                    resultsEl.textContent = responseText;
+                }
+            } catch (error) {
+                statusEl.textContent = 'Connection error: ' + error.message;
+                statusEl.className = 'status error';
+                log(`Connection error: ${error.message}`, 'error');
+                resultsEl.textContent = error.toString();
+            }
+        });
+        
+        // Environment Information
+        function getBrowserInfo() {
+            const browserInfo = {
+                userAgent: navigator.userAgent,
+                language: navigator.language,
+                platform: navigator.platform,
+                cookiesEnabled: navigator.cookieEnabled,
+                doNotTrack: navigator.doNotTrack,
+                screenWidth: window.screen.width,
+                screenHeight: window.screen.height,
+                colorDepth: window.screen.colorDepth,
+                pixelRatio: window.devicePixelRatio,
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                timezoneOffset: new Date().getTimezoneOffset()
+            };
+            
+            document.getElementById('browserInfo').textContent = JSON.stringify(browserInfo, null, 2);
+            log('Browser information collected', 'info');
+        }
+        
+        function getNetworkInfo() {
+            const networkInfo = {
+                online: navigator.onLine
+            };
+            
+            // Add connection information if available
+            if (navigator.connection) {
+                networkInfo.connection = {
+                    effectiveType: navigator.connection.effectiveType,
+                    downlink: navigator.connection.downlink,
+                    rtt: navigator.connection.rtt,
+                    saveData: navigator.connection.saveData
+                };
+            }
+            
+            document.getElementById('networkInfo').textContent = JSON.stringify(networkInfo, null, 2);
+            log('Network information collected', 'info');
+        }
+        
+        // Initialize environment information
+        getBrowserInfo();
+        getNetworkInfo();
+        
+        // Log initial information
+        log('Test page loaded', 'info');
+        log(`API Base URL: ${document.getElementById('apiUrl').value}`, 'info');
+    </script>
+</body>
+</html>
