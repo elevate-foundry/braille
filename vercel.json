@@ -1,16 +1,16 @@
 {
+  "name": "braillebuddy",
   "version": 2,
-  "name": "bbid-api",
   "builds": [
     { "src": "api/*.js", "use": "@vercel/node" },
-    { "src": "**/*.html", "use": "@vercel/static" },
-    { "src": "js/**/*.js", "use": "@vercel/static" },
-    { "src": "css/**/*.css", "use": "@vercel/static" },
-    { "src": "images/**/*", "use": "@vercel/static" }
+    { "src": "*.html", "use": "@vercel/static" },
+    { "src": "js/**", "use": "@vercel/static" },
+    { "src": "css/**", "use": "@vercel/static" },
+    { "src": "images/**", "use": "@vercel/static" },
+    { "src": "bbid/**", "use": "@vercel/static" }
   ],
   "routes": [
     { "src": "/api/bbid", "dest": "/api/bbid.js" },
-    { "src": "/api/convert", "methods": ["POST"], "dest": "/api/convert.js" },
     { "src": "/api/behavioral-fingerprint", "methods": ["POST"], "dest": "/api/behavioral-fingerprint.js" },
     { "src": "/api/log-device", "methods": ["POST"], "dest": "/api/log-device.js" },
     { "src": "/api/simple-mongo-test", "dest": "/api/simple-mongo-test.js" },
@@ -20,9 +20,6 @@
     { "src": "/", "dest": "/index.html" },
     { "src": "/(.*)", "dest": "/$1" }
   ],
-  "github": {
-    "silent": true
-  },
   "env": {
     "NODE_ENV": "production",
     "MONGODB_URI": "mongodb+srv://ryanbarrett:FqGIrOXVyPRynEB0@braille.8iv6f.mongodb.net/bbid?retryWrites=true&w=majority"
