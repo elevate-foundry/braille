@@ -28,6 +28,13 @@ module.exports = async (req, res) => {
   // Use a hardcoded connection string for testing
   // This is just for diagnostic purposes
   const hardcodedUri = 'mongodb+srv://ryanbarrett:FqGIrOXVyPRynEB0@braille.8iv6f.mongodb.net/bbid?retryWrites=true&w=majority';
+  
+  // Log the environment variables for debugging
+  console.log('Environment info:', {
+    hasMongoUri: !!process.env.MONGODB_URI,
+    mongoUriLength: process.env.MONGODB_URI ? process.env.MONGODB_URI.length : 0,
+    nodeEnv: process.env.NODE_ENV
+  });
 
   try {
     // Try connecting with the environment variable first
@@ -51,13 +58,23 @@ module.exports = async (req, res) => {
       // If that fails, try the hardcoded URI
       try {
         connectionSource = 'hardcoded string';
+        console.log('Attempting connection with hardcoded string');
         client = new MongoClient(hardcodedUri, { 
           serverSelectionTimeoutMS: 5000,
           connectTimeoutMS: 5000
         });
+        
+        // Log the connection attempt
+        console.log('Before client.connect() call');
         await client.connect();
+        console.log('After client.connect() call - Connection successful');
       } catch (hardcodedError) {
-        console.error('Failed to connect with hardcoded string:', hardcodedError);
+        console.error('Failed to connect with hardcoded string:', {
+          name: hardcodedError.name,
+          message: hardcodedError.message,
+          code: hardcodedError.code,
+          stack: hardcodedError.stack
+        });
         throw hardcodedError; // Re-throw to be caught by the outer catch
       }
     }
@@ -70,15 +87,10 @@ module.exports = async (req, res) => {
     const dbInfo = {};
     
     try {
-      // Get list of databases
-      const adminDb = client.db().admin();
-      const databasesList = await adminDb.listDatabases({ nameOnly: true });
-      dbInfo.allDatabases = databasesList.databases.map(db => db.name);
-      
-      // Check for bbid database
+      // Skip database listing which was causing issues
+      // Just directly access the bbid database
       const bbidDb = client.db('bbid');
-      const collections = await bbidDb.listCollections().toArray();
-      dbInfo.bbidCollections = collections.map(c => c.name);
+      dbInfo.databaseAccessed = 'bbid';
       
       // Insert test document
       const testCollection = bbidDb.collection('connection_tests');

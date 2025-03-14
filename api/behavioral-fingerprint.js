@@ -65,20 +65,40 @@ module.exports = async (req, res) => {
 
     // Store in MongoDB if connection string is available
     const uri = process.env.MONGODB_URI;
+    let mongoSuccess = false;
+    let mongoError = null;
+    
     if (uri) {
-      const client = new MongoClient(uri);
-      await client.connect();
-      const database = client.db('bbid');
-      const behavioralCollection = database.collection('behavioral_fingerprints');
-      
-      await behavioralCollection.insertOne({
-        ...behavioralFingerprint,
-        traditionalFingerprint,
-        bbidFingerprint,
-        metrics
-      });
-      
-      await client.close();
+      try {
+        console.log('Connecting to MongoDB for behavioral fingerprint storage...');
+        const client = new MongoClient(uri, {
+          serverSelectionTimeoutMS: 5000,
+          connectTimeoutMS: 5000
+        });
+        
+        await client.connect();
+        console.log('Connected to MongoDB successfully');
+        
+        const database = client.db('bbid');
+        const behavioralCollection = database.collection('behavioral_fingerprints');
+        
+        const result = await behavioralCollection.insertOne({
+          ...behavioralFingerprint,
+          traditionalFingerprint,
+          bbidFingerprint,
+          metrics
+        });
+        
+        console.log('Behavioral fingerprint stored with ID:', result.insertedId.toString());
+        mongoSuccess = true;
+        
+        await client.close();
+      } catch (error) {
+        console.error('MongoDB storage error:', error.message);
+        mongoError = error.message;
+      }
+    } else {
+      console.warn('No MongoDB URI available, skipping database storage');
     }
 
     // Return the results
