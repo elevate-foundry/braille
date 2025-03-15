@@ -8,10 +8,10 @@
     "start": "tsx src/demo.ts",
     "dev": "vite",
     "tunnel": "ngrok http 3000",
-    "dev:tunnel": "concurrently \"npm run dev\" \"npm run tunnel\""
+    "dev:tunnel": "concurrently \"npm run dev\" \"npm run tunnel\"",
+    "test:tensorflow": "tsx src/testTensorflow.ts"
   },
   "dependencies": {
-    "@fingerprintjs/fingerprintjs-pro": "^3.8.7",
     "@google-cloud/translate": "^7.2.1",
     "@tensorflow/tfjs": "^4.22.0",
     "@tensorflow/tfjs-node": "^4.22.0",
@@ -33,11 +33,13 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "string-similarity": "^4.0.4",
+    "vercel": "^41.4.1",
     "ws": "^8.16.0"
   },
   "devDependencies": {
     "@tailwindcss/forms": "^0.5.7",
     "@types/crypto-js": "^4.2.1",
+    "@types/next": "^8.0.7",
     "@types/nodemailer": "^6.4.14",
     "@types/string-similarity": "^4.0.2",
     "@types/ws": "^8.5.10",

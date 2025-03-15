@@ -7,14 +7,15 @@ This guide provides step-by-step instructions for deploying the BrailleBuddy app
 1. A [Vercel](https://vercel.com) account
 2. [Vercel CLI](https://vercel.com/docs/cli) installed (`npm install -g vercel`)
 3. MongoDB Atlas account (for the database)
-4. Fingerprint.js Pro account (for browser fingerprinting)
 
 ## Environment Variables
 
 Before deploying, make sure to set up the following environment variables in Vercel:
 
 - `MONGODB_URI`: Your MongoDB connection string
-- `FINGERPRINT_SECRET_KEY`: Your Fingerprint.js Pro secret key
+- `SESSION_SECRET`: A secure random string for session encryption
+- `AI_COMPRESSION_ENABLED`: Set to 'true' to enable AI compression features
+- `TENSORFLOW_MODEL_PATH`: Path to your TensorFlow model (if using a pre-trained model)
 
 ## Deployment Steps
 
@@ -75,7 +76,7 @@ After deployment, verify the following:
 1. The application loads correctly
 2. TensorFlow.js is working properly for AI-driven adaptivity
 3. MongoDB connection is established
-4. Fingerprint.js Pro is correctly identifying users
+4. Custom fingerprinting solution is correctly identifying users
 5. Haptic feedback works on mobile devices
 
 ## Troubleshooting

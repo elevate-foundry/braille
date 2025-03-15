@@ -14,11 +14,33 @@ BrailleBuddy is an educational web application designed to help sighted children
 
 ### Technical Features
 - TensorFlow.js for local AI processing and adaptivity
-- Browser fingerprinting with Fingerprint.js Pro for user identification
+- Custom browser fingerprinting solution for user identification without external APIs
 - MongoDB integration for progress tracking and user data
 - Haptic feedback using Web Vibration API for mobile devices
 - Mobile optimization with touch gesture support
-- Secure encryption of user data
+- Secure encryption of user data with hashed identifiers
+
+## Tech Stack
+
+- **Frontend**: React, Tailwind CSS, Vite
+- **Backend**: Node.js, Express
+- **Database**: MongoDB
+- **AI Processing**: TensorFlow.js
+- **Security**: Custom browser fingerprinting, SHA-256 hashing, bcrypt
+- **Haptic Feedback**: Web Vibration API
+- **Internationalization**: Custom multilingual braille encoding
+
+## Data Privacy & Storage
+
+BrailleBuddy takes data privacy seriously:
+
+- No personally identifiable information is stored
+- Custom fingerprinting solution that doesn't rely on external services
+- User fingerprints are hashed using SHA-256 before being saved to MongoDB
+- All learning data is processed locally using TensorFlow.js
+- Session data is encrypted with a secure session key
+- No third-party APIs are used for user identification
+- Users can opt out of fingerprinting at any time
 
 ## Local Development
 
@@ -32,9 +54,13 @@ npm install
 2. Set up environment variables:
 Create a `.env` file with the following variables:
 ```
-FINGERPRINT_SECRET_KEY=your_fingerprint_key
 MONGODB_URI=your_mongodb_connection_string
+AI_COMPRESSION_ENABLED=true
+SESSION_SECRET=your_random_secret_key
+TENSORFLOW_MODEL_PATH=path/to/your/model
 ```
+
+For detailed deployment instructions, see the `DEPLOYMENT.md` file.
 
 3. Run the development server:
 ```bash
@@ -55,9 +81,13 @@ npm start your.email@example.com
 BrailleBuddy uses TensorFlow.js for AI-driven adaptivity and local processing:
 
 - **Local AI Processing**: All AI processing happens locally in the browser, enhancing privacy and reducing external API dependency
-- **Dynamic Difficulty Adjustment**: The app analyzes user performance and adjusts difficulty levels accordingly
+- **Dynamic Difficulty Adjustment**: The app analyzes user performance and adjusts difficulty levels in real-time, ensuring an adaptive, personalized experience
 - **Keyword Extraction**: Identifies important concepts to reinforce during learning sessions
 - **Pattern Recognition**: Identifies patterns in user interactions to provide personalized feedback
+- **Learning Path Optimization**: Uses historical performance data to optimize lesson structure for each user
+- **Text Compression**: Implements AI-driven text compression for optimized braille learning
+- **Performance Analytics**: Provides insights into learning patterns without sending data to external servers
+- **Adaptive Testing**: Generates personalized tests based on user's weak areas
 
 ## Haptic Feedback
 
