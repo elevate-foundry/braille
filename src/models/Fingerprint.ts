@@ -1,26 +1,46 @@
 import mongoose from 'mongoose';
 
+/**
+ * Fingerprint Schema for BrailleBuddy
+ * 
+ * Stores hashed fingerprints and user learning progress data
+ * without collecting personally identifiable information
+ */
 const FingerprintSchema = new mongoose.Schema({
+  // Hashed fingerprint ID from our custom solution
   visitorId: {
     type: String,
     required: true,
     unique: true,
   },
+  // User learning progress data
+  learningProgress: {
+    level: {
+      type: Number,
+      default: 1,
+    },
+    completedLessons: [String],
+    accuracy: {
+      type: Number,
+      default: 0,
+    },
+    lastActivity: Date,
+    achievements: [String],
+  },
+  // Visit history with minimal data for analytics
   visits: [{
-    requestId: String,
     timestamp: Date,
+    // Browser details without PII
     browserDetails: {
       browserName: String,
       browserVersion: String,
       os: String,
       osVersion: String,
     },
-    incognito: Boolean,
-    ip: String,
-    ipLocation: {
-      country: String,
-      city: String,
-    },
+    // Session data
+    sessionDuration: Number,
+    lessonCompleted: Boolean,
+    hapticFeedbackEnabled: Boolean,
   }],
   createdAt: {
     type: Date,

@@ -46,7 +46,7 @@ let model: tf.LayersModel;
 /**
  * Initialize TensorFlow model for text analysis
  */
-async function initializeModel() {
+export async function initializeModel() {
   try {
     // Create a simple model for text classification
     model = tf.sequential();
