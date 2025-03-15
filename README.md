@@ -1,16 +1,24 @@
-# Multilingual Braille & Browser Fingerprint Demo
+# BrailleBuddy: Interactive Braille Learning Application
 
-This project combines multilingual braille encoding with browser fingerprinting capabilities. It demonstrates both semantic compression for medical records using specialized patterns and braille-based encoding, as well as secure browser fingerprinting for user identification.
+BrailleBuddy is an educational web application designed to help sighted children learn braille in an interactive and engaging way. The app combines multilingual braille encoding with AI-driven adaptivity to create a personalized learning experience, while also incorporating browser fingerprinting for secure user identification and progress tracking.
 
 ## Features
 
-- Medical-specific pattern recognition
-- Secure encryption of sensitive data
-- Compression ratio analysis
-- Browser fingerprinting with Fingerprint.js Pro
-- MongoDB integration for visitor tracking
-- Multilingual support
+### Core Features
+- Interactive braille learning exercises with varying difficulty levels
+- AI-driven adaptivity that adjusts to user performance
+- Multilingual support for different braille standards beyond English
+- Personalized progress tracking with achievement system
+- Tactile/keyboard input option using six-key input
 - Responsive UI with Tailwind CSS
+
+### Technical Features
+- TensorFlow.js for local AI processing and adaptivity
+- Browser fingerprinting with Fingerprint.js Pro for user identification
+- MongoDB integration for progress tracking and user data
+- Haptic feedback using Web Vibration API for mobile devices
+- Mobile optimization with touch gesture support
+- Secure encryption of user data
 
 ## Local Development
 
@@ -24,7 +32,6 @@ npm install
 2. Set up environment variables:
 Create a `.env` file with the following variables:
 ```
-OPENAI_API_KEY=your_api_key_here
 FINGERPRINT_SECRET_KEY=your_fingerprint_key
 MONGODB_URI=your_mongodb_connection_string
 ```
@@ -42,6 +49,35 @@ npm start
 # With email report
 npm start your.email@example.com
 ```
+
+## TensorFlow.js Integration
+
+BrailleBuddy uses TensorFlow.js for AI-driven adaptivity and local processing:
+
+- **Local AI Processing**: All AI processing happens locally in the browser, enhancing privacy and reducing external API dependency
+- **Dynamic Difficulty Adjustment**: The app analyzes user performance and adjusts difficulty levels accordingly
+- **Keyword Extraction**: Identifies important concepts to reinforce during learning sessions
+- **Pattern Recognition**: Identifies patterns in user interactions to provide personalized feedback
+
+## Haptic Feedback
+
+BrailleBuddy includes advanced haptic feedback features for mobile devices:
+
+- **Multiple Haptic Modes**:
+  - Standard: Consistent vibration pattern for all braille characters
+  - Rhythmic: Unique rhythm patterns for different character types
+  - Frequency-based: Varying intensities based on character complexity
+- **Customizable Intensity**: Users can adjust vibration strength based on preference
+- **Character-Specific Patterns**: Each braille character has a unique vibration pattern
+
+## Mobile Optimization
+
+The app is fully optimized for mobile use:
+
+- **Touch Gestures**: Swipe navigation for easy interaction
+- **Mobile-Friendly UI**: Larger touch targets and accessible controls
+- **Fullscreen Mode**: Distraction-free learning experience
+- **Responsive Design**: Adapts to different screen sizes and orientations
 
 ## Deploying to Vercel
 
