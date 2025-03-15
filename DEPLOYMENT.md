@@ -1,6 +1,6 @@
 # BrailleBuddy Deployment Guide
 
-This guide provides step-by-step instructions for deploying the BrailleBuddy application to Vercel.
+This guide provides step-by-step instructions for deploying the BrailleBuddy application to the braillebuddy.vercel.app domain.
 
 ## Prerequisites
 
@@ -12,10 +12,12 @@ This guide provides step-by-step instructions for deploying the BrailleBuddy app
 
 Before deploying, make sure to set up the following environment variables in Vercel:
 
-- `MONGODB_URI`: Your MongoDB connection string
+- `MONGODB_URI`: Your MongoDB connection string (required for fingerprint storage)
 - `SESSION_SECRET`: A secure random string for session encryption
 - `AI_COMPRESSION_ENABLED`: Set to 'true' to enable AI compression features
 - `TENSORFLOW_MODEL_PATH`: Path to your TensorFlow model (if using a pre-trained model)
+
+These variables have been configured in the vercel.json file to use Vercel's environment secrets. You'll need to create these secrets in the Vercel dashboard.
 
 ## Deployment Steps
 
@@ -58,15 +60,24 @@ Before deploying, make sure to set up the following environment variables in Ver
    - Directory: Accept default (current directory)
    - Override settings: `N` (vercel.json will be used)
 
-4. Set environment variables:
+4. Set environment variables as secrets:
+   ```bash
+   vercel secrets add mongodb_uri "your-mongodb-connection-string"
+   vercel secrets add session_secret "your-secure-random-string"
+   vercel secrets add tensorflow_model_path "path/to/your/model"
+   ```
+   
+   Then link them to your project:
    ```bash
    vercel env add MONGODB_URI
-   vercel env add FINGERPRINT_SECRET_KEY
+   vercel env add SESSION_SECRET
+   vercel env add AI_COMPRESSION_ENABLED
+   vercel env add TENSORFLOW_MODEL_PATH
    ```
 
-5. Deploy to production:
+5. Deploy to the braillebuddy.vercel.app domain:
    ```bash
-   vercel --prod
+   vercel --name braillebuddy --prod
    ```
 
 ## Post-Deployment Verification
@@ -92,8 +103,14 @@ If TensorFlow.js is not loading correctly:
 
 If MongoDB is not connecting:
 - Verify your connection string is correct
-- Ensure your IP whitelist in MongoDB Atlas includes Vercel's IPs
+- Ensure your IP whitelist in MongoDB Atlas includes Vercel's IPs (0.0.0.0/0 for production)
 - Check that your database user has the correct permissions
+- Make sure your database is named 'braillebuddy' or update the connection string accordingly
+
+You can test the MongoDB connection and fingerprint storage locally with:
+```bash
+npm run test:mongodb
+```
 
 ### Performance Optimization
 

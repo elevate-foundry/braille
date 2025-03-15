@@ -9,7 +9,8 @@
     "dev": "vite",
     "tunnel": "ngrok http 3000",
     "dev:tunnel": "concurrently \"npm run dev\" \"npm run tunnel\"",
-    "test:tensorflow": "tsx src/testTensorflow.ts"
+    "test:tensorflow": "tsx src/testTensorflow.ts",
+    "test:mongodb": "tsx src/testMongoDB.ts"
   },
   "dependencies": {
     "@google-cloud/translate": "^7.2.1",

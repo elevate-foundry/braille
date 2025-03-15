@@ -29,21 +29,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       sessionDuration = 0,
       lessonCompleted = false,
       hapticFeedbackEnabled = false,
-      learningData = {}
+      learningData = {},
+      visitorId = null // The fingerprint should be sent from the client
     } = req.body;
     
-    // Generate fingerprint using our custom solution
-    // In a real implementation, this would be done client-side and sent to the server
-    // For this example, we're simulating it with a hash of the user agent
-    const visitorId = await generateFingerprint(userAgent);
+    // If no visitorId is provided, generate one server-side as a fallback
+    // This is less accurate than client-side fingerprinting but works as a fallback
+    const fingerprintId = visitorId || await generateFingerprint(userAgent);
     
     // Find or create fingerprint record
-    let fingerprintRecord = await Fingerprint.findOne({ visitorId });
+    let fingerprintRecord = await Fingerprint.findOne({ visitorId: fingerprintId });
     
     if (!fingerprintRecord) {
       // Create new record if not found
       fingerprintRecord = new Fingerprint({
-        visitorId,
+        visitorId: fingerprintId,
         learningProgress: {
           level: 1,
           completedLessons: [],
