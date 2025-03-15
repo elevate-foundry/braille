@@ -6,22 +6,23 @@
  */
 
 // Using a simplified approach without framework-specific types
-// This makes the API compatible with different Next.js versions
-type NextApiRequest = {
+// This makes the API compatible with both Express and Vercel
+interface Request {
   method?: string;
   body?: any;
   headers?: Record<string, string | string[] | undefined>;
-};
+}
 
-type NextApiResponse = {
-  status: (code: number) => NextApiResponse;
+interface Response {
+  status: (code: number) => Response;
   json: (data: any) => void;
-};
+}
 import dbConnect from '../src/lib/db.js';
 import Fingerprint from '../src/models/Fingerprint.js';
+import ConsentModel from '../src/models/Consent.js';
 import { getFingerprint } from '../src/lib/customFingerprint.js';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: Request, res: Response) {
   // Only allow POST requests
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -44,7 +45,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       hapticFeedbackEnabled = false,
       learningData = {},
       visitorId = null // The fingerprint should be sent from the client
-    } = req.body;
+    } = req.body || {};
     
     // If no visitorId is provided, generate one server-side as a fallback
     // This is less accurate than client-side fingerprinting but works as a fallback
@@ -116,10 +117,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Save the record
     await fingerprintRecord.save();
     
+    // Get consent status from database
+    const consentRecord = await ConsentModel.findOne({ visitorId: fingerprintId });
+    const hasConsent = consentRecord?.consented || false;
+    
+    // Generate fingerprint components for display
+    const components = generateFingerprintComponents(userAgentString, fingerprintId);
+    
     // Return the fingerprint data
     return res.status(200).json({
-      visitorId,
+      visitorId: fingerprintId,
       learningProgress: fingerprintRecord.learningProgress,
+      visits: fingerprintRecord.visits,
+      firstSeen: fingerprintRecord.visits[0]?.timestamp || new Date(),
+      lastSeen: new Date(),
+      components,
+      hasConsent,
+      consentTimestamp: consentRecord?.timestamp || null,
       success: true
     });
     
@@ -127,6 +141,64 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.error('Error in custom fingerprint API:', error);
     return res.status(500).json({ error: 'Internal server error' });
   }
+}
+
+/**
+ * Generate fingerprint components for display
+ * This creates a detailed breakdown of the fingerprint for educational purposes
+ */
+function generateFingerprintComponents(userAgent: string, fingerprintId: string) {
+  const browserDetails = parseBrowserDetails(userAgent);
+  
+  // Create a structured object of fingerprint components
+  // This is educational and helps users understand what makes their fingerprint unique
+  return {
+    // Basic browser information
+    browser: {
+      name: browserDetails.browserName,
+      version: browserDetails.browserVersion,
+      userAgent: userAgent.substring(0, 100) + '...' // Truncated for display
+    },
+    
+    // Operating system information
+    operatingSystem: {
+      name: browserDetails.os,
+      version: browserDetails.osVersion
+    },
+    
+    // Screen and window information
+    screen: {
+      // These would normally come from the client, using placeholder values
+      colorDepth: '24-bit',
+      resolution: '1920x1080',
+      availableResolution: '1920x1040'
+    },
+    
+    // Hardware information (simulated for educational purposes)
+    hardware: {
+      deviceMemory: '8GB',
+      processorCores: 4,
+      touchSupport: true,
+      hapticFeedback: true
+    },
+    
+    // Braille-specific components
+    brailleSettings: {
+      preferredCellSize: 'standard',
+      contrastMode: 'high',
+      hapticIntensity: 'medium',
+      learningLevel: 'beginner'
+    },
+    
+    // Fingerprint ID components (educational breakdown)
+    fingerprintBreakdown: {
+      // Show how the fingerprint is constructed (simplified for education)
+      hashAlgorithm: 'SHA-256',
+      uniqueComponents: 12,
+      stabilityScore: '98%',
+      fingerprintId: fingerprintId
+    }
+  };
 }
 
 /**
@@ -209,10 +281,11 @@ async function generateFingerprint(userAgent: string): Promise<string> {
     // In a real implementation, we would use the getFingerprint() function
     // from our customFingerprint.ts file, but for server-side simulation,
     // we'll create a hash of the user agent
-    const crypto = require('crypto');
-    const hash = crypto.createHash('sha256');
-    hash.update(userAgent + Date.now().toString());
-    return hash.digest('hex');
+    // Import CryptoJS dynamically for server-side usage
+    const CryptoJS = require('crypto-js');
+    // Create SHA-256 hash of the user agent and current timestamp
+    const hashOutput = CryptoJS.SHA256(userAgent + Date.now().toString());
+    return hashOutput.toString(CryptoJS.enc.Hex);
   } catch (error) {
     console.error('Error generating fingerprint:', error);
     // Fallback to a random ID if hashing fails

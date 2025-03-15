@@ -1,5 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { getFingerprint } from './lib/customFingerprint.js';
+import { getFingerprint } from './lib/customFingerprint';
+import { initHapticFeedback, HapticMode, triggerHapticFeedback } from './lib/hapticFeedback';
+import ConsentPrompt from './components/ConsentPrompt';
+import ConsentToggle from './components/ConsentToggle';
+import FingerprintDisplay from './components/FingerprintDisplay';
+import consentManager from './ConsentManager';
+import { formatDate } from './lib/utils';
 
 // Using our custom fingerprinting types
 interface FingerprintComponents {
@@ -27,6 +33,12 @@ interface VisitorData {
     achievements: string[];
   };
   visitorId: string;
+  firstSeen?: Date | string;
+  lastSeen?: Date | string;
+  components?: FingerprintComponents;
+  hasConsent?: boolean;
+  consentTimestamp?: Date | string | null;
+  success?: boolean;
 }
 
 function App() {
@@ -34,48 +46,159 @@ function App() {
   const [visitorData, setVisitorData] = useState<VisitorData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
+  // Always show consent prompt on first visit or when consent is not yet given
+  const [showConsentPrompt, setShowConsentPrompt] = useState(true);
+  const [consentGiven, setConsentGiven] = useState(consentManager.hasConsent());
+  const [fingerprintComponents, setFingerprintComponents] = useState<FingerprintComponents | null>(null);
 
-  useEffect(() => {
-    const initFingerprint = async () => {
-      try {
-        // Use our custom fingerprinting solution instead of Fingerprint.js
-        const visitorId = await getFingerprint();
-        setFingerprint(visitorId);
-        
-        // Fetch detailed visitor data from our API
-        const response = await fetch(`/api/customFingerprint`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ visitorId })
-        });
-        const data = await response.json();
-        
-        if (!response.ok) {
-          throw new Error(data.error || 'Failed to fetch visitor data');
-        }
-        
-        setVisitorData(data);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error:', error);
-        setError(error instanceof Error ? error.message : 'Failed to get fingerprint');
-        setLoading(false);
+  // Fetch fingerprint data
+  const fetchFingerprint = async () => {
+    if (!consentGiven) {
+      setError('Consent required to fetch fingerprint');
+      return;
+    }
+    
+    setLoading(true);
+    setError('');
+    
+    try {
+      // Get the fingerprint
+      const visitorId = await getFingerprint();
+      setFingerprint(visitorId);
+      
+      // Set the visitor ID in the consent manager for database sync
+      consentManager.setVisitorId(visitorId);
+      
+      // Fetch detailed visitor data from our API
+      const response = await fetch(`/api/customFingerprint`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ visitorId })
+      });
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch visitor data');
       }
-    };
+      
+      setVisitorData(data);
+      
+      // Set fingerprint components for display
+      if (data.components) {
+        setFingerprintComponents(data.components);
+      }
+      
+      // Provide haptic feedback on successful fingerprint
+      const hapticAvailable = initHapticFeedback();
+      if (hapticAvailable) {
+        triggerHapticFeedback('success', { mode: HapticMode.BIOLOGICAL, intensity: 7 });
+      }
+    } catch (err) {
+      setError('Error fetching fingerprint: ' + (err instanceof Error ? err.message : String(err)));
+      
+      // Provide haptic feedback on error
+      const hapticAvailable = initHapticFeedback();
+      if (hapticAvailable) {
+        triggerHapticFeedback('error', { mode: HapticMode.BIOLOGICAL, intensity: 6 });
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  useEffect(() => {
+    // Initialize haptic feedback system
+    const hapticAvailable = initHapticFeedback();
+    console.log('Haptic feedback available:', hapticAvailable);
+    
+    // Check if user has already given consent previously
+    const hasExistingConsent = consentManager.hasConsent();
+    if (hasExistingConsent) {
+      setConsentGiven(true);
+      setShowConsentPrompt(false);
+      fetchFingerprint();
+    }
+    
+    // Only fetch fingerprint if consent is given and we haven't already done so
+    if (consentGiven && !fingerprint) {
+      fetchFingerprint();
+    }
+  }, [consentGiven]);
 
-    initFingerprint();
-  }, []);
+  // Handle consent acceptance
+  const handleAcceptConsent = async () => {
+    await consentManager.setConsent(true);
+    setConsentGiven(true);
+    setShowConsentPrompt(false);
+    
+    // Provide haptic feedback on consent
+    const hapticAvailable = initHapticFeedback();
+    if (hapticAvailable) {
+      triggerHapticFeedback('success', { mode: HapticMode.STANDARD, intensity: 5 });
+    }
+    
+    // Log the consent event to console for debugging
+    console.log('BBES: Consent accepted, fingerprinting will begin');
+    
+    // Fetch fingerprint immediately after consent
+    fetchFingerprint();
+  };
 
-  if (loading) {
+  // Handle consent decline
+  const handleDeclineConsent = async () => {
+    await consentManager.setConsent(false);
+    setConsentGiven(false);
+    setShowConsentPrompt(false);
+    setError('Consent declined. Fingerprinting is required to use this application.');
+    
+    // Log the decline event
+    console.log('BBES: Consent declined, fingerprinting disabled');
+    
+    // Clear fingerprint data when consent is declined
+    setFingerprint('');
+    setVisitorData(null);
+    setFingerprintComponents(null);
+  };
+  
+  // Toggle consent status
+  const toggleConsent = async () => {
+    const newStatus = consentManager.toggleConsent();
+    setConsentGiven(newStatus);
+    
+    if (newStatus) {
+      // If toggled to true, fetch fingerprint
+      fetchFingerprint();
+      
+      // Provide haptic feedback
+      const hapticAvailable = initHapticFeedback();
+      if (hapticAvailable) {
+        triggerHapticFeedback('toggle', { mode: HapticMode.RHYTHMIC, intensity: 3 });
+      }
+    } else {
+      // If toggled to false, clear fingerprint data
+      setFingerprint('');
+      setVisitorData(null);
+      setFingerprintComponents(null);
+    }
+  };
+
+  // Show consent prompt
+  if (showConsentPrompt) {
+    return <ConsentPrompt onAccept={handleAcceptConsent} onDecline={handleDeclineConsent} />;
+  }
+
+  // Show loading state
+  if (loading && consentGiven) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="text-2xl text-gray-600">Loading fingerprint data...</div>
+        <div className="text-2xl text-gray-600">Loading BBES fingerprint data...</div>
       </div>
     );
   }
 
+  // Show error state
   if (error) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
@@ -87,14 +210,66 @@ function App() {
   return (
     <div className="min-h-screen bg-gray-100 p-8">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8 text-gray-800">Browser Fingerprint Demo</h1>
-        
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
-          <h2 className="text-xl font-semibold mb-4">Your Fingerprint ID</h2>
-          <div className="bg-gray-100 p-4 rounded-md font-mono break-all">
-            {fingerprint}
+        <header className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-800">BBES Fingerprint Demo</h1>
+            <p className="text-gray-600">Learn braille through interactive fingerprinting</p>
           </div>
-        </div>
+          
+          {/* Consent Toggle Component */}
+          <ConsentToggle 
+            initialConsent={consentGiven}
+            onConsentChange={(newStatus) => {
+              setConsentGiven(newStatus);
+              if (newStatus) {
+                fetchFingerprint();
+              } else {
+                setFingerprint('');
+                setVisitorData(null);
+                setFingerprintComponents(null);
+              }
+            }}
+            visitorId={fingerprint}
+            showEducationalInfo={true}
+          />
+        </header>
+        
+        {consentGiven && (
+          <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 className="text-xl font-semibold mb-4">Your BBES Fingerprint ID</h2>
+            <div className="bg-gray-100 p-4 rounded-md font-mono break-all">
+              {fingerprint}
+            </div>
+            <div className="mt-4 text-sm text-gray-500">
+              <p>This fingerprint is stored in MongoDB when consent is given.</p>
+              <p>Toggle consent using the switch in the header to control data collection.</p>
+              {visitorData?.hasConsent !== undefined && (
+                <div className="mt-2 p-2 bg-blue-50 rounded">
+                  <p className="font-medium text-blue-800">MongoDB Consent Status: 
+                    <span className={visitorData.hasConsent ? 'text-green-600' : 'text-red-600'}>
+                      {visitorData.hasConsent ? ' Active' : ' Inactive'}
+                    </span>
+                  </p>
+                  {visitorData.consentTimestamp && (
+                    <p className="text-blue-700">Last updated: {formatDate(visitorData.consentTimestamp)}</p>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+        
+        {/* Display fingerprint components if available */}
+        {fingerprintComponents && consentGiven && visitorData && (
+          <FingerprintDisplay 
+            components={fingerprintComponents}
+            visitorId={fingerprint}
+            firstSeen={visitorData.firstSeen}
+            lastSeen={visitorData.lastSeen}
+            hasConsent={visitorData.hasConsent || false}
+            consentTimestamp={visitorData.consentTimestamp}
+          />
+        )}
 
         {visitorData && (
           <div className="bg-white rounded-lg shadow-lg p-6">

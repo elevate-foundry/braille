@@ -6,7 +6,7 @@
  * and creates a unique hash to identify users while respecting privacy.
  */
 
-import crypto from 'crypto';
+import CryptoJS from 'crypto-js';
 
 interface FingerprintOptions {
   enableWebGL?: boolean;
@@ -335,10 +335,24 @@ export class CustomFingerprint {
     }
     
     const json = JSON.stringify(this.components);
-    const hash = crypto.createHash(this.options.hashAlgorithm as string);
-    hash.update(json);
+    // Use CryptoJS for browser compatibility
+    let hashOutput;
     
-    return hash.digest('hex');
+    switch (this.options.hashAlgorithm) {
+      case 'sha256':
+        hashOutput = CryptoJS.SHA256(json);
+        break;
+      case 'sha1':
+        hashOutput = CryptoJS.SHA1(json);
+        break;
+      case 'md5':
+        hashOutput = CryptoJS.MD5(json);
+        break;
+      default:
+        hashOutput = CryptoJS.SHA256(json);
+    }
+    
+    return hashOutput.toString(CryptoJS.enc.Hex);
   }
   
   /**
