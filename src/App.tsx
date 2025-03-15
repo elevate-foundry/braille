@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { load } from '@fingerprintjs/fingerprintjs-pro';
+import { getFingerprint } from './lib/customFingerprint.js';
 
+// Using our custom fingerprinting types
 interface FingerprintComponents {
   [key: string]: any;
 }
 
 interface VisitorData {
   visits: Array<{
-    requestId: string;
     timestamp: string;
     browserDetails: {
       browserName: string;
@@ -15,13 +15,18 @@ interface VisitorData {
       os: string;
       osVersion: string;
     };
-    incognito: boolean;
-    ip: string;
-    ipLocation: {
-      country: string;
-      city: string;
-    };
+    sessionDuration?: number;
+    lessonCompleted?: boolean;
+    hapticFeedbackEnabled?: boolean;
   }>;
+  learningProgress: {
+    level: number;
+    completedLessons: string[];
+    accuracy: number;
+    lastActivity: string;
+    achievements: string[];
+  };
+  visitorId: string;
 }
 
 function App() {
@@ -33,15 +38,18 @@ function App() {
   useEffect(() => {
     const initFingerprint = async () => {
       try {
-        const fp = await load({
-          apiKey: 'b3ax42QACNcVSfbzxphE'
-        });
-        
-        const result = await fp.get();
-        setFingerprint(result.visitorId);
+        // Use our custom fingerprinting solution instead of Fingerprint.js
+        const visitorId = await getFingerprint();
+        setFingerprint(visitorId);
         
         // Fetch detailed visitor data from our API
-        const response = await fetch(`/api/fingerprint?visitorId=${result.visitorId}`);
+        const response = await fetch(`/api/customFingerprint`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ visitorId })
+        });
         const data = await response.json();
         
         if (!response.ok) {
@@ -93,7 +101,7 @@ function App() {
             <h2 className="text-xl font-semibold mb-4">Visitor History</h2>
             <div className="space-y-6">
               {visitorData.visits.map((visit, index) => (
-                <div key={visit.requestId} className="border-b border-gray-200 pb-6 last:border-b-0">
+                <div key={index} className="border-b border-gray-200 pb-6 last:border-b-0">
                   <h3 className="font-medium text-gray-700 mb-3">Visit {index + 1}</h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
@@ -105,24 +113,48 @@ function App() {
                       <p>{visit.browserDetails.os} {visit.browserDetails.osVersion}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">Location</p>
-                      <p>{visit.ipLocation.city}, {visit.ipLocation.country}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">IP Address</p>
-                      <p>{visit.ip}</p>
-                    </div>
-                    <div>
                       <p className="text-sm text-gray-500">Timestamp</p>
                       <p>{new Date(visit.timestamp).toLocaleString()}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">Incognito</p>
-                      <p>{visit.incognito ? 'Yes' : 'No'}</p>
+                      <p className="text-sm text-gray-500">Session Duration</p>
+                      <p>{visit.sessionDuration ? `${visit.sessionDuration} seconds` : 'N/A'}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Lesson Completed</p>
+                      <p>{visit.lessonCompleted ? 'Yes' : 'No'}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Haptic Feedback</p>
+                      <p>{visit.hapticFeedbackEnabled ? 'Enabled' : 'Disabled'}</p>
                     </div>
                   </div>
                 </div>
               ))}
+            </div>
+            
+            <h2 className="text-xl font-semibold mb-4 mt-8">Learning Progress</h2>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm text-gray-500">Current Level</p>
+                <p>{visitorData.learningProgress.level}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Accuracy</p>
+                <p>{visitorData.learningProgress.accuracy}%</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Last Activity</p>
+                <p>{new Date(visitorData.learningProgress.lastActivity).toLocaleString()}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Completed Lessons</p>
+                <p>{visitorData.learningProgress.completedLessons.length}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Achievements</p>
+                <p>{visitorData.learningProgress.achievements.length}</p>
+              </div>
             </div>
           </div>
         )}

@@ -5,7 +5,18 @@
  * It creates a unique identifier for users without collecting personally identifiable information.
  */
 
-import { NextApiRequest, NextApiResponse } from 'next';
+// Using a simplified approach without framework-specific types
+// This makes the API compatible with different Next.js versions
+type NextApiRequest = {
+  method?: string;
+  body?: any;
+  headers?: Record<string, string | string[] | undefined>;
+};
+
+type NextApiResponse = {
+  status: (code: number) => NextApiResponse;
+  json: (data: any) => void;
+};
 import dbConnect from '../src/lib/db.js';
 import Fingerprint from '../src/models/Fingerprint.js';
 import { getFingerprint } from '../src/lib/customFingerprint.js';
@@ -21,8 +32,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     await dbConnect();
     
     // Get browser details from user agent
-    const userAgent = req.headers['user-agent'] || '';
-    const browserDetails = parseBrowserDetails(userAgent);
+    const userAgent = req.headers?.['user-agent'] || '';
+    // Ensure we're working with a string
+    const userAgentString = Array.isArray(userAgent) ? userAgent[0] : userAgent;
+    const browserDetails = parseBrowserDetails(userAgentString);
     
     // Get session data from request body
     const { 
@@ -35,7 +48,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     
     // If no visitorId is provided, generate one server-side as a fallback
     // This is less accurate than client-side fingerprinting but works as a fallback
-    const fingerprintId = visitorId || await generateFingerprint(userAgent);
+    const fingerprintId = visitorId || await generateFingerprint(userAgentString);
     
     // Find or create fingerprint record
     let fingerprintRecord = await Fingerprint.findOne({ visitorId: fingerprintId });
