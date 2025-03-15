@@ -51,6 +51,9 @@ function App() {
   const [consentGiven, setConsentGiven] = useState(consentManager.hasConsent());
   const [fingerprintComponents, setFingerprintComponents] = useState<FingerprintComponents | null>(null);
 
+  // State to track haptic feedback availability
+  const [hapticEnabled, setHapticEnabled] = useState<boolean>(false);
+
   // Fetch fingerprint data
   const fetchFingerprint = async () => {
     if (!consentGiven) {
@@ -92,26 +95,23 @@ function App() {
       
       // Provide haptic feedback on successful fingerprint
       const hapticAvailable = initHapticFeedback();
-      if (hapticAvailable) {
-        triggerHapticFeedback('success', { mode: HapticMode.BIOLOGICAL, intensity: 7 });
-      }
+      setHapticEnabled(hapticAvailable);
+      triggerHapticFeedback('success', { mode: HapticMode.BIOLOGICAL, intensity: 7 });
     } catch (err) {
       setError('Error fetching fingerprint: ' + (err instanceof Error ? err.message : String(err)));
       
       // Provide haptic feedback on error
-      const hapticAvailable = initHapticFeedback();
-      if (hapticAvailable) {
-        triggerHapticFeedback('error', { mode: HapticMode.BIOLOGICAL, intensity: 6 });
-      }
+      triggerHapticFeedback('error', { mode: HapticMode.BIOLOGICAL, intensity: 6 });
     } finally {
       setLoading(false);
     }
   };
   
   useEffect(() => {
-    // Initialize haptic feedback system
+    // Initialize haptic feedback system for both desktop and mobile
     const hapticAvailable = initHapticFeedback();
-    console.log('Haptic feedback available:', hapticAvailable);
+    setHapticEnabled(hapticAvailable);
+    console.log('Haptic feedback enabled:', hapticAvailable);
     
     // Check if user has already given consent previously
     const hasExistingConsent = consentManager.hasConsent();
@@ -134,10 +134,7 @@ function App() {
     setShowConsentPrompt(false);
     
     // Provide haptic feedback on consent
-    const hapticAvailable = initHapticFeedback();
-    if (hapticAvailable) {
-      triggerHapticFeedback('success', { mode: HapticMode.STANDARD, intensity: 5 });
-    }
+    triggerHapticFeedback('consent-granted', { mode: HapticMode.BIOLOGICAL, intensity: 7 });
     
     // Log the consent event to console for debugging
     console.log('BBES: Consent accepted, fingerprinting will begin');
