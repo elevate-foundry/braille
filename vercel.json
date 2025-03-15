@@ -1,6 +1,5 @@
 {
   "version": 2,
-  "name": "braillebuddy",
   "builds": [
     {
       "src": "package.json",
@@ -22,12 +21,7 @@
       "dest": "/index.html"
     }
   ],
-  "functions": {
-    "api/**/*.ts": {
-      "memory": 1024,
-      "maxDuration": 10
-    }
-  },
+  
   "env": {
     "MONGODB_URI": "@mongodb_uri",
     "AI_COMPRESSION_ENABLED": "true",
