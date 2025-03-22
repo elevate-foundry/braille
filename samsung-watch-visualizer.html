@@ -598,7 +598,7 @@
             <p>Scanning for Samsung watches...</p>
         </div>
 
-            <div class="dashboard">
+            <div class="tab-content" id="dashboard-content" data-tab="dashboard">
             <div class="card">
                 <h3 class="card-title">Heart Rate</h3>
                 <div class="card-value" id="heartRateValue">--</div>
@@ -629,7 +629,7 @@
         <div class="last-updated" id="lastUpdated">Last updated: Never</div>
         
         <!-- Fingerprint Authentication Tab Content -->
-        <div class="tab-content" id="fingerprint-content" style="display: none;">
+        <div class="tab-content" id="fingerprint-content" data-tab="fingerprint" style="display: none;">
             <h2>Fingerprint Authentication</h2>
             
             <div class="card">
@@ -700,16 +700,56 @@
         </div>
         
         <!-- Braille Haptic Tab Content -->
-        <div class="tab-content" id="braille-content" style="display: none;">
+        <div class="tab-content" id="braille-content" data-tab="braille" style="display: none;">
             <h2>Braille Haptic Messaging</h2>
             
-            <div class="connection-status">
+            <div class="connection-options">
+                <div class="card">
+                    <h3 class="card-title">Connection Method</h3>
+                    <div class="card-content">
+                        <div class="setting-row">
+                            <label for="connectionMethod">Choose connection method:</label>
+                            <select id="connectionMethod" onchange="toggleConnectionMethod()">
+                                <option value="usb">USB (ADB)</option>
+                                <option value="bluetooth">Bluetooth</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- USB Connection Status -->
+            <div class="connection-status" id="usbConnectionStatus">
                 <div class="status-indicator">
                     <div class="status-dot disconnected" id="phoneStatusDot"></div>
                     <span class="status-text" id="phoneStatusText">Phone not connected</span>
                 </div>
                 <div class="actions">
-                    <button id="refreshPhoneConnection" class="secondary">Refresh Connection</button>
+                    <button id="refreshPhoneConnection" class="secondary" onclick="checkPhoneConnection()">Refresh Connection</button>
+                </div>
+            </div>
+            
+            <!-- Bluetooth Connection Controls -->
+            <div class="connection-status" id="bluetoothConnectionControls" style="display: none;">
+                <div class="card">
+                    <h3 class="card-title">Bluetooth Connection</h3>
+                    <div class="card-content">
+                        <div class="status-indicator">
+                            <div class="status-dot disconnected" id="brailleBluetoothStatusDot"></div>
+                            <span class="status-text" id="brailleBluetoothStatusText">Not connected</span>
+                        </div>
+                        <div class="button-group">
+                            <button class="btn primary" id="connectBrailleBluetoothBtn" onclick="connectBrailleViaBluetooth()">Connect via Bluetooth</button>
+                            <button class="btn" id="disconnectBrailleBluetoothBtn" onclick="disconnectBrailleViaBluetooth()" disabled>Disconnect</button>
+                        </div>
+                        
+                        <!-- Authentication Status Indicator -->
+                        <div class="status-indicator" style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px;">
+                            <div class="status-dot disconnected" id="brailleAuthStatusDot"></div>
+                            <span class="status-text" id="brailleAuthStatusText">Not authenticated</span>
+                            <button class="btn secondary" id="brailleAuthButton" onclick="switchTab('fingerprint')">Authenticate</button>
+                        </div>
+                    </div>
                 </div>
             </div>
             
@@ -751,15 +791,52 @@
         </div>
     </div>
 
+    <script>
+        // Global functions for HTML event handlers
+        function toggleConnectionMethod() {
+            const connectionMethod = document.getElementById('connectionMethod').value;
+            const usbConnectionStatus = document.getElementById('usbConnectionStatus');
+            const bluetoothConnectionControls = document.getElementById('bluetoothConnectionControls');
+            
+            if (connectionMethod === 'usb') {
+                usbConnectionStatus.style.display = 'block';
+                bluetoothConnectionControls.style.display = 'none';
+                window.checkPhoneConnection();
+            } else {
+                usbConnectionStatus.style.display = 'none';
+                bluetoothConnectionControls.style.display = 'block';
+            }
+        }
+        
+        function connectBrailleViaBluetooth() {
+            window.connectBrailleViaBluetooth();
+        }
+        
+        function disconnectBrailleViaBluetooth() {
+            window.disconnectBrailleViaBluetooth();
+        }
+        
+        function checkPhoneConnection() {
+            window.checkPhoneConnection();
+        }
+        
+        function sendBrailleMessage() {
+            window.sendBrailleMessage();
+        }
+    </script>
+    
     <script type="module">
         import SamsungWatchConnector from './samsung-watch-connector.js';
         import BrailleHapticMessenger from './braille-haptic-messenger.js';
         import FingerprintAuthenticator from './fingerprint-authenticator.js';
+        import BluetoothConnector from './bluetooth-connector.js';
 
-        // Initialize the Samsung Watch connector, Braille Haptic Messenger, and Fingerprint Authenticator
-        const watchConnector = new SamsungWatchConnector();
-        const brailleMessenger = new BrailleHapticMessenger();
-        const fingerprintAuth = new FingerprintAuthenticator();
+        // Initialize variables for components
+        let watchConnector;
+        let brailleMessenger;
+        let fingerprintAuth;
+        let bluetoothConnector;
+        let brailleBluetoothConnector; // Separate connector for braille messaging
         let heartRateChart;
         let heartRateData = [];
         let timeLabels = [];
@@ -940,18 +1017,32 @@ initialize();`,
         function initTabs() {
             const tabs = document.querySelectorAll('.tab');
             const tabContents = document.querySelectorAll('.tab-content');
+            const dashboardContent = document.getElementById('dashboard-content');
+            
+            // Show dashboard by default
+            dashboardContent.style.display = 'block';
             
             tabs.forEach(tab => {
                 tab.addEventListener('click', () => {
                     const tabId = tab.getAttribute('data-tab');
                     
-                    // Remove active class from all tabs and contents
+                    // Remove active class from all tabs
                     tabs.forEach(t => t.classList.remove('active'));
-                    tabContents.forEach(c => c.classList.remove('active'));
                     
-                    // Add active class to clicked tab and corresponding content
+                    // Hide all tab contents
+                    tabContents.forEach(c => c.style.display = 'none');
+                    if (dashboardContent) dashboardContent.style.display = 'none';
+                    
+                    // Add active class to clicked tab
                     tab.classList.add('active');
-                    document.querySelector(`.tab-content[data-tab="${tabId}"]`).classList.add('active');
+                    
+                    // Show the corresponding content
+                    if (tabId === 'dashboard') {
+                        if (dashboardContent) dashboardContent.style.display = 'block';
+                    } else {
+                        const content = document.getElementById(`${tabId}-content`);
+                        if (content) content.style.display = 'block';
+                    }
                     
                     // Initialize Monaco editor when developer tab is selected
                     if (tabId === 'developer' && !window.editor) {
@@ -959,6 +1050,19 @@ initialize();`,
                     }
                 });
             });
+            
+            // Set initial active tab
+            const activeTab = document.querySelector('.tab.active');
+            if (activeTab) {
+                const tabId = activeTab.getAttribute('data-tab');
+                if (tabId !== 'dashboard') {
+                    const content = document.getElementById(`${tabId}-content`);
+                    if (content) {
+                        dashboardContent.style.display = 'none';
+                        content.style.display = 'block';
+                    }
+                }
+            }
         }
         
         // Terminal functionality
@@ -1121,8 +1225,14 @@ initialize();`,
             // Initialize the chart
             initChart();
             
+            // Initialize Bluetooth connector
+            bluetoothConnector = new BluetoothConnector();
+            
             // Initialize tabs
             initTabs();
+            
+            // Initialize connection method toggle
+            toggleConnectionMethod();
             
             // Initialize terminal
             initTerminal();
@@ -1219,6 +1329,10 @@ initialize();`,
         function initBrailleHaptic() {
             // Set default haptic settings
             updateHapticSettings();
+            
+            // Set up connection method change handler
+            document.getElementById('connectionMethod').addEventListener('change', toggleConnectionMethod);
+            document.getElementById('refreshPhoneConnection').addEventListener('click', checkPhoneConnection);
             
             // Initialize braille preview
             updateBraillePreview();
@@ -1408,9 +1522,25 @@ initialize();`,
                     document.getElementById('authHapticIntensity').disabled = false;
                     document.getElementById('authBrailleMessage').disabled = false;
                     document.getElementById('sendAuthHapticButton').disabled = false;
+                    
+                    // Update braille tab authentication status if exists
+                    const brailleAuthStatusDot = document.getElementById('brailleAuthStatusDot');
+                    const brailleAuthStatusText = document.getElementById('brailleAuthStatusText');
+                    if (brailleAuthStatusDot && brailleAuthStatusText) {
+                        brailleAuthStatusDot.className = 'status-dot connected';
+                        brailleAuthStatusText.textContent = 'Authenticated';
+                    }
                 } else {
                     // Update UI to show authentication failed
                     authStatus.innerHTML = '<i class="fas fa-fingerprint" style="font-size: 48px; color: var(--error-color);"></i><p>Authentication failed</p>';
+                    
+                    // Update braille tab authentication status if exists
+                    const brailleAuthStatusDot = document.getElementById('brailleAuthStatusDot');
+                    const brailleAuthStatusText = document.getElementById('brailleAuthStatusText');
+                    if (brailleAuthStatusDot && brailleAuthStatusText) {
+                        brailleAuthStatusDot.className = 'status-dot disconnected';
+                        brailleAuthStatusText.textContent = 'Not authenticated';
+                    }
                 }
                 
                 // Helper function to generate a random token
@@ -1467,7 +1597,7 @@ initialize();`,
         }
         
         // Check if phone is connected via ADB
-        function checkPhoneConnection() {
+        window.checkPhoneConnection = function() {
             const statusDot = document.getElementById('phoneStatusDot');
             const statusText = document.getElementById('phoneStatusText');
             
@@ -1492,48 +1622,192 @@ initialize();`,
             }, 1000);
         }
         
+        // Expose functions to window for HTML event handlers
+        window.toggleConnectionMethod = function() {
+            const connectionMethod = document.getElementById('connectionMethod').value;
+            const usbConnectionStatus = document.getElementById('usbConnectionStatus');
+            const bluetoothConnectionControls = document.getElementById('bluetoothConnectionControls');
+            
+            if (connectionMethod === 'usb') {
+                usbConnectionStatus.style.display = 'block';
+                bluetoothConnectionControls.style.display = 'none';
+                checkPhoneConnection();
+            } else {
+                usbConnectionStatus.style.display = 'none';
+                bluetoothConnectionControls.style.display = 'block';
+                
+                // Initialize Bluetooth connector for braille if not already done
+                if (!brailleBluetoothConnector) {
+                    brailleBluetoothConnector = new BluetoothConnector();
+                    if (brailleMessenger) {
+                        brailleMessenger.setBluetoothConnector(brailleBluetoothConnector);
+                        console.log('Bluetooth connector set for braille messaging');
+                    }
+                }
+            }
+        }
+        
+        // Connect to Bluetooth for braille messaging
+        window.connectBrailleViaBluetooth = async function() {
+            try {
+                // Update UI to show connecting state
+                const statusDot = document.getElementById('brailleBluetoothStatusDot');
+                const statusText = document.getElementById('brailleBluetoothStatusText');
+                const connectBtn = document.getElementById('connectBrailleBluetoothBtn');
+                const disconnectBtn = document.getElementById('disconnectBrailleBluetoothBtn');
+                
+                statusDot.className = 'status-dot connecting';
+                statusText.textContent = 'Connecting...';
+                connectBtn.disabled = true;
+                
+                // Initialize Bluetooth connector for braille if not already done
+                if (!brailleBluetoothConnector) {
+                    brailleBluetoothConnector = new BluetoothConnector();
+                }
+                
+                // Connect to Bluetooth device
+                await brailleBluetoothConnector.connect();
+                
+                // Update UI to show connected state
+                statusDot.className = 'status-dot connected';
+                statusText.textContent = brailleBluetoothConnector.device ? 
+                    `Connected to ${brailleBluetoothConnector.device.name}` : 'Connected';
+                connectBtn.disabled = true;
+                disconnectBtn.disabled = false;
+                
+                // Set the Bluetooth connector in the braille messenger
+                brailleMessenger.setBluetoothConnector(brailleBluetoothConnector);
+                
+                // Initialize fingerprint authenticator if not already done
+                if (!fingerprintAuth) {
+                    fingerprintAuth = new FingerprintAuthenticator();
+                    // Use the same Bluetooth connector
+                    fingerprintAuth.bluetoothConnector = brailleBluetoothConnector;
+                    console.log('Fingerprint authenticator initialized with braille Bluetooth connector');
+                }
+            } catch (error) {
+                console.error('Error connecting to Bluetooth device:', error);
+                
+                // Update UI to show error
+                const statusDot = document.getElementById('brailleBluetoothStatusDot');
+                const statusText = document.getElementById('brailleBluetoothStatusText');
+                const connectBtn = document.getElementById('connectBrailleBluetoothBtn');
+                
+                statusDot.className = 'status-dot disconnected';
+                statusText.textContent = `Error: ${error.message}`;
+                connectBtn.disabled = false;
+            }
+        }
+        
+        // Disconnect from Bluetooth for braille messaging
+        window.disconnectBrailleViaBluetooth = async function() {
+            try {
+                if (brailleBluetoothConnector) {
+                    await brailleBluetoothConnector.disconnect();
+                }
+                
+                // Update UI to show disconnected state
+                const statusDot = document.getElementById('brailleBluetoothStatusDot');
+                const statusText = document.getElementById('brailleBluetoothStatusText');
+                const connectBtn = document.getElementById('connectBrailleBluetoothBtn');
+                const disconnectBtn = document.getElementById('disconnectBrailleBluetoothBtn');
+                
+                statusDot.className = 'status-dot disconnected';
+                statusText.textContent = 'Disconnected';
+                connectBtn.disabled = false;
+                disconnectBtn.disabled = true;
+            } catch (error) {
+                console.error('Error disconnecting from Bluetooth device:', error);
+                alert(`Error disconnecting: ${error.message}`);
+            }
+        }
+        
         // Send braille message as haptic feedback to phone
-        function sendBrailleMessage() {
+        window.sendBrailleMessage = async function() {
             const messageText = document.getElementById('brailleMessage').value;
+            const connectionMethod = document.getElementById('connectionMethod').value;
             
             if (!messageText.trim()) {
                 alert('Please enter a message to send');
                 return;
             }
             
-            // Generate ADB command for haptic feedback
-            const adbCommand = brailleMessenger.sendBrailleMessage(messageText);
-            
-            // Display in terminal
-            const terminalOutput = document.querySelector('.terminal-output') || document.createElement('div');
-            if (terminalOutput) {
-                terminalOutput.innerHTML += `<div class="terminal-line">$ ${adbCommand}</div>`;
-            }
-            
-            // Actually execute the ADB command via fetch to our local ADB server
-            fetch('http://localhost:3000/execute-adb-command', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ command: adbCommand }),
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Command executed:', data);
+            if (connectionMethod === 'bluetooth') {
+                // Send via Bluetooth
+                try {
+                    // Get haptic settings
+                    const hapticMode = document.getElementById('hapticMode').value;
+                    const intensity = parseFloat(document.getElementById('hapticIntensity').value);
+                    
+                    // Check if connected via Bluetooth
+                    if (!brailleBluetoothConnector || !brailleBluetoothConnector.isConnected) {
+                        alert('Please connect to a Bluetooth device first');
+                        return;
+                    }
+                    
+                    // Check if authenticated
+                    if (!fingerprintAuth || !fingerprintAuth.isUserAuthenticated()) {
+                        // Show authentication modal
+                        const shouldAuthenticate = confirm('Authentication required to send braille messages via Bluetooth. Would you like to authenticate now?');
+                        
+                        if (shouldAuthenticate) {
+                            // Switch to fingerprint tab
+                            switchTab('fingerprint');
+                            return;
+                        } else {
+                            return;
+                        }
+                    }
+                    
+                    // Send authenticated message via Bluetooth
+                    await fingerprintAuth.sendAuthenticatedHapticMessage(messageText, hapticMode, intensity);
+                    
+                    // Add to history
+                    addToMessageHistory(messageText);
+                    
+                    alert('Authenticated braille message sent successfully via Bluetooth!');
+                    
+                    // Clear message input
+                    document.getElementById('brailleMessage').value = '';
+                    updateBraillePreview();
+                } catch (error) {
+                    console.error('Error sending braille message via Bluetooth:', error);
+                    alert(`Error sending message: ${error.message}`);
+                }
+            } else {
+                // Generate ADB command for haptic feedback
+                const adbCommand = brailleMessenger.sendBrailleMessage(messageText);
+                
+                // Display in terminal
+                const terminalOutput = document.querySelector('.terminal-output') || document.createElement('div');
                 if (terminalOutput) {
-                    terminalOutput.innerHTML += `<div class="terminal-line">${data.output || 'Command executed'}</div>`;
-                    // Scroll terminal to bottom if it exists
-                    terminalOutput.scrollTop = terminalOutput.scrollHeight;
+                    terminalOutput.innerHTML += `<div class="terminal-line">$ ${adbCommand}</div>`;
                 }
                 
-                // Add to history
-                addToMessageHistory(messageText);
-                
-                // Clear message input
-                document.getElementById('brailleMessage').value = '';
-                updateBraillePreview();
-            })
+                // Actually execute the ADB command via fetch to our local ADB server
+                fetch('http://localhost:3000/execute-adb-command', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ command: adbCommand }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Command executed:', data);
+                    if (terminalOutput) {
+                        terminalOutput.innerHTML += `<div class="terminal-line">${data.output || 'Command executed'}</div>`;
+                        // Scroll terminal to bottom if it exists
+                        terminalOutput.scrollTop = terminalOutput.scrollHeight;
+                    }
+                    
+                    // Add to history
+                    addToMessageHistory(messageText);
+                    
+                    // Clear message input
+                    document.getElementById('brailleMessage').value = '';
+                    updateBraillePreview();
+                })
             .catch(error => {
                 console.error('Error executing command:', error);
                 alert('Error sending haptic message. Make sure your phone is connected via USB with debugging enabled.');
@@ -1559,6 +1833,7 @@ initialize();`,
                     alert('Haptic message sent via fallback method!');
                 }, 1000);
             });
+            }
         }
         
         // Add message to history

@@ -17,6 +17,10 @@ class BluetoothConnector {
     this.HAPTIC_SERVICE_UUID = '00001802-0000-1000-8000-00805f9b34fb';
     this.HAPTIC_CHARACTERISTIC_UUID = '00002a06-0000-1000-8000-00805f9b34fb';
     
+    // Vibration pattern service/characteristic UUIDs
+    this.VIBRATION_SERVICE_UUID = '00001803-0000-1000-8000-00805f9b34fb';
+    this.VIBRATION_CHARACTERISTIC_UUID = '00002a07-0000-1000-8000-00805f9b34fb';
+    
     // Authentication service/characteristic UUIDs
     this.AUTH_SERVICE_UUID = '0000180f-0000-1000-8000-00805f9b34fb';
     this.AUTH_CHARACTERISTIC_UUID = '00002a19-0000-1000-8000-00805f9b34fb';
@@ -210,17 +214,67 @@ class BluetoothConnector {
   
   /**
    * Send haptic pattern to the device
-   * @param {Array} pattern - Vibration pattern array (alternating durations: vibrate, pause, vibrate, ...)
+   * @param {Array|Uint8Array} pattern - Vibration pattern array (alternating durations: vibrate, pause, vibrate, ...)
    * @returns {Promise} Promise that resolves when the pattern is sent
    */
   async sendHapticPattern(pattern) {
-    if (!this.isConnected || !this.hapticCharacteristic) {
+    if (!this.isConnected) {
       throw new Error('Not connected to a Bluetooth device');
     }
     
     try {
-      // Convert pattern to bytes
-      const patternBytes = new Uint8Array(pattern);
+      console.log('Sending haptic pattern:', pattern);
+      
+      // Convert pattern to bytes if it's not already a Uint8Array
+      const patternBytes = pattern instanceof Uint8Array ? pattern : new Uint8Array(pattern);
+      
+      // If we don't have the haptic characteristic yet, try to get it
+      if (!this.hapticCharacteristic) {
+        console.log('Haptic characteristic not found, attempting to get it');
+        try {
+          // Try to get the haptic service
+          this.hapticService = await this.gattServer.getPrimaryService(this.HAPTIC_SERVICE_UUID);
+          this.hapticCharacteristic = await this.hapticService.getCharacteristic(this.HAPTIC_CHARACTERISTIC_UUID);
+        } catch (serviceError) {
+          console.warn('Could not get haptic service/characteristic:', serviceError);
+          
+          // Try to get the vibration service as fallback
+          try {
+            this.hapticService = await this.gattServer.getPrimaryService(this.VIBRATION_SERVICE_UUID);
+            this.hapticCharacteristic = await this.hapticService.getCharacteristic(this.VIBRATION_CHARACTERISTIC_UUID);
+          } catch (vibrationError) {
+            console.warn('Could not get vibration service/characteristic:', vibrationError);
+            
+            // As a last resort, try to find a generic service that might support vibration
+            const services = await this.gattServer.getPrimaryServices();
+            for (const service of services) {
+              console.log('Found service:', service.uuid);
+              const characteristics = await service.getCharacteristics();
+              for (const characteristic of characteristics) {
+                console.log('Found characteristic:', characteristic.uuid, 'with properties:', characteristic.properties);
+                if (characteristic.properties.write || characteristic.properties.writeWithoutResponse) {
+                  console.log('Found writable characteristic, using it for haptic feedback');
+                  this.hapticCharacteristic = characteristic;
+                  this.hapticService = service;
+                  break;
+                }
+              }
+              if (this.hapticCharacteristic) break;
+            }
+          }
+        }
+      }
+      
+      if (!this.hapticCharacteristic) {
+        // If we still don't have a characteristic, try using the Web Vibration API as fallback
+        if (navigator.vibrate) {
+          console.log('Using Web Vibration API as fallback');
+          navigator.vibrate(pattern);
+          return true;
+        } else {
+          throw new Error('No suitable characteristic found for haptic feedback and Web Vibration API not available');
+        }
+      }
       
       // Write pattern to characteristic
       await this.hapticCharacteristic.writeValue(patternBytes);
@@ -228,6 +282,14 @@ class BluetoothConnector {
       return true;
     } catch (error) {
       console.error('Error sending haptic pattern:', error);
+      
+      // Try Web Vibration API as fallback
+      if (navigator.vibrate) {
+        console.log('Using Web Vibration API as fallback after error');
+        navigator.vibrate(pattern);
+        return true;
+      }
+      
       throw error;
     }
   }
