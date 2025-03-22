@@ -645,6 +645,7 @@
                 
                 <div class="actions" style="margin-top: 20px;">
                     <button id="connectBluetoothButton" class="primary">Connect via Bluetooth</button>
+                    <button id="connectAllBluetoothButton" class="primary">Show All Devices</button>
                     <button id="disconnectBluetoothButton" disabled class="secondary">Disconnect</button>
                 </div>
             </div>
@@ -1234,6 +1235,7 @@ initialize();`,
         function initFingerprintAuth() {
             // Add event listeners for Bluetooth connection
             document.getElementById('connectBluetoothButton').addEventListener('click', connectBluetooth);
+            document.getElementById('connectAllBluetoothButton').addEventListener('click', connectAllBluetooth);
             document.getElementById('disconnectBluetoothButton').addEventListener('click', disconnectBluetooth);
             document.getElementById('requestAuthButton').addEventListener('click', requestAuthentication);
             document.getElementById('authBrailleMessage').addEventListener('input', updateAuthBraillePreview);
@@ -1283,8 +1285,8 @@ initialize();`,
                 statusDot.className = 'status-dot connecting';
                 statusText.textContent = 'Connecting...';
                 
-                // Connect to the phone via Bluetooth
-                const connected = await fingerprintAuth.connect();
+                // Connect to the phone via Bluetooth (filtered device list)
+                const connected = await fingerprintAuth.connect(false);
                 
                 if (connected) {
                     // Update UI to show connected state
@@ -1293,6 +1295,47 @@ initialize();`,
                     
                     // Enable/disable buttons
                     document.getElementById('connectBluetoothButton').disabled = true;
+                    document.getElementById('connectAllBluetoothButton').disabled = true;
+                    document.getElementById('disconnectBluetoothButton').disabled = false;
+                    document.getElementById('requestAuthButton').disabled = false;
+                } else {
+                    // Update UI to show connection failed
+                    statusDot.className = 'status-dot disconnected';
+                    statusText.textContent = 'Connection failed';
+                }
+            } catch (error) {
+                console.error('Bluetooth connection error:', error);
+                
+                // Update UI to show error
+                const statusDot = document.getElementById('bluetoothStatusDot');
+                const statusText = document.getElementById('bluetoothStatusText');
+                
+                statusDot.className = 'status-dot disconnected';
+                statusText.textContent = `Connection error: ${error.message}`;
+            }
+        }
+        
+        // Connect to phone via Bluetooth showing all available devices
+        async function connectAllBluetooth() {
+            try {
+                // Update UI to show connecting state
+                const statusDot = document.getElementById('bluetoothStatusDot');
+                const statusText = document.getElementById('bluetoothStatusText');
+                
+                statusDot.className = 'status-dot connecting';
+                statusText.textContent = 'Showing all Bluetooth devices...';
+                
+                // Connect to the phone via Bluetooth (show all devices)
+                const connected = await fingerprintAuth.connect(true);
+                
+                if (connected) {
+                    // Update UI to show connected state
+                    statusDot.className = 'status-dot connected';
+                    statusText.textContent = 'Connected via Bluetooth';
+                    
+                    // Enable/disable buttons
+                    document.getElementById('connectBluetoothButton').disabled = true;
+                    document.getElementById('connectAllBluetoothButton').disabled = true;
                     document.getElementById('disconnectBluetoothButton').disabled = false;
                     document.getElementById('requestAuthButton').disabled = false;
                 } else {
@@ -1326,6 +1369,7 @@ initialize();`,
                 
                 // Enable/disable buttons
                 document.getElementById('connectBluetoothButton').disabled = false;
+                document.getElementById('connectAllBluetoothButton').disabled = false;
                 document.getElementById('disconnectBluetoothButton').disabled = true;
                 document.getElementById('requestAuthButton').disabled = true;
                 document.getElementById('authHapticMode').disabled = true;
@@ -1348,8 +1392,12 @@ initialize();`,
                 const authStatus = document.getElementById('authStatus');
                 authStatus.innerHTML = '<i class="fas fa-spinner fa-spin" style="font-size: 48px; color: var(--accent-color);"></i><p>Waiting for fingerprint verification...</p>';
                 
-                // Request authentication from the phone
-                const authenticated = await fingerprintAuth.requestAuthentication();
+                // Generate a challenge token for secure authentication
+                const challengeToken = generateRandomToken();
+                console.log('Generated challenge token:', challengeToken);
+                
+                // Request authentication from the phone with the challenge token
+                const authenticated = await fingerprintAuth.requestAuthentication(null, false, challengeToken);
                 
                 if (authenticated) {
                     // Update UI to show authenticated state
@@ -1363,6 +1411,13 @@ initialize();`,
                 } else {
                     // Update UI to show authentication failed
                     authStatus.innerHTML = '<i class="fas fa-fingerprint" style="font-size: 48px; color: var(--error-color);"></i><p>Authentication failed</p>';
+                }
+                
+                // Helper function to generate a random token
+                function generateRandomToken() {
+                    const array = new Uint8Array(16);
+                    window.crypto.getRandomValues(array);
+                    return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
                 }
             } catch (error) {
                 console.error('Authentication error:', error);

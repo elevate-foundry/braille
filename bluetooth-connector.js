@@ -26,23 +26,61 @@ class BluetoothConnector {
   
   /**
    * Request Bluetooth device and connect to it
+   * @param {boolean} useAllDevices - If true, show all available Bluetooth devices
    * @returns {Promise} Promise that resolves when connected
    */
-  async connect() {
+  async connect(useAllDevices = false) {
     try {
       console.log('Requesting Bluetooth device...');
       
-      // Request device with specific services
-      this.device = await navigator.bluetooth.requestDevice({
-        filters: [
-          { services: [this.HAPTIC_SERVICE_UUID] },
-          { namePrefix: 'Galaxy' },
-          { namePrefix: 'Samsung' },
-          { namePrefix: 'iPhone' },
-          { namePrefix: 'Pixel' }
-        ],
-        optionalServices: [this.HAPTIC_SERVICE_UUID, this.AUTH_SERVICE_UUID]
-      });
+      let requestOptions;
+      
+      if (useAllDevices) {
+        // Show all available Bluetooth devices
+        console.log('Showing all available Bluetooth devices');
+        requestOptions = {
+          acceptAllDevices: true,
+          optionalServices: [
+            this.HAPTIC_SERVICE_UUID, 
+            this.AUTH_SERVICE_UUID,
+            // Common Bluetooth services for broader compatibility
+            '00001800-0000-1000-8000-00805f9b34fb', // Generic Access
+            '00001801-0000-1000-8000-00805f9b34fb', // Generic Attribute
+            '0000180a-0000-1000-8000-00805f9b34fb', // Device Information
+            '0000180f-0000-1000-8000-00805f9b34fb', // Battery Service
+            '00001812-0000-1000-8000-00805f9b34fb'  // Human Interface Device
+          ]
+        };
+      } else {
+        // Use filters for specific devices
+        requestOptions = {
+          filters: [
+            { namePrefix: 'Galaxy' },
+            { namePrefix: 'Samsung' },
+            { namePrefix: 'iPhone' },
+            { namePrefix: 'Pixel' },
+            { namePrefix: 'Android' },
+            // Add more common device name prefixes
+            { namePrefix: 'MI' },      // Xiaomi
+            { namePrefix: 'HUAWEI' },  // Huawei
+            { namePrefix: 'OnePlus' }, // OnePlus
+            { namePrefix: 'OPPO' }     // OPPO
+          ],
+          optionalServices: [
+            this.HAPTIC_SERVICE_UUID, 
+            this.AUTH_SERVICE_UUID,
+            // Common Bluetooth services for broader compatibility
+            '00001800-0000-1000-8000-00805f9b34fb', // Generic Access
+            '00001801-0000-1000-8000-00805f9b34fb', // Generic Attribute
+            '0000180a-0000-1000-8000-00805f9b34fb', // Device Information
+            '0000180f-0000-1000-8000-00805f9b34fb', // Battery Service
+            '00001812-0000-1000-8000-00805f9b34fb'  // Human Interface Device
+          ]
+        };
+      }
+      
+      // Request device with options
+      this.device = await navigator.bluetooth.requestDevice(requestOptions);
       
       console.log('Device selected:', this.device.name);
       
@@ -53,18 +91,70 @@ class BluetoothConnector {
       console.log('Connecting to GATT server...');
       this.gattServer = await this.device.gatt.connect();
       
-      // Get haptic service
-      console.log('Getting haptic service...');
-      this.hapticService = await this.gattServer.getPrimaryService(this.HAPTIC_SERVICE_UUID);
+      // Log available services
+      console.log('Discovering services...');
+      const services = await this.gattServer.getPrimaryServices();
+      console.log(`Found ${services.length} services:`);
       
-      // Get haptic characteristic
-      console.log('Getting haptic characteristic...');
-      this.hapticCharacteristic = await this.hapticService.getCharacteristic(this.HAPTIC_CHARACTERISTIC_UUID);
+      for (const service of services) {
+        console.log(`Service UUID: ${service.uuid}`);
+        try {
+          const characteristics = await service.getCharacteristics();
+          console.log(`  Found ${characteristics.length} characteristics:`);
+          for (const characteristic of characteristics) {
+            console.log(`  Characteristic UUID: ${characteristic.uuid}`);
+            console.log(`  Properties: ${JSON.stringify(characteristic.properties)}`);
+            
+            // Store haptic characteristic if it matches
+            if (characteristic.uuid === this.HAPTIC_CHARACTERISTIC_UUID) {
+              this.hapticCharacteristic = characteristic;
+              this.hapticService = service;
+              console.log('Found haptic characteristic!');
+            }
+            
+            // Store auth characteristic if it matches
+            if (characteristic.uuid === this.AUTH_CHARACTERISTIC_UUID) {
+              this.authCharacteristic = characteristic;
+              this.authService = service;
+              console.log('Found auth characteristic!');
+            }
+          }
+        } catch (error) {
+          console.warn(`Error getting characteristics for service ${service.uuid}:`, error);
+        }
+      }
       
-      this.isConnected = true;
-      console.log('Bluetooth connection established successfully!');
+      // Try to use a generic characteristic for haptic feedback if the specific one wasn't found
+      if (!this.hapticCharacteristic) {
+        console.log('Specific haptic characteristic not found, trying to use a generic one...');
+        try {
+          // Try to find a writeable characteristic from any service
+          for (const service of services) {
+            const characteristics = await service.getCharacteristics();
+            for (const characteristic of characteristics) {
+              if (characteristic.properties.write || characteristic.properties.writeWithoutResponse) {
+                console.log(`Using generic characteristic ${characteristic.uuid} for haptic feedback`);
+                this.hapticCharacteristic = characteristic;
+                this.hapticService = service;
+                break;
+              }
+            }
+            if (this.hapticCharacteristic) break;
+          }
+        } catch (error) {
+          console.warn('Error finding generic characteristic:', error);
+        }
+      }
       
-      return true;
+      this.isConnected = this.hapticCharacteristic !== null;
+      
+      if (this.isConnected) {
+        console.log('Bluetooth connection established successfully!');
+        return true;
+      } else {
+        console.error('Could not find a suitable characteristic for haptic feedback');
+        return false;
+      }
     } catch (error) {
       console.error('Bluetooth connection error:', error);
       this.isConnected = false;

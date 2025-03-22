@@ -17,12 +17,13 @@ class FingerprintAuthenticator {
   
   /**
    * Initialize the authenticator
+   * @param {boolean} useAllDevices - If true, show all available Bluetooth devices
    * @returns {Promise} Promise that resolves when initialized
    */
-  async initialize() {
+  async initialize(useAllDevices = false) {
     try {
       // Connect to the device via Bluetooth
-      await this.bluetoothConnector.connect();
+      await this.bluetoothConnector.connect(useAllDevices);
       console.log('Fingerprint authenticator initialized');
       return true;
     } catch (error) {
@@ -42,26 +43,42 @@ class FingerprintAuthenticator {
   }
   
   /**
+   * Connect to the device via Bluetooth
+   * @param {boolean} useAllDevices - If true, show all available Bluetooth devices
+   * @returns {Promise} Promise that resolves when connected
+   */
+  async connect(useAllDevices = false) {
+    try {
+      return await this.bluetoothConnector.connect(useAllDevices);
+    } catch (error) {
+      console.error('Failed to connect:', error);
+      throw error;
+    }
+  }
+  
+  /**
    * Request fingerprint authentication
    * @param {Function} callback - Callback function to be called with authentication result
+   * @param {boolean} useAllDevices - If true, show all available Bluetooth devices
+   * @param {string} challengeToken - Optional challenge token for verification
    * @returns {Promise} Promise that resolves with authentication result
    */
-  async requestAuthentication(callback = null) {
+  async requestAuthentication(callback = null, useAllDevices = false, challengeToken = null) {
     if (callback) {
       this.authenticationCallback = callback;
     }
     
     try {
       if (!this.bluetoothConnector.isConnected) {
-        await this.bluetoothConnector.connect();
+        await this.bluetoothConnector.connect(useAllDevices);
       }
       
-      // Generate a challenge token
-      this.challengeToken = this.generateChallengeToken();
-      console.log('Generated challenge token:', this.challengeToken);
+      // Use provided challenge token or generate a new one
+      this.challengeToken = challengeToken || this.generateChallengeToken();
+      console.log('Using challenge token:', this.challengeToken);
       
       // Show a notification on the phone to request fingerprint
-      const result = await this.bluetoothConnector.requestAuthentication();
+      const result = await this.bluetoothConnector.requestAuthentication(this.challengeToken);
       
       this.isAuthenticated = result;
       
