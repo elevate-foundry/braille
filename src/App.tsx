@@ -94,9 +94,16 @@ function App() {
       }
       
       // Provide haptic feedback on successful fingerprint
-      const hapticAvailable = initHapticFeedback();
-      setHapticEnabled(hapticAvailable);
-      triggerHapticFeedback('success', { mode: HapticMode.BIOLOGICAL, intensity: 7 });
+      try {
+        const hapticAvailable = initHapticFeedback();
+        setHapticEnabled(hapticAvailable);
+        if (hapticAvailable) {
+          triggerHapticFeedback('success', { mode: HapticMode.BIOLOGICAL, intensity: 7 });
+        }
+      } catch (error) {
+        console.error('Error initializing haptic feedback:', error);
+        setHapticEnabled(false);
+      }
     } catch (err) {
       setError('Error fetching fingerprint: ' + (err instanceof Error ? err.message : String(err)));
       
@@ -109,9 +116,14 @@ function App() {
   
   useEffect(() => {
     // Initialize haptic feedback system for both desktop and mobile
-    const hapticAvailable = initHapticFeedback();
-    setHapticEnabled(hapticAvailable);
-    console.log('Haptic feedback enabled:', hapticAvailable);
+    try {
+      const hapticAvailable = initHapticFeedback();
+      setHapticEnabled(hapticAvailable);
+      console.log('Haptic feedback enabled:', hapticAvailable);
+    } catch (error) {
+      console.error('Error initializing haptic feedback:', error);
+      setHapticEnabled(false);
+    }
     
     // Check if user has already given consent previously
     const hasExistingConsent = consentManager.hasConsent();
@@ -169,9 +181,15 @@ function App() {
       fetchFingerprint();
       
       // Provide haptic feedback
-      const hapticAvailable = initHapticFeedback();
-      if (hapticAvailable) {
-        triggerHapticFeedback('toggle', { mode: HapticMode.RHYTHMIC, intensity: 3 });
+      try {
+        const hapticAvailable = initHapticFeedback();
+        setHapticEnabled(hapticAvailable);
+        if (hapticAvailable) {
+          triggerHapticFeedback('toggle', { mode: HapticMode.RHYTHMIC, intensity: 3 });
+        }
+      } catch (error) {
+        console.error('Error initializing haptic feedback:', error);
+        setHapticEnabled(false);
       }
     } else {
       // If toggled to false, clear fingerprint data

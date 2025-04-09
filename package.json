@@ -21,6 +21,7 @@
     "@types/react": "^18.2.48",
     "@types/react-dom": "^18.2.18",
     "@vercel/node": "^3.0.7",
+    "body-parser": "^1.20.3",
     "chalk": "^5.3.0",
     "cli-table3": "^0.6.3",
     "cors": "^2.8.5",
@@ -56,5 +57,18 @@
     "tsx": "^4.19.3",
     "typescript": "^5.0.4",
     "vite": "^5.0.12"
-  }
+  },
+  "description": "BrailleBuddy is an educational web application designed to help sighted children learn braille in an interactive and engaging way. The app combines multilingual braille encoding with AI-driven adaptivity to create a personalized learning experience, while also incorporating browser fingerprinting for secure user identification and progress tracking.",
+  "main": "adb-server.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/elevate-foundry/braille.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/elevate-foundry/braille/issues"
+  },
+  "homepage": "https://github.com/elevate-foundry/braille#readme"
 }

@@ -209,18 +209,25 @@ export function initHapticFeedback(): boolean {
   if (isAvailable) {
     console.log('Haptic feedback system initialized with physical vibration');
     
-    // Test vibration to ensure permissions are granted
-    safeVibrate(10);
-    
-    // For mobile devices, we need to ensure vibration works during user interaction
-    document.addEventListener('touchstart', () => {
-      // Short vibration on touch to ensure haptic feedback is working
-      safeVibrate(5);
-    }, { once: true });
+    try {
+      // Test vibration to ensure permissions are granted
+      safeVibrate(10);
+      
+      // For mobile devices, we need to ensure vibration works during user interaction
+      if (typeof document !== 'undefined') {
+        document.addEventListener('touchstart', () => {
+          // Short vibration on touch to ensure haptic feedback is working
+          safeVibrate(5);
+        }, { once: true });
+      }
+    } catch (error) {
+      console.error('Error initializing haptic feedback:', error);
+      // Continue despite errors
+    }
   } else {
     console.log('Haptic feedback initialized with simulation mode');
   }
   
   // Always return true so the application works on both desktop and mobile
-  return true;
+  return isAvailable;
 }
