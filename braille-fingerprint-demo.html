@@ -100,6 +100,15 @@
         .dot-4 { top: 5px; right: 11px; }
         .dot-5 { top: 19px; right: 11px; }
         .dot-6 { top: 33px; right: 11px; }
+        
+        /* Number sign styling */
+        .number-sign {
+            background-color: #e6f7ff;
+            border: 1px solid #91d5ff;
+        }
+        .number-sign .dot.filled {
+            background-color: #1890ff;
+        }
         .haptic-controls {
             margin-top: 20px;
             padding: 15px;
@@ -225,11 +234,11 @@
             'f': '⠋', 'g': '⠛', 'h': '⠓', 'i': '⠊', 'j': '⠚',
             'k': '⠅', 'l': '⠇', 'm': '⠍', 'n': '⠝', 'o': '⠕',
             'p': '⠏', 'q': '⠟', 'r': '⠗', 's': '⠎', 't': '⠞',
-            'u': '⠥', 'v': '⠧', 'w': '⠺', 'x': '⠭', 'y': '⠽',
-            'z': '⠵', ' ': '⠀', '!': '⠮', '.': '⠲', ',': '⠂',
-            '?': '⠦', ';': '⠆', ':': '⠒', '\'': '⠄', '-': '⠤',
-            '1': '⠂', '2': '⠆', '3': '⠒', '4': '⠲', '5': '⠢',
-            '6': '⠖', '7': '⠶', '8': '⠦', '9': '⠔', '0': '⠴'
+            'u': '⠥', 'v': '⠧', 'w': '⠺', 'x': '⠭', 'y': '⠽', 'z': '⠵',
+            ' ': '⠀', '.': '⠲', ',': '⠂', ';': '⠆', ':': '⠒', '!': '⠖',
+            // Numbers use the same patterns as a-j with a number sign prefix (⠼)
+            '1': '⠁', '2': '⠃', '3': '⠉', '4': '⠙', '5': '⠑',
+            '6': '⠋', '7': '⠛', '8': '⠓', '9': '⠊', '0': '⠚'
         };
 
         // Binary representation of braille patterns
@@ -240,9 +249,9 @@
             '⠍': '101100', '⠝': '101110', '⠕': '101010', '⠏': '111100',
             '⠟': '111110', '⠗': '111010', '⠎': '011100', '⠞': '011110',
             '⠥': '101001', '⠧': '111001', '⠺': '010111', '⠭': '101101',
-            '⠽': '101111', '⠵': '101011', '⠀': '000000', '⠮': '111110',
+            '⠽': '101111', '⠵': '101011', '⠀': '000000', '⠖': '111101',
             '⠲': '010011', '⠂': '010000', '⠦': '011101', '⠆': '110000',
-            '⠒': '110010', '⠄': '001000', '⠤': '001001', '⠴': '010110'
+            '⠒': '110010', '⠄': '001000', '⠤': '001001', '⠼': '001111'
         };
 
         // Haptic patterns for different modes
@@ -316,7 +325,29 @@
 
         // Function to encode text to braille
         function encodeToBraille(text) {
-            return text.toLowerCase().split('').map(char => brailleMap[char] || char).join('');
+            let result = '';
+            let inNumberSequence = false;
+            
+            // Process each character
+            for (let i = 0; i < text.length; i++) {
+                const char = text[i].toLowerCase();
+                const isNumber = /[0-9]/.test(char);
+                
+                // Check if we're starting a number sequence
+                if (isNumber && !inNumberSequence) {
+                    result += '⠼'; // Add number sign
+                    inNumberSequence = true;
+                }
+                // Check if we're ending a number sequence
+                else if (!isNumber && inNumberSequence) {
+                    inNumberSequence = false;
+                }
+                
+                // Add the braille character
+                result += brailleMap[char] || char;
+            }
+            
+            return result;
         }
 
         // Function to convert braille to binary representation
@@ -329,11 +360,43 @@
             const visualBrailleContainer = document.getElementById('visual-braille');
             visualBrailleContainer.innerHTML = '';
             
-            brailleText.split('').forEach(brailleChar => {
+            // Track if we're in a number sequence
+            let inNumberSequence = false;
+            
+            brailleText.split('').forEach((brailleChar, index) => {
                 const binary = brailleBinaryMap[brailleChar] || '000000';
                 
                 const cellDiv = document.createElement('div');
                 cellDiv.className = 'braille-cell';
+                
+                // Check if this is a number sign
+                if (brailleChar === '⠼') {
+                    inNumberSequence = true;
+                    cellDiv.classList.add('number-sign');
+                    cellDiv.title = 'Number Sign';
+                } 
+                // Check if we're ending a number sequence (next char is not a number)
+                else if (inNumberSequence) {
+                    const nextChar = brailleText[index + 1];
+                    const isNextCharNumber = nextChar && ['⠁', '⠃', '⠉', '⠙', '⠑', '⠋', '⠛', '⠓', '⠊', '⠚'].includes(nextChar);
+                    
+                    if (!isNextCharNumber) {
+                        inNumberSequence = false;
+                    }
+                    
+                    // Add title to show what this represents
+                    if (['⠁', '⠃', '⠉', '⠙', '⠑', '⠋', '⠛', '⠓', '⠊', '⠚'].includes(brailleChar)) {
+                        const numberMap = {'⠁': '1', '⠃': '2', '⠉': '3', '⠙': '4', '⠑': '5', '⠋': '6', '⠛': '7', '⠓': '8', '⠊': '9', '⠚': '0'};
+                        cellDiv.title = `Number ${numberMap[brailleChar]}`;
+                    } else {
+                        cellDiv.title = brailleChar;
+                    }
+                } else {
+                    // Regular character
+                    // Find the letter this represents
+                    const letter = Object.keys(brailleMap).find(key => brailleMap[key] === brailleChar);
+                    cellDiv.title = letter ? letter.toUpperCase() : brailleChar;
+                }
                 
                 // Create dots
                 for (let i = 0; i < 6; i++) {
