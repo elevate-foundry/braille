@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BrailleBuddy Fingerprint & Encoding Demo</title>
+    <title>BrailleBuddy - Universal Braille Learning with Multilingual Support</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -156,13 +156,13 @@
 </head>
 <body>
     <header>
-        <h1>BrailleBuddy Fingerprint & Encoding Demo</h1>
-        <p>Test the fingerprinting and braille encoding features with haptic feedback</p>
+        <h1>BrailleBuddy</h1>
+        <p>Universal Braille Learning with Multilingual Support and Adaptive Features</p>
     </header>
 
     <div class="container">
         <div class="left-column">
-            <div class="card">
+            <div class="card" style="display: none;">
                 <h2>Device Fingerprint</h2>
                 <div id="fingerprint-status" class="status">Generating fingerprint...</div>
                 <pre id="fingerprint-data"></pre>
@@ -204,9 +204,9 @@
             <div class="card">
                 <h2>Braille Encoding</h2>
                 <textarea id="input-text" rows="3" placeholder="Enter text to encode in braille...">Hello BrailleBuddy!</textarea>
-                <button id="encode-text">Encode to Braille</button>
-                
-                <h3>Braille Output:</h3>
+                <div class="button-group">
+                    <button id="encode-and-feel">Encode & Feel Braille Pattern</button>
+                </div>
                 <div class="braille-display" id="braille-output"></div>
                 
                 <h3>Binary Representation:</h3>
@@ -550,7 +550,7 @@
                 triggerHapticFeedback(hapticPatterns[hapticMode].character, intensity);
             });
             
-            document.getElementById('encode-text').addEventListener('click', () => {
+            document.getElementById('encode-and-feel').addEventListener('click', () => {
                 const inputText = document.getElementById('input-text').value;
                 const brailleText = encodeToBraille(inputText);
                 const binaryText = brailleToBinary(brailleText);
@@ -559,9 +559,10 @@
                 document.getElementById('binary-output').textContent = binaryText;
                 
                 createVisualBraille(brailleText);
+                
+                // Automatically trigger haptic feedback after encoding
+                setTimeout(feelBraillePattern, 500); // Small delay to ensure visual rendering completes
             });
-            
-            document.getElementById('feel-braille').addEventListener('click', feelBraillePattern);
             
             document.getElementById('test-api').addEventListener('click', testApiConnection);
             
