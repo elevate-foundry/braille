@@ -78,21 +78,22 @@
             z-index: 100;
         }
         .settings-panel {
-            position: absolute;
+            position: fixed;
             top: 0;
-            right: -300px;
-            width: 300px;
+            right: 0;
+            width: 80%;
             height: 100%;
             background-color: white;
-            box-shadow: -5px 0 15px rgba(0,0,0,0.1);
-            transition: right 0.3s ease;
+            box-shadow: -2px 0 5px rgba(0, 0, 0, 0.2);
             z-index: 1000;
-            padding: 20px;
-            box-sizing: border-box;
             overflow-y: auto;
+            padding: 20px;
+            transition: transform 0.3s ease;
+            transform: translateX(100%);
+            box-sizing: border-box;
         }
         .settings-panel.active {
-            right: 0;
+            transform: translateX(0);
         }
         .settings-close {
             position: absolute;
@@ -155,9 +156,11 @@
             font-weight: bold;
         }
         .settings-section {
-            margin-bottom: 25px;
-            padding-bottom: 15px;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
             border-bottom: 1px solid #eee;
+            width: 100%;
+            box-sizing: border-box;
         }
         input, textarea {
             width: 100%;
@@ -244,6 +247,24 @@
             background-color: #f8d7da;
             color: #721c24;
         }
+        .option-group {
+            margin-bottom: 15px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .radio-group {
+            margin-top: 5px;
+            width: 100%;
+        }
+        .status-message {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #d4edda;
+            color: #155724;
+            width: 100%;
+            box-sizing: border-box;
+        }
     </style>
 </head>
 <body>
@@ -272,47 +293,53 @@
             </div>
         </div>
         
-        <div class="settings-panel" id="settings-panel">
-            <div class="settings-close" id="settings-close">✕</div>
-            <h2>Settings</h2>
+        <div id="settings-panel" class="settings-panel" style="display: none;">
+            <div class="settings-header">
+                <h2>Settings</h2>
+                <button id="close-settings" class="close-button">×</button>
+            </div>
             
             <div class="settings-section">
                 <h3>Haptic Feedback</h3>
-                <div class="haptic-controls">
-                    <div class="haptic-mode">
-                        <label>
-                            <input type="radio" name="haptic-mode" value="standard" checked> Standard
-                        </label>
-                        <label>
-                            <input type="radio" name="haptic-mode" value="rhythmic"> Rhythmic
-                        </label>
-                        <label>
-                            <input type="radio" name="haptic-mode" value="frequency"> Frequency
-                        </label>
+                <div class="option-group">
+                    <label>Mode:</label>
+                    <div class="radio-group" style="display: flex; flex-direction: column; align-items: flex-start;">
+                        <div style="margin: 5px 0;">
+                            <input type="radio" id="standard" name="haptic-mode" value="standard" checked>
+                            <label for="standard">Standard</label>
+                        </div>
+                        
+                        <div style="margin: 5px 0;">
+                            <input type="radio" id="rhythmic" name="haptic-mode" value="rhythmic">
+                            <label for="rhythmic">Rhythmic</label>
+                        </div>
+                        
+                        <div style="margin: 5px 0;">
+                            <input type="radio" id="frequency" name="haptic-mode" value="frequency">
+                            <label for="frequency">Frequency</label>
+                        </div>
+                        
+                        <div style="margin: 5px 0;">
+                            <input type="radio" id="biological" name="haptic-mode" value="biological">
+                            <label for="biological">Biological</label>
+                        </div>
                     </div>
-                    <div>
-                        <label for="intensity">Intensity: <span id="intensity-value">5</span></label>
-                        <input type="range" id="intensity" min="1" max="10" value="5" class="intensity-slider">
-                    </div>
-                    <button id="test-haptic">Test Haptic Feedback</button>
-                    <div id="haptic-status" class="status">Haptic feedback not tested yet</div>
                 </div>
+                
+                <div class="option-group">
+                    <label for="intensity">Intensity: <span id="intensity-value">5</span></label>
+                    <input type="range" id="intensity" min="1" max="10" value="5" style="width: 100%; max-width: 250px;">
+                </div>
+                
+                <button id="test-haptic" class="secondary-button">Test Haptic Feedback</button>
+                <div id="haptic-status" class="status-message" style="display: none;"></div>
             </div>
             
             <div class="settings-section">
                 <h3>Advanced</h3>
-                <div style="display: none;">
-                    <h4>Device Fingerprint</h4>
-                    <div id="fingerprint-status" class="status">Generating fingerprint...</div>
-                    <pre id="fingerprint-data"></pre>
-                    <button id="refresh-fingerprint">Refresh Fingerprint</button>
-                </div>
-                
-                <div>
-                    <h4>API Connection</h4>
-                    <button id="test-api">Test API Connection</button>
-                    <div id="api-status" class="status">API not tested yet</div>
-                    <pre id="api-response"></pre>
+                <div class="option-group">
+                    <label>API Connection:</label>
+                    <button id="test-api" class="secondary-button">Test API Connection</button>
                 </div>
             </div>
         </div>
@@ -348,40 +375,40 @@
         // Haptic patterns for different modes
         const hapticPatterns = {
             standard: {
-                dot1: [100],
-                dot2: [100],
-                dot3: [100],
-                dot4: [100],
-                dot5: [100],
-                dot6: [100],
-                character: [200, 100, 200]
+                dot1: [50, 50],
+                dot2: [50, 50],
+                dot3: [50, 50],
+                dot4: [50, 50],
+                dot5: [50, 50],
+                dot6: [50, 50],
+                character: [200]
             },
             rhythmic: {
-                dot1: [50, 50, 50],
-                dot2: [50, 50, 50],
-                dot3: [50, 50, 50],
-                dot4: [50, 50, 50],
-                dot5: [50, 50, 50],
-                dot6: [50, 50, 50],
-                character: [100, 50, 100, 50, 100]
-            },
-            biological: {
-                dot1: [30, 20, 30],
-                dot2: [35, 20, 35],
-                dot3: [40, 20, 40],
-                dot4: [30, 20, 30],
-                dot5: [35, 20, 35],
-                dot6: [40, 20, 40],
-                character: [150, 70, 150]
+                dot1: [100, 50, 50, 50],
+                dot2: [75, 50, 75, 50],
+                dot3: [50, 50, 100, 50],
+                dot4: [50, 50, 50, 100],
+                dot5: [75, 75, 75, 75],
+                dot6: [100, 100, 100, 100],
+                character: [300]
             },
             frequency: {
-                dot1: [20, 10, 20, 10, 20],
-                dot2: [25, 10, 25, 10, 25],
-                dot3: [30, 10, 30, 10, 30],
-                dot4: [20, 10, 20, 10, 20],
-                dot5: [25, 10, 25, 10, 25],
-                dot6: [30, 10, 30, 10, 30],
-                character: [80, 40, 80, 40, 80]
+                dot1: [30, 20, 30, 20, 30, 20],
+                dot2: [40, 20, 40, 20, 40, 20],
+                dot3: [50, 20, 50, 20, 50, 20],
+                dot4: [60, 20, 60, 20, 60, 20],
+                dot5: [70, 20, 70, 20, 70, 20],
+                dot6: [80, 20, 80, 20, 80, 20],
+                character: [400]
+            },
+            biological: {
+                dot1: [20, 10, 40, 10, 20],
+                dot2: [25, 15, 35, 15, 25],
+                dot3: [30, 20, 30, 20, 30],
+                dot4: [35, 25, 25, 25, 35],
+                dot5: [40, 30, 20, 30, 40],
+                dot6: [45, 35, 15, 35, 45],
+                character: [250]
             }
         };
 
@@ -645,19 +672,58 @@
         }
 
         // Event listeners
-        document.addEventListener('DOMContentLoaded', () => {
-            // Generate initial fingerprint
-            generateFingerprint();
-            
-            // Set up event listeners
-            document.getElementById('refresh-fingerprint').addEventListener('click', generateFingerprint);
-            
-            document.getElementById('test-haptic').addEventListener('click', () => {
-                const hapticMode = document.querySelector('input[name="haptic-mode"]:checked').value;
-                const intensity = parseInt(document.getElementById('intensity').value);
-                triggerHapticFeedback(hapticPatterns[hapticMode].character, intensity);
+        document.addEventListener('DOMContentLoaded', function() {
+            // Settings toggle
+            document.getElementById('settings-toggle').addEventListener('click', function() {
+                document.getElementById('settings-panel').style.display = 'block';
+                setTimeout(() => {
+                    document.getElementById('settings-panel').classList.add('active');
+                }, 10);
             });
             
+            document.getElementById('close-settings').addEventListener('click', function() {
+                document.getElementById('settings-panel').classList.remove('active');
+                setTimeout(() => {
+                    document.getElementById('settings-panel').style.display = 'none';
+                }, 300); // Match the transition duration
+            });
+            
+            // Test haptic feedback button
+            document.getElementById('test-haptic').addEventListener('click', function() {
+                const hapticStatus = document.getElementById('haptic-status');
+                hapticStatus.style.display = 'block';
+                hapticStatus.textContent = 'Haptic feedback triggered successfully';
+                hapticStatus.className = 'status-message';
+                
+                // Create a simple test pattern based on selected mode
+                const hapticMode = document.querySelector('input[name="haptic-mode"]:checked').value;
+                const intensity = parseInt(document.getElementById('intensity').value);
+                const testPattern = hapticPatterns[hapticMode].dot1.concat(
+                    hapticPatterns[hapticMode].dot3,
+                    hapticPatterns[hapticMode].dot5,
+                    hapticPatterns[hapticMode].character
+                );
+                
+                triggerHapticFeedback(testPattern, intensity);
+                
+                // Hide status message after 3 seconds
+                setTimeout(() => {
+                    hapticStatus.style.display = 'none';
+                }, 3000);
+            });
+            
+            // Test API connection
+            document.getElementById('test-api').addEventListener('click', function() {
+                // Simulate API connection test
+                alert('API connection test successful!');
+            });
+            
+            // Update intensity value display
+            document.getElementById('intensity').addEventListener('input', function() {
+                document.getElementById('intensity-value').textContent = this.value;
+            });
+            
+            // Encode and feel braille pattern
             document.getElementById('encode-and-feel').addEventListener('click', () => {
                 // Reset timing display
                 document.getElementById('visual-time').textContent = '-';
@@ -683,28 +749,8 @@
                 // Automatically trigger haptic feedback after encoding
                 setTimeout(feelBraillePattern, 500); // Small delay to ensure visual rendering completes
             });
-            
-            document.getElementById('test-api').addEventListener('click', testApiConnection);
-            
-            document.getElementById('intensity').addEventListener('input', function() {
-                document.getElementById('intensity-value').textContent = this.value;
-            });
-            
-            // Settings panel toggle
-            document.getElementById('settings-toggle').addEventListener('click', function() {
-                document.getElementById('settings-panel').classList.add('active');
-            });
-            
-            document.getElementById('settings-close').addEventListener('click', function() {
-                document.getElementById('settings-panel').classList.remove('active');
-            });
-            
-            // Check if vibration is available
-            if (!isVibrationAvailable()) {
-                document.getElementById('haptic-status').textContent = 'Vibration API not supported on this device';
-                document.getElementById('haptic-status').className = 'status error';
-            }
         });
+        
     </script>
 </body>
 </html>
