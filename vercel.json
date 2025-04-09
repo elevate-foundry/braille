@@ -23,9 +23,6 @@
   ],
   
   "env": {
-    "MONGODB_URI": "@mongodb_uri",
-    "AI_COMPRESSION_ENABLED": "true",
-    "SESSION_SECRET": "@session_secret",
-    "TENSORFLOW_MODEL_PATH": "@tensorflow_model_path"
+    "MONGODB_URI": "${MONGODB_URI}"
   }
 }
