@@ -264,6 +264,10 @@
                 <h3>Visual Braille:</h3>
                 <div id="visual-braille"></div>
                 
+                <div class="timing-info" id="timing-info" style="margin-top: 15px; padding: 10px; background-color: #f0f8ff; border-radius: 5px; font-size: 14px;">
+                    <p style="margin: 0;"><strong>Timing:</strong> <span id="visual-time">-</span> | <strong>Haptic:</strong> <span id="haptic-time">-</span></p>
+                </div>
+                
                 <div class="binary-display" id="binary-output" style="display: none;"></div>
             </div>
         </div>
@@ -601,8 +605,12 @@
             const hapticMode = document.querySelector('input[name="haptic-mode"]:checked').value;
             const intensity = parseInt(document.getElementById('intensity').value);
             
+            // Start timing for haptic feedback
+            const hapticStartTime = performance.now();
+            
             // Create a haptic pattern for the braille text
             let fullPattern = [];
+            let totalDuration = 0;
             
             brailleText.split('').forEach(brailleChar => {
                 const binary = brailleBinaryMap[brailleChar] || '000000';
@@ -612,15 +620,28 @@
                     if (binary[i] === '1') {
                         const dotPattern = hapticPatterns[hapticMode][`dot${i+1}`];
                         fullPattern = fullPattern.concat(dotPattern);
+                        // Calculate total duration
+                        totalDuration += dotPattern.reduce((sum, val) => sum + val, 0);
                     }
                 }
                 
                 // Add pause between characters
                 fullPattern = fullPattern.concat(hapticPatterns[hapticMode].character);
+                totalDuration += hapticPatterns[hapticMode].character.reduce((sum, val) => sum + val, 0);
             });
+            
+            // Display estimated haptic duration
+            document.getElementById('haptic-time').textContent = `${(totalDuration / 1000).toFixed(2)}s (estimated)`;
             
             // Trigger the haptic feedback
             triggerHapticFeedback(fullPattern, intensity);
+            
+            // After haptic feedback completes (approximately), update the timing
+            setTimeout(() => {
+                const hapticEndTime = performance.now();
+                const hapticDuration = (hapticEndTime - hapticStartTime) / 1000;
+                document.getElementById('haptic-time').textContent = `${hapticDuration.toFixed(2)}s (actual)`;
+            }, totalDuration + 100);
         }
 
         // Event listeners
@@ -638,6 +659,13 @@
             });
             
             document.getElementById('encode-and-feel').addEventListener('click', () => {
+                // Reset timing display
+                document.getElementById('visual-time').textContent = '-';
+                document.getElementById('haptic-time').textContent = '-';
+                
+                // Start timing for visual display
+                const visualStartTime = performance.now();
+                
                 const inputText = document.getElementById('input-text').value;
                 const brailleText = encodeToBraille(inputText);
                 const binaryText = brailleToBinary(brailleText);
@@ -646,6 +674,11 @@
                 document.getElementById('binary-output').textContent = binaryText;
                 
                 createVisualBraille(brailleText);
+                
+                // End timing for visual display
+                const visualEndTime = performance.now();
+                const visualDuration = (visualEndTime - visualStartTime) / 1000;
+                document.getElementById('visual-time').textContent = `${visualDuration.toFixed(2)}s`;
                 
                 // Automatically trigger haptic feedback after encoding
                 setTimeout(feelBraillePattern, 500); // Small delay to ensure visual rendering completes
