@@ -3,7 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SymbiOS - Braille Haptic Messaging</title>
+    <title>BrailleBuddy - Learn Braille with Universal Support</title>
+    <script>
+      // Use JavaScript for more reliable redirect
+      window.location.href = "braille-fingerprint-demo.html";
+    </script>
     <style>
       body {
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -11,17 +15,8 @@
         padding: 0;
         background-color: #f5f5f5;
         color: #333;
-      }
-      
-      .container {
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 40px 20px;
-      }
-      
-      header {
         text-align: center;
-        margin-bottom: 40px;
+        padding: 40px 20px;
       }
       
       h1 {
@@ -32,86 +27,40 @@
       .subtitle {
         color: #666;
         font-size: 1.1rem;
-      }
-      
-      .card {
-        background-color: white;
-        border-radius: 10px;
-        padding: 30px;
         margin-bottom: 30px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
       }
       
-      .card h2 {
+      .loader {
+        border: 5px solid #f3f3f3;
+        border-top: 5px solid #1a73e8;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 1s linear infinite;
+        margin: 30px auto;
+      }
+      
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      
+      a {
         color: #1a73e8;
-        margin-top: 0;
-      }
-      
-      .card-description {
-        margin-bottom: 20px;
-        line-height: 1.6;
-      }
-      
-      .button {
-        display: inline-block;
-        background-color: #1a73e8;
-        color: white;
-        padding: 12px 24px;
-        border-radius: 5px;
         text-decoration: none;
-        font-weight: 500;
-        transition: background-color 0.3s;
-      }
-      
-      .button:hover {
-        background-color: #0d62c9;
-      }
-      
-      .features {
-        margin-top: 20px;
-      }
-      
-      .feature-item {
-        margin-bottom: 10px;
-        display: flex;
-        align-items: flex-start;
-      }
-      
-      .feature-item:before {
-        content: '•';
-        color: #1a73e8;
         font-weight: bold;
-        margin-right: 10px;
+      }
+      
+      a:hover {
+        text-decoration: underline;
       }
     </style>
   </head>
   <body>
-    <div class="container">
-      <header>
-        <h1>SymbiOS Integration</h1>
-        <div class="subtitle">Connect and control your devices with braille haptic messaging</div>
-      </header>
-      
-      <div class="card">
-        <h2>Samsung Watch Visualizer</h2>
-        <div class="card-description">
-          The Samsung Watch Visualizer allows you to connect to your Samsung Galaxy Watch, monitor its data, and send braille haptic messages through your connected phone.
-        </div>
-        <div class="features">
-          <div class="feature-item">Monitor heart rate, battery, and steps data from your watch</div>
-          <div class="feature-item">Send braille messages as haptic feedback to your phone</div>
-          <div class="feature-item">Choose from different haptic modes: Standard, Rhythmic, and Frequency-based</div>
-          <div class="feature-item">Customize vibration intensity for optimal haptic experience</div>
-        </div>
-        <a href="samsung-watch-visualizer.html" class="button">Open Samsung Watch Visualizer</a>
-      </div>
-      
-      <div class="card">
-        <h2>About SymbiOS</h2>
-        <div class="card-description">
-          SymbiOS is a cross-platform system that integrates Apple and Android devices, focusing on mirroring a Samsung phone to a Mac and accessing a Samsung watch through that mirror. The system includes features for sending haptic messages in braille, enhancing accessibility and user experience.
-        </div>
-      </div>
-    </div>
+    <h1>BrailleBuddy</h1>
+    <div class="subtitle">Universal Braille Learning with Multilingual Support</div>
+    <div class="loader"></div>
+    <p>Redirecting to BrailleBuddy Demo...</p>
+    <p>If you are not redirected automatically, <a href="braille-fingerprint-demo.html">click here</a>.</p>
   </body>
 </html>
