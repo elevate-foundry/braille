@@ -394,7 +394,10 @@
     <script src="src/braille-core/braille-ae.js"></script>
     <!-- BBID Manager and Sal Assistant -->
     <script src="js/bbid-manager.js"></script>
+    <script src="js/braille-multimodal-client.js"></script>
     <script src="js/sal-assistant.js"></script>
+    <!-- Analytics Tracker -->
+    <script src="js/analytics-tracker.js"></script>
     
     <!-- Offline mode notification -->
     <div id="offline-notification" class="offline-notification">
@@ -404,13 +407,23 @@
     </div>
     
     <script>
+        // Initialize Analytics
+        const analytics = initAnalytics({
+            enableLocalStorage: true,
+            enableIndexedDB: true,
+            enableServerSync: false,
+            debug: false
+        });
+        
         // Check if the user is offline and show notification
         function updateOnlineStatus() {
             const offlineNotification = document.getElementById('offline-notification');
             if (!navigator.onLine) {
                 offlineNotification.classList.add('show');
+                analytics.trackEvent('offline_mode_entered');
             } else {
                 offlineNotification.classList.remove('show');
+                analytics.trackEvent('online_mode_entered');
             }
         }
 

@@ -103,6 +103,25 @@ class SalAssistant {
                 }
             }
             
+            // Connect to Braille Multimodal API for AI tutoring
+            if (typeof BrailleMultimodalClient !== 'undefined') {
+                console.log('DEBUG [5b]: Initializing Braille Multimodal Client');
+                this.multimodalClient = new BrailleMultimodalClient({
+                    apiUrl: 'http://localhost:8000',
+                    onResponse: (result) => console.log('AI Response:', result),
+                    onError: (err) => console.warn('AI Error:', err)
+                });
+                // Check if API is available
+                this.multimodalClient.isAvailable().then(available => {
+                    this.aiAvailable = available;
+                    console.log('DEBUG [5c]: Braille Multimodal API available:', available);
+                });
+            } else {
+                console.warn('DEBUG [5b]: BrailleMultimodalClient not available');
+                this.multimodalClient = null;
+                this.aiAvailable = false;
+            }
+            
             // Connect to BBID Manager if available
             if (typeof window.bbidManager !== 'undefined') {
                 console.log('DEBUG [6]: BBID Manager found, connecting');
@@ -1590,6 +1609,149 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('DEBUG [INIT-2]: Added debug panel to page');
     }, 2000);
 });
+
+// ============================================================================
+// AI TUTORING METHODS (powered by Braille Multimodal API)
+// ============================================================================
+
+/**
+ * Ask the AI tutor for help with braille
+ * @param {string} question - The question to ask
+ * @returns {Promise<string>} AI response
+ */
+SalAssistant.prototype.askAI = async function(question) {
+    if (!this.multimodalClient || !this.aiAvailable) {
+        return "I'm sorry, the AI tutor is not available right now. Let me help you with what I know!";
+    }
+    
+    try {
+        const result = await this.multimodalClient.chat(question);
+        return result.response;
+    } catch (e) {
+        console.error('AI tutor error:', e);
+        return "I had trouble thinking about that. Let me try again later!";
+    }
+};
+
+/**
+ * Get an AI-generated hint for a braille letter
+ * @param {string} letter - The letter to get a hint for
+ * @returns {Promise<string>} Hint text
+ */
+SalAssistant.prototype.getAIHint = async function(letter) {
+    if (!this.multimodalClient || !this.aiAvailable) {
+        // Fallback to basic hint
+        return `The letter "${letter}" has a unique braille pattern. Try to remember which dots are raised!`;
+    }
+    
+    try {
+        const hint = await this.multimodalClient.getHint(letter);
+        return hint;
+    } catch (e) {
+        return `The letter "${letter}" has a unique braille pattern. Practice makes perfect!`;
+    }
+};
+
+/**
+ * Get adaptive feedback based on user performance
+ * @param {object} performance - Performance data {correctCount, incorrectCount, currentLetter}
+ * @returns {Promise<string>} Encouraging feedback
+ */
+SalAssistant.prototype.getAdaptiveFeedback = async function(performance) {
+    if (!this.multimodalClient || !this.aiAvailable) {
+        // Fallback feedback
+        const accuracy = performance.correctCount / (performance.correctCount + performance.incorrectCount) || 0;
+        if (accuracy > 0.8) return "Great job! You're doing amazing!";
+        if (accuracy > 0.5) return "Keep going! You're getting better!";
+        return "Don't give up! Every expert was once a beginner!";
+    }
+    
+    try {
+        return await this.multimodalClient.getAdaptiveFeedback(performance);
+    } catch (e) {
+        return "Keep practicing! You're doing great!";
+    }
+};
+
+/**
+ * Generate a practice exercise using AI
+ * @param {string} difficulty - 'easy', 'medium', 'hard'
+ * @param {string} type - 'letter', 'word', 'sentence'
+ * @returns {Promise<{challenge: string, braille: string, hint: string}>}
+ */
+SalAssistant.prototype.generateExercise = async function(difficulty = 'easy', type = 'letter') {
+    if (!this.multimodalClient || !this.aiAvailable) {
+        // Fallback exercises
+        const letters = 'abcdefghijklmnopqrstuvwxyz';
+        const words = ['cat', 'dog', 'sun', 'moon', 'star', 'book', 'tree'];
+        
+        if (type === 'letter') {
+            const letter = letters[Math.floor(Math.random() * letters.length)];
+            return { challenge: letter, braille: this.multimodalClient?.letterMap[letter] || '⠿', hint: 'Try this letter!' };
+        } else {
+            const word = words[Math.floor(Math.random() * words.length)];
+            return { challenge: word, braille: word.split('').map(c => this.multimodalClient?.letterMap[c] || '⠿').join(''), hint: `This word has ${word.length} letters` };
+        }
+    }
+    
+    try {
+        return await this.multimodalClient.generateExercise(difficulty, type);
+    } catch (e) {
+        return { challenge: 'hello', braille: '⠓⠑⠇⠇⠕', hint: 'A common greeting!' };
+    }
+};
+
+/**
+ * Encode text to braille using the API
+ * @param {string} text - Text to encode
+ * @returns {Promise<string>} Braille string
+ */
+SalAssistant.prototype.encodeToBraille = async function(text) {
+    if (!this.multimodalClient) {
+        return text; // Fallback
+    }
+    const result = await this.multimodalClient.encodeText(text);
+    return result.braille;
+};
+
+/**
+ * Decode braille to text using the API
+ * @param {string} braille - Braille to decode
+ * @returns {Promise<string>} Decoded text
+ */
+SalAssistant.prototype.decodeFromBraille = async function(braille) {
+    if (!this.multimodalClient) {
+        return braille; // Fallback
+    }
+    const result = await this.multimodalClient.decodeBraille(braille);
+    return result.text;
+};
+
+/**
+ * Play haptic feedback for braille pattern
+ * @param {string} braille - Braille to play as haptic
+ */
+SalAssistant.prototype.playBrailleHaptic = function(braille) {
+    if (this.multimodalClient) {
+        this.multimodalClient.playHaptic(braille);
+    }
+};
+
+/**
+ * Speak and optionally play haptic for a braille message
+ * @param {string} text - Text to speak
+ * @param {boolean} withHaptic - Whether to also play haptic
+ */
+SalAssistant.prototype.speakWithHaptic = async function(text, withHaptic = true) {
+    // Speak the text
+    this.speak(text);
+    
+    // Play haptic if enabled
+    if (withHaptic && this.multimodalClient) {
+        const braille = await this.encodeToBraille(text);
+        this.playBrailleHaptic(braille);
+    }
+};
 
 // Export for module systems
 if (typeof module !== 'undefined' && module.exports) {
