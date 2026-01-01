@@ -107,7 +107,7 @@ class SalAssistant {
             if (typeof BrailleMultimodalClient !== 'undefined') {
                 console.log('DEBUG [5b]: Initializing Braille Multimodal Client');
                 this.multimodalClient = new BrailleMultimodalClient({
-                    apiUrl: 'http://localhost:8000',
+                    apiUrl: 'https://braille-multimodal-api.fly.dev',
                     onResponse: (result) => console.log('AI Response:', result),
                     onError: (err) => console.warn('AI Error:', err)
                 });

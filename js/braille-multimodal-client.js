@@ -10,7 +10,8 @@
 
 class BrailleMultimodalClient {
     constructor(options = {}) {
-        this.apiUrl = options.apiUrl || 'http://localhost:8000';
+        // Default to cloud API, fall back to localhost for development
+        this.apiUrl = options.apiUrl || 'https://braille-multimodal-api.fly.dev';
         this.timeout = options.timeout || 60000;
         this.onResponse = options.onResponse || null;
         this.onError = options.onError || null;
