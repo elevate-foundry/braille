@@ -24,3 +24,27 @@ yarn-error.log*
 
 # Vercel
 .vercel
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+*.egg-info/
+
+# Model files (too large for git - use git-lfs or download separately)
+braille-base-0.5b/
+braille-trained/
+braille-trained-g2/
+braille-trained-instruct/
+braille-tokenizer/
+*.safetensors
+*.bin
+optimizer.pt
+
+# Training data (can be regenerated)
+*.jsonl
+
+# Validation output
+validation_results.json
