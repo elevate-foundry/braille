@@ -1793,6 +1793,153 @@ Reply ONLY with 8 numbers separated by commas, like: 0.8,0.2,0.5,0.1,0.3,0.9,0.4
     }
 
     // ═══════════════════════════════════════════════════════════════════════
+    // §4b  BRAILLE TTS — Braille-native audio synthesis
+    // ═══════════════════════════════════════════════════════════════════════
+
+    class BrailleTTS {
+        constructor(opts = {}) {
+            this.sampleRate = opts.sampleRate || 22050;
+            this.frameDurationMs = opts.frameDurationMs || 200;
+            this.baseAmplitude = opts.baseAmplitude || 0.25;
+            // 8 frequency bands mapped to braille dot positions (speech-relevant 200–4800 Hz)
+            this.FREQ_BANDS = [200, 400, 600, 1000, 1600, 2400, 3200, 4800];
+            this.FREQ_LABELS = ['low', 'low-mid', 'F1-low', 'F1-high', 'F2-low', 'F2-high', 'consonant', 'sibilance'];
+            this._audioCtx = null;
+            this._gainNode = null;
+        }
+
+        _ensureCtx() {
+            if (!this._audioCtx) {
+                const AC = typeof AudioContext !== 'undefined' ? AudioContext : (typeof webkitAudioContext !== 'undefined' ? webkitAudioContext : null);
+                if (!AC) return null;
+                this._audioCtx = new AC();
+                this._gainNode = this._audioCtx.createGain();
+                this._gainNode.gain.value = this.baseAmplitude;
+                this._gainNode.connect(this._audioCtx.destination);
+            }
+            if (this._audioCtx.state === 'suspended') this._audioCtx.resume();
+            return this._audioCtx;
+        }
+
+        /**
+         * Synthesize a Float32Array waveform from an array of 8D vectors.
+         */
+        synthesizeFromVectors(vectors) {
+            const sr = this.sampleRate;
+            const frameSamples = Math.round(sr * this.frameDurationMs / 1000);
+            const totalSamples = frameSamples * vectors.length;
+            const samples = new Float32Array(totalSamples);
+            const attackSamples = Math.round(sr * 0.005);
+            const releaseSamples = Math.round(sr * 0.01);
+
+            for (let f = 0; f < vectors.length; f++) {
+                const vec = vectors[f];
+                let activeDots = 0;
+                for (let d = 0; d < 8; d++) if (vec[d] >= 0.4) activeDots++;
+                if (activeDots === 0) continue;
+
+                const perDotAmp = 1.0 / Math.sqrt(activeDots);
+                const offset = f * frameSamples;
+
+                for (let d = 0; d < 8; d++) {
+                    if (vec[d] < 0.4) continue;
+                    const amp = perDotAmp * Math.min(1, vec[d]);
+                    const omega = 2 * Math.PI * this.FREQ_BANDS[d] / sr;
+                    for (let s = 0; s < frameSamples; s++) {
+                        let env = 1.0;
+                        if (s < attackSamples) env = s / attackSamples;
+                        else if (s > frameSamples - releaseSamples) env = (frameSamples - s) / releaseSamples;
+                        samples[offset + s] += amp * env * Math.sin(omega * s);
+                    }
+                }
+            }
+            return { samples, sampleRate: sr, duration: totalSamples / sr, frameCount: vectors.length };
+        }
+
+        /**
+         * Play a buffer via Web Audio API. Returns a promise.
+         */
+        playBuffer(synthesized) {
+            const ctx = this._ensureCtx();
+            if (!ctx) return Promise.resolve();
+            const buf = ctx.createBuffer(1, synthesized.samples.length, synthesized.sampleRate);
+            buf.getChannelData(0).set(synthesized.samples);
+            const src = ctx.createBufferSource();
+            src.buffer = buf;
+            src.connect(this._gainNode);
+            src.start();
+            return new Promise(r => { src.onended = r; });
+        }
+
+        /**
+         * Play a single 8D vector as a short tone. Great for real-time feedback.
+         */
+        playVector(vec, durationMs) {
+            const dur = durationMs || this.frameDurationMs;
+            const origDur = this.frameDurationMs;
+            this.frameDurationMs = dur;
+            const synth = this.synthesizeFromVectors([vec]);
+            this.frameDurationMs = origDur;
+            return this.playBuffer(synth);
+        }
+
+        /**
+         * Play a sequence of vectors (e.g. batch result braille sequence).
+         */
+        playSequence(vectors, durationMsPerFrame) {
+            const dur = durationMsPerFrame || this.frameDurationMs;
+            const origDur = this.frameDurationMs;
+            this.frameDurationMs = dur;
+            const synth = this.synthesizeFromVectors(vectors);
+            this.frameDurationMs = origDur;
+            return this.playBuffer(synth);
+        }
+
+        /**
+         * Play the consensus merge as a dramatic chord that builds up.
+         * Each dimension fades in one at a time over ~2 seconds.
+         */
+        playMergeChord(vec, totalDurationMs) {
+            const ctx = this._ensureCtx();
+            if (!ctx) return Promise.resolve();
+            const dur = (totalDurationMs || 2000) / 1000;
+            const now = ctx.currentTime;
+
+            const oscillators = [];
+            for (let d = 0; d < 8; d++) {
+                if (vec[d] < 0.3) continue;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.frequency.value = this.FREQ_BANDS[d];
+                osc.type = 'sine';
+                gain.gain.value = 0;
+                // Stagger: each dimension fades in at a different time
+                const fadeInStart = now + (d / 8) * dur * 0.6;
+                const fadeInEnd = fadeInStart + 0.15;
+                const amp = Math.min(1, vec[d]) * this.baseAmplitude / Math.sqrt(8);
+                gain.gain.setValueAtTime(0, fadeInStart);
+                gain.gain.linearRampToValueAtTime(amp, fadeInEnd);
+                gain.gain.setValueAtTime(amp, now + dur - 0.2);
+                gain.gain.linearRampToValueAtTime(0, now + dur);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(fadeInStart);
+                osc.stop(now + dur + 0.1);
+                oscillators.push(osc);
+            }
+            return new Promise(r => setTimeout(r, totalDurationMs || 2000));
+        }
+
+        setVolume(v) {
+            if (this._gainNode) this._gainNode.gain.value = Math.max(0, Math.min(1, v));
+        }
+
+        stop() {
+            if (this._audioCtx) { this._audioCtx.close(); this._audioCtx = null; this._gainNode = null; }
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
     // §5  COMPILER
     // ═══════════════════════════════════════════════════════════════════════
 
@@ -1853,7 +2000,7 @@ Reply ONLY with 8 numbers separated by commas, like: 0.8,0.2,0.5,0.1,0.3,0.9,0.4
         Environment, BrailleFunction, BrailleClass, BrailleInstance,
         SAL, SALCache, TraceNode, Domain,
         SALEdgeRuntime, EdgeMode,
-        BrailleCRDT, FRONTIER_MODELS, DIMENSION_SEMANTICS,
+        BrailleCRDT, BrailleTTS, FRONTIER_MODELS, DIMENSION_SEMANTICS,
         KEYWORDS, OPERATORS, DELIMITERS,
 
         async run(source, options = {}) {

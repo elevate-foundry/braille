@@ -858,7 +858,10 @@ Connect your OpenRouter key above to begin.</div>
         <div id="crdt-model-selector" style="padding:10px 16px;border-bottom:1px solid var(--border)">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
                 <span style="font-size:0.72rem;color:var(--text-dim)">Models: <span id="crdt-model-count">15</span> selected · <span id="crdt-agg-tpm" style="color:var(--accent);font-weight:700">690K TPM</span> aggregate</span>
-                <label style="font-size:0.68rem;cursor:pointer;color:var(--accent)"><input type="checkbox" id="crdt-select-all" checked> all</label>
+                <span style="display:flex;gap:8px;align-items:center">
+                    <label id="crdt-audio-toggle" style="font-size:0.68rem;cursor:pointer;color:var(--cyan)" title="Toggle braille audio">🔊 audio</label>
+                    <label style="font-size:0.68rem;cursor:pointer;color:var(--accent)"><input type="checkbox" id="crdt-select-all" checked> all</label>
+                </span>
             </div>
             <div style="display:flex;flex-wrap:wrap;gap:4px" id="crdt-model-checks"></div>
         </div>
@@ -1498,6 +1501,17 @@ You are concise, precise, and slightly philosophical. You see yourself as the bo
         updateModelStats();
     });
 
+    // ── BrailleTTS for real-time audio ──
+    const tts = new BrailleLang.BrailleTTS({ frameDurationMs: 150, baseAmplitude: 0.2 });
+    let ttsEnabled = true;
+    const audioToggle = document.getElementById('crdt-audio-toggle');
+    audioToggle.addEventListener('click', () => {
+        ttsEnabled = !ttsEnabled;
+        audioToggle.textContent = ttsEnabled ? '🔊 audio' : '🔇 muted';
+        audioToggle.style.color = ttsEnabled ? 'var(--cyan)' : 'var(--text-dim)';
+        if (!ttsEnabled) tts.stop();
+    });
+
     crdtRunBtn.addEventListener('click', runDistillation);
     crdtInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') runDistillation(); });
 
@@ -1564,6 +1578,11 @@ You are concise, precise, and slightly philosophical. You see yourself as the bo
                     if (statusEl) {
                         statusEl.textContent = `✓ ${result.text.length} chars · ${result.latency}ms`;
                         statusEl.style.opacity = '1';
+                    }
+                    // Play this model's vector as a short tone
+                    if (ttsEnabled && result.text.length > 0) {
+                        const vec = crdt.textToSemanticVector(result.text);
+                        tts.playVector(vec, 120);
                     }
                 },
                 onModelError: (i, result) => {
@@ -1693,7 +1712,8 @@ You are concise, precise, and slightly philosophical. You see yourself as the bo
             mergeArea.innerHTML = html;
             mergeArea.style.opacity = '1';
 
-            // Animate consensus character pop-in
+            // Play merge chord + animate consensus character
+            if (ttsEnabled) tts.playMergeChord(gCounter, 2000);
             await new Promise(r => setTimeout(r, 100));
             const charEl = document.getElementById('crdt-consensus-char');
             if (charEl) { charEl.style.opacity = '1'; charEl.style.transform = 'scale(1)'; }
@@ -1806,8 +1826,9 @@ You are concise, precise, and slightly philosophical. You see yourself as the bo
                     if (roundEl) roundEl.style.opacity = '1';
                     const statusEl = document.getElementById(`batch-round-status-${round}`);
                     if (statusEl) statusEl.textContent = `✓ ${data.modelsResponded} models · ${data.totalChars} chars → ${data.braille}`;
-                    // Grow the braille sequence
                     brailleSeqEl.textContent = (brailleSeqEl.textContent || '') + data.braille;
+                    // Play this round's consensus as a tone
+                    if (ttsEnabled) tts.playVector(data.gCounter, 180);
                 },
             });
 
@@ -1845,6 +1866,12 @@ You are concise, precise, and slightly philosophical. You see yourself as the bo
             finalEl.innerHTML = finalHtml;
             finalEl.style.opacity = '1';
             batchProgressEl.textContent = `✓ Complete — ${report.totalMs}ms`;
+
+            // Play the super-consensus as a dramatic merge chord
+            if (ttsEnabled) {
+                const superVec = new Float64Array(report.superVector);
+                tts.playMergeChord(superVec, 2500);
+            }
 
             crdtStatus.textContent = '● done';
             crdtStatus.style.color = 'var(--green)';
