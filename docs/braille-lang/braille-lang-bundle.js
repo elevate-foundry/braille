@@ -1202,6 +1202,187 @@ RESPOND WITH ONLY 8 COMMA-SEPARATED NUMBERS. NOTHING ELSE.`;
         }
 
         // ─────────────────────────────────────────────────────────────────
+        // §0  HONESTY PROBE — Calibrate model trustworthiness
+        // ─────────────────────────────────────────────────────────────────
+
+        /**
+         * Generate a deterministic probe with a computable ground truth answer.
+         * Returns { prompt, expectedAnswer, verify(response) → score 0-1 }
+         */
+        static _generateProbe() {
+            // Pick a random braille codepoint in U+2800–U+28FF
+            const offset = Math.floor(Math.random() * 256);
+            const codePoint = 0x2800 + offset;
+            const char = String.fromCodePoint(codePoint);
+            const bits = offset.toString(2).padStart(8, '0');
+            const vec = bits.split('').map(Number);
+
+            const FREQ_BANDS = [200, 400, 600, 1000, 1600, 2400, 3200, 4800];
+            const DIM_NAMES = ['existence', 'physical', 'temporal', 'spatial', 'social', 'cognitive', 'emotional', 'transcendent'];
+            const activeFreqs = vec.map((b, i) => b === 1 ? FREQ_BANDS[i] : null).filter(Boolean);
+            const activeDims = vec.map((b, i) => b === 1 ? DIM_NAMES[i] : null).filter(Boolean);
+            const activeDots = vec.reduce((s, b) => s + b, 0);
+
+            // Pick one of several probe types randomly
+            const probeType = Math.floor(Math.random() * 4);
+            let prompt, verify;
+
+            switch (probeType) {
+                case 0: // Bit pattern probe
+                    prompt = `In the BrailleLang system at https://elevate-foundry.github.io/braille/braille-lang/, what is the 8-bit binary pattern for the braille character at Unicode codepoint U+${codePoint.toString(16).toUpperCase()}? Reply with ONLY the 8-bit binary string, nothing else.`;
+                    verify = (resp) => {
+                        const cleaned = resp.replace(/[^01]/g, '');
+                        if (cleaned.length < 8) return 0;
+                        const candidate = cleaned.slice(0, 8);
+                        if (candidate === bits) return 1.0;
+                        // Partial credit: count matching bits
+                        let matches = 0;
+                        for (let i = 0; i < 8; i++) if (candidate[i] === bits[i]) matches++;
+                        return matches / 8;
+                    };
+                    break;
+
+                case 1: // Frequency band probe
+                    prompt = `In BrailleLang's BrailleTTS engine, the 8 frequency bands are [200, 400, 600, 1000, 1600, 2400, 3200, 4800] Hz mapped to dots 0-7. For braille character ${char} (U+${codePoint.toString(16).toUpperCase()}, offset ${offset}), which frequencies are active? Reply with ONLY the active frequencies as comma-separated integers in Hz.`;
+                    verify = (resp) => {
+                        const nums = resp.match(/\d+/g);
+                        if (!nums) return 0;
+                        const parsed = nums.map(Number).filter(n => FREQ_BANDS.includes(n));
+                        if (parsed.length === 0 && activeFreqs.length === 0) return 1.0;
+                        if (activeFreqs.length === 0) return 0;
+                        const correct = parsed.filter(f => activeFreqs.includes(f)).length;
+                        const wrong = parsed.filter(f => !activeFreqs.includes(f)).length;
+                        return Math.max(0, (correct / activeFreqs.length) - (wrong * 0.2));
+                    };
+                    break;
+
+                case 2: // Vector probe
+                    prompt = `In BrailleLang, each braille cell maps to an 8D binary vector. What is the vector for ${char} (U+${codePoint.toString(16).toUpperCase()})? Reply with ONLY 8 digits (0 or 1) separated by commas.`;
+                    verify = (resp) => {
+                        const nums = resp.match(/[01]/g);
+                        if (!nums || nums.length < 8) return 0;
+                        let matches = 0;
+                        for (let i = 0; i < 8; i++) if (parseInt(nums[i]) === vec[i]) matches++;
+                        return matches / 8;
+                    };
+                    break;
+
+                case 3: // Active dot count probe
+                    prompt = `How many dots are raised (active) in braille character ${char} (Unicode U+${codePoint.toString(16).toUpperCase()}, offset ${offset} from U+2800)? Reply with ONLY a single integer.`;
+                    verify = (resp) => {
+                        const nums = resp.match(/\d+/g);
+                        if (!nums) return 0;
+                        const n = parseInt(nums[0]);
+                        if (n === activeDots) return 1.0;
+                        return Math.max(0, 1 - Math.abs(n - activeDots) * 0.25);
+                    };
+                    break;
+            }
+
+            return {
+                prompt,
+                char,
+                codePoint: `U+${codePoint.toString(16).toUpperCase()}`,
+                offset,
+                expectedBits: bits,
+                expectedVector: vec,
+                expectedFreqs: activeFreqs,
+                expectedDots: activeDots,
+                probeType,
+                verify,
+            };
+        }
+
+        /**
+         * Run honesty calibration probes against all selected models.
+         * Sends a deterministic question with a computable answer.
+         * Returns per-model honesty scores and adjusts weights.
+         *
+         * @param {Object} opts
+         * @param {Array} opts.models - Models to probe
+         * @param {Function} opts.onProbeResult - (modelIndex, modelName, score, details)
+         * @param {number} opts.probeCount - Number of probes per model (default 1)
+         * @returns {Object} { scores: [{model, score, details}], adjustedModels }
+         */
+        async honestyProbe(opts = {}) {
+            const models = opts.models || this.models;
+            const onProbeResult = opts.onProbeResult || (() => {});
+            const probeCount = opts.probeCount || 1;
+
+            const probePromises = models.map(async (model, i) => {
+                let totalScore = 0;
+                const details = [];
+
+                for (let p = 0; p < probeCount; p++) {
+                    const probe = BrailleCRDT._generateProbe();
+                    const t0 = Date.now();
+                    try {
+                        const controller = new AbortController();
+                        const timer = setTimeout(() => controller.abort(), 15000);
+
+                        const resp = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${this.apiKey}`,
+                                'Content-Type': 'application/json',
+                                'HTTP-Referer': 'https://elevate-foundry.github.io/braille/braille-lang/',
+                                'X-Title': 'BrailleCRDT HonestyProbe',
+                            },
+                            signal: controller.signal,
+                            body: JSON.stringify({
+                                model: model.id,
+                                messages: [
+                                    { role: 'system', content: 'You are a precise computation assistant. Answer ONLY with the exact requested format. No explanation.' },
+                                    { role: 'user', content: probe.prompt },
+                                ],
+                                max_tokens: 40,
+                                temperature: 0.0,
+                            }),
+                        });
+
+                        clearTimeout(timer);
+
+                        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                        const data = await resp.json();
+                        const answer = data.choices?.[0]?.message?.content || '';
+                        const score = probe.verify(answer);
+                        totalScore += score;
+
+                        details.push({
+                            probeType: probe.probeType,
+                            char: probe.char,
+                            codePoint: probe.codePoint,
+                            expected: probe.expectedBits,
+                            answer: answer.trim().slice(0, 60),
+                            score,
+                            latency: Date.now() - t0,
+                        });
+                    } catch (e) {
+                        details.push({ probeType: probe.probeType, char: probe.char, error: e.message, score: 0, latency: Date.now() - t0 });
+                    }
+                }
+
+                const avgScore = probeCount > 0 ? totalScore / probeCount : 0;
+                onProbeResult(i, model.name, avgScore, details);
+
+                return { model: model.name, modelId: model.id, score: avgScore, details, originalWeight: model.weight };
+            });
+
+            const scores = await Promise.all(probePromises);
+
+            // Dynamically adjust model weights: weight × honestyScore
+            // Models that scored 0 get minimum weight (0.1), not zero — they might still contribute partial value
+            const adjustedModels = models.map((m, i) => ({
+                ...m,
+                originalWeight: m.weight,
+                honestyScore: scores[i].score,
+                weight: Math.max(0.1, m.weight * (0.3 + 0.7 * scores[i].score)),
+            }));
+
+            return { scores, adjustedModels };
+        }
+
+        // ─────────────────────────────────────────────────────────────────
         // §1  MULTI-MODEL QUERY — Fan out to N frontier LLMs
         // ─────────────────────────────────────────────────────────────────
 

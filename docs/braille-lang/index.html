@@ -878,6 +878,7 @@ Connect your OpenRouter key above to begin.</div>
                 <option value="10">10 rounds</option>
             </select>
             <button id="crdt-batch" style="cursor:pointer;background:var(--accent);color:#000;font-weight:700;padding:6px 12px;border:none;border-radius:4px;font-size:0.75rem;white-space:nowrap">⣿ BATCH</button>
+            <button id="crdt-probe" style="cursor:pointer;background:var(--cyan);color:#000;font-weight:700;padding:6px 12px;border:none;border-radius:4px;font-size:0.75rem;white-space:nowrap" title="Run honesty calibration probes against all models">⚖ PROBE</button>
         </div>
     </div>
 </section>
@@ -891,7 +892,7 @@ Connect your OpenRouter key above to begin.</div>
 </footer>
 
 <!-- ════════════ RUNTIME (browser-bundled) ════════════ -->
-<script src="braille-lang-bundle.js?v=tts1"></script>
+<script src="braille-lang-bundle.js?v=probe1"></script>
 <script>
 // ── App logic ──
 document.addEventListener('DOMContentLoaded', () => {
@@ -1556,14 +1557,22 @@ You are concise, precise, and slightly philosophical. You see yourself as the bo
         crdtOutput.innerHTML = layoutHtml;
         crdtOutput.style.maxHeight = 'none';
 
-        const crdt = new BrailleLang.BrailleCRDT({ apiKey, models: selectedModels });
+        // Use honesty-calibrated weights if available
+        const effectiveModels = lastHonestyResults
+            ? selectedModels.map(m => {
+                const adjusted = lastHonestyResults.adjustedModels.find(a => a.id === m.id);
+                return adjusted || m;
+            })
+            : selectedModels;
+
+        const crdt = new BrailleLang.BrailleCRDT({ apiKey, models: effectiveModels });
 
         try {
             const t0 = performance.now();
 
             // ── Stream all models in parallel ──
             const results = await crdt.queryAllStreaming(query, {
-                models: selectedModels,
+                models: effectiveModels,
                 onToken: (i, delta, fullText) => {
                     const el = document.getElementById(`crdt-stream-${i}`);
                     if (el) {
@@ -1890,6 +1899,173 @@ You are concise, precise, and slightly philosophical. You see yourself as the bo
         } finally {
             crdtRunBtn.disabled = false;
             crdtBatchBtn.disabled = false;
+            crdtInput.disabled = false;
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // §10  HONESTY PROBE — Calibrate model trustworthiness
+    // ═══════════════════════════════════════════════════════════════════════
+
+    const crdtProbeBtn = document.getElementById('crdt-probe');
+    let lastHonestyResults = null; // Persists across distillation runs
+
+    crdtProbeBtn.addEventListener('click', runHonestyProbe);
+
+    async function runHonestyProbe() {
+        const apiKey = sessionStorage.getItem('sal_api_key');
+        if (!apiKey) {
+            crdtOutput.innerHTML = '<div class="sal-msg sal"><span class="sal-name">⡪ CRDT</span>⠻ No API key. Enter your OpenRouter key in SAL Chat first.</div>';
+            return;
+        }
+
+        const checked = document.querySelectorAll('.crdt-model:checked');
+        if (checked.length === 0) {
+            crdtOutput.innerHTML = '<div class="sal-msg sal"><span class="sal-name">⡪ CRDT</span>⠻ Select at least one model.</div>';
+            return;
+        }
+        const selectedModels = Array.from(checked).map(cb => BrailleLang.FRONTIER_MODELS.find(m => m.id === cb.value)).filter(Boolean);
+
+        crdtRunBtn.disabled = true;
+        crdtBatchBtn.disabled = true;
+        crdtProbeBtn.disabled = true;
+        crdtInput.disabled = true;
+        crdtStatus.textContent = '● probing honesty...';
+        crdtStatus.style.color = 'var(--cyan)';
+
+        // Build probe layout
+        let html = '<div style="padding:12px">';
+        html += '<div style="text-align:center;margin-bottom:12px">';
+        html += '<div style="font-size:0.72rem;color:var(--cyan);font-weight:700;letter-spacing:2px">⚖ HONESTY PROBE</div>';
+        html += '<div style="font-size:0.65rem;color:var(--text-dim)">Testing each model with verifiable braille math questions</div>';
+        html += '</div>';
+        html += '<div id="probe-grid" style="display:grid;grid-template-columns:repeat(auto-fill, minmax(180px, 1fr));gap:8px">';
+        selectedModels.forEach((m, i) => {
+            html += `<div id="probe-card-${i}" style="border:1px solid ${m.color}33;border-radius:8px;padding:10px;opacity:0.5;transition:all 0.3s">`;
+            html += `<div style="font-size:0.68rem;font-weight:700;color:${m.color};margin-bottom:6px">${m.name}</div>`;
+            html += `<div id="probe-status-${i}" style="font-size:0.6rem;color:var(--text-dim)">⠠ waiting...</div>`;
+            html += `<div id="probe-score-${i}" style="font-size:1.8rem;font-weight:900;margin:6px 0;opacity:0;transition:opacity 0.5s"></div>`;
+            html += `<div id="probe-detail-${i}" style="font-size:0.55rem;color:var(--text-dim)"></div>`;
+            html += `<div id="probe-weight-${i}" style="font-size:0.55rem;margin-top:4px"></div>`;
+            html += '</div>';
+        });
+        html += '</div>';
+        html += '<div id="probe-summary" style="text-align:center;margin-top:12px;opacity:0;transition:opacity 0.5s"></div>';
+        html += '</div>';
+        crdtOutput.innerHTML = html;
+
+        const crdt = new BrailleLang.BrailleCRDT({ apiKey, models: selectedModels });
+        const PROBE_TYPES = ['bit-pattern', 'freq-bands', 'vector', 'dot-count'];
+
+        try {
+            const { scores, adjustedModels } = await crdt.honestyProbe({
+                models: selectedModels,
+                probeCount: 2,
+                onProbeResult: (i, name, score, details) => {
+                    const card = document.getElementById(`probe-card-${i}`);
+                    const statusEl = document.getElementById(`probe-status-${i}`);
+                    const scoreEl = document.getElementById(`probe-score-${i}`);
+                    const detailEl = document.getElementById(`probe-detail-${i}`);
+                    const weightEl = document.getElementById(`probe-weight-${i}`);
+
+                    if (card) card.style.opacity = '1';
+
+                    // Color-code score
+                    let scoreColor = 'var(--red)';
+                    let badge = '⠻ HALLUCINATING';
+                    if (score >= 0.9) { scoreColor = 'var(--green)'; badge = '✓ GROUNDED'; }
+                    else if (score >= 0.6) { scoreColor = 'var(--yellow)'; badge = '⚠ PARTIAL'; }
+                    else if (score >= 0.3) { scoreColor = 'var(--orange)'; badge = '⚠ UNRELIABLE'; }
+
+                    if (scoreEl) {
+                        scoreEl.textContent = (score * 100).toFixed(0) + '%';
+                        scoreEl.style.color = scoreColor;
+                        scoreEl.style.opacity = '1';
+                    }
+                    if (statusEl) {
+                        statusEl.innerHTML = `<span style="color:${scoreColor};font-weight:700">${badge}</span>`;
+                    }
+                    if (detailEl) {
+                        detailEl.innerHTML = details.map(d =>
+                            `<div style="margin-top:2px">${PROBE_TYPES[d.probeType]}: <span style="color:${d.score >= 0.8 ? 'var(--green)' : d.score >= 0.4 ? 'var(--yellow)' : 'var(--red)'}">${(d.score * 100).toFixed(0)}%</span> · ${d.latency}ms${d.error ? ` · <span style="color:var(--red)">${d.error}</span>` : ''}</div>`
+                        ).join('');
+                        if (details.length > 0 && details[0].answer) {
+                            detailEl.innerHTML += `<div style="margin-top:3px;color:var(--text-dim);font-style:italic;max-height:30px;overflow:hidden">"${details[0].answer}"</div>`;
+                        }
+                    }
+
+                    // Play honesty tone
+                    if (ttsEnabled) {
+                        const vec = new Float64Array(8);
+                        vec[5] = score; // cognitive = honesty
+                        vec[0] = score > 0.5 ? 1 : 0; // existence = present/absent
+                        tts.playVector(vec, 100);
+                    }
+                },
+            });
+
+            // Store for subsequent distillation
+            lastHonestyResults = { scores, adjustedModels };
+
+            // Summary
+            const avgHonesty = scores.reduce((s, r) => s + r.score, 0) / scores.length;
+            const grounded = scores.filter(s => s.score >= 0.9).length;
+            const partial = scores.filter(s => s.score >= 0.3 && s.score < 0.9).length;
+            const hallucinating = scores.filter(s => s.score < 0.3).length;
+
+            const summaryEl = document.getElementById('probe-summary');
+            if (summaryEl) {
+                let summaryHtml = `<div style="font-size:0.72rem;font-weight:700;color:var(--cyan)">⚖ Calibration Complete</div>`;
+                summaryHtml += `<div style="font-size:0.65rem;color:var(--text-dim);margin-top:4px">`;
+                const hColor = avgHonesty >= 0.7 ? 'var(--green)' : avgHonesty >= 0.4 ? 'var(--yellow)' : 'var(--red)';
+                summaryHtml += `Avg honesty: <span style="color:${hColor};font-weight:700">${(avgHonesty * 100).toFixed(0)}%</span>`;
+                summaryHtml += ` · <span style="color:var(--green)">${grounded} grounded</span>`;
+                summaryHtml += ` · <span style="color:var(--yellow)">${partial} partial</span>`;
+                summaryHtml += ` · <span style="color:var(--red)">${hallucinating} hallucinating</span>`;
+                summaryHtml += `</div>`;
+                summaryHtml += `<div style="font-size:0.6rem;color:var(--accent);margin-top:6px;font-weight:600">Weights adjusted — next distillation will use honesty-calibrated merge</div>`;
+
+                // Show weight changes
+                summaryHtml += `<div style="font-size:0.55rem;color:var(--text-dim);margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;justify-content:center">`;
+                adjustedModels.forEach(m => {
+                    const change = ((m.weight / m.originalWeight - 1) * 100).toFixed(0);
+                    const arrow = change >= 0 ? '↑' : '↓';
+                    const color = m.honestyScore >= 0.9 ? 'var(--green)' : m.honestyScore >= 0.3 ? 'var(--yellow)' : 'var(--red)';
+                    summaryHtml += `<span style="color:${color}">${m.name}: ${m.weight.toFixed(2)} (${arrow}${Math.abs(change)}%)</span>`;
+                });
+                summaryHtml += `</div>`;
+
+                summaryEl.innerHTML = summaryHtml;
+                summaryEl.style.opacity = '1';
+            }
+
+            // Update per-card weight display
+            adjustedModels.forEach((m, i) => {
+                const weightEl = document.getElementById(`probe-weight-${i}`);
+                if (weightEl) {
+                    const change = ((m.weight / m.originalWeight - 1) * 100).toFixed(0);
+                    const color = parseInt(change) >= 0 ? 'var(--green)' : 'var(--red)';
+                    weightEl.innerHTML = `weight: ${m.originalWeight.toFixed(2)} → <span style="color:${color};font-weight:700">${m.weight.toFixed(2)}</span>`;
+                }
+            });
+
+            // Play summary chord
+            if (ttsEnabled) {
+                const summaryVec = new Float64Array(8).fill(avgHonesty);
+                tts.playMergeChord(summaryVec, 1500);
+            }
+
+            crdtStatus.textContent = '● calibrated';
+            crdtStatus.style.color = 'var(--cyan)';
+
+        } catch (e) {
+            crdtOutput.innerHTML += `<div class="sal-msg sal" style="color:var(--red)"><span class="sal-name">⡪ CRDT</span>⠻ ${e.message}</div>`;
+            crdtStatus.textContent = '● error';
+            crdtStatus.style.color = 'var(--red)';
+        } finally {
+            crdtRunBtn.disabled = false;
+            crdtBatchBtn.disabled = false;
+            crdtProbeBtn.disabled = false;
             crdtInput.disabled = false;
         }
     }
