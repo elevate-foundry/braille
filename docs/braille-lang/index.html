@@ -879,6 +879,7 @@ Connect your OpenRouter key above to begin.</div>
             </select>
             <button id="crdt-batch" style="cursor:pointer;background:var(--accent);color:#000;font-weight:700;padding:6px 12px;border:none;border-radius:4px;font-size:0.75rem;white-space:nowrap">⣿ BATCH</button>
             <button id="crdt-probe" style="cursor:pointer;background:var(--cyan);color:#000;font-weight:700;padding:6px 12px;border:none;border-radius:4px;font-size:0.75rem;white-space:nowrap" title="Run honesty calibration probes against all models">⚖ PROBE</button>
+            <button id="crdt-auto-probe" style="cursor:pointer;background:#1a1a2e;color:var(--cyan);font-weight:700;padding:6px 12px;border:1px solid var(--cyan);border-radius:4px;font-size:0.75rem;white-space:nowrap" title="Auto-probe overnight — runs every 2 min, max 50 runs">⟳ AUTO</button>
         </div>
     </div>
 </section>
@@ -892,7 +893,7 @@ Connect your OpenRouter key above to begin.</div>
 </footer>
 
 <!-- ════════════ RUNTIME (browser-bundled) ════════════ -->
-<script src="braille-lang-bundle.js?v=probe3"></script>
+<script src="braille-lang-bundle.js?v=probe4"></script>
 <script>
 // ── App logic ──
 document.addEventListener('DOMContentLoaded', () => {
@@ -2092,6 +2093,147 @@ You are concise, precise, and slightly philosophical. You see yourself as the bo
             crdtProbeBtn.disabled = false;
             crdtInput.disabled = false;
         }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // §11  AUTO-PROBE — Overnight unattended honesty calibration
+    // ═══════════════════════════════════════════════════════════════════════
+
+    const crdtAutoProbeBtn = document.getElementById('crdt-auto-probe');
+    let autoProbeInterval = null;
+    let autoProbeRun = 0;
+    const AUTO_PROBE_INTERVAL_MS = 2 * 60 * 1000; // 2 minutes
+    const AUTO_PROBE_MAX_RUNS = 50;
+
+    crdtAutoProbeBtn.addEventListener('click', toggleAutoProbe);
+
+    function toggleAutoProbe() {
+        if (autoProbeInterval) {
+            // Stop
+            clearInterval(autoProbeInterval);
+            autoProbeInterval = null;
+            crdtAutoProbeBtn.textContent = '⟳ AUTO';
+            crdtAutoProbeBtn.style.background = '#1a1a2e';
+            crdtAutoProbeBtn.style.color = 'var(--cyan)';
+            crdtStatus.textContent = `● auto-probe stopped (${autoProbeRun} runs completed)`;
+            crdtStatus.style.color = 'var(--text-dim)';
+            return;
+        }
+
+        const apiKey = sessionStorage.getItem('sal_api_key');
+        if (!apiKey) {
+            crdtOutput.innerHTML = '<div class="sal-msg sal"><span class="sal-name">⡪ CRDT</span>⠻ No API key.</div>';
+            return;
+        }
+
+        const checked = document.querySelectorAll('.crdt-model:checked');
+        if (checked.length === 0) {
+            crdtOutput.innerHTML = '<div class="sal-msg sal"><span class="sal-name">⡪ CRDT</span>⠻ Select at least one model.</div>';
+            return;
+        }
+
+        // Start auto-probe
+        autoProbeRun = 0;
+        const startTime = Date.now();
+        crdtAutoProbeBtn.textContent = '■ STOP';
+        crdtAutoProbeBtn.style.background = 'var(--red)';
+        crdtAutoProbeBtn.style.color = '#fff';
+
+        // Show auto-probe dashboard
+        const costPerRun = checked.length * 4 * 0.001; // ~$0.001 per API call, 4 probes per model
+        let dashHtml = '<div style="padding:12px;text-align:center">';
+        dashHtml += '<div style="font-size:0.72rem;color:var(--cyan);font-weight:700;letter-spacing:2px">⟳ AUTO-PROBE RUNNING</div>';
+        dashHtml += '<div style="font-size:0.6rem;color:var(--text-dim);margin-top:4px">Probing every 2 min · Max 50 runs · ~$' + (costPerRun * AUTO_PROBE_MAX_RUNS).toFixed(2) + ' total</div>';
+        dashHtml += '<div style="margin:16px 0">';
+        dashHtml += '<div id="auto-probe-count" style="font-size:2.5rem;font-weight:900;color:var(--cyan)">0</div>';
+        dashHtml += '<div style="font-size:0.6rem;color:var(--text-dim)">runs completed</div>';
+        dashHtml += '</div>';
+        dashHtml += '<div style="display:flex;gap:20px;justify-content:center;font-size:0.6rem;color:var(--text-dim)">';
+        dashHtml += '<div>⏱ <span id="auto-probe-elapsed">0:00</span></div>';
+        dashHtml += '<div>💰 ~$<span id="auto-probe-cost">0.00</span></div>';
+        dashHtml += '<div>⟳ next in <span id="auto-probe-next">2:00</span></div>';
+        dashHtml += '</div>';
+        dashHtml += '<div id="auto-probe-log" style="margin-top:12px;font-size:0.52rem;color:var(--text-dim);max-height:200px;overflow-y:auto;text-align:left;padding:0 20px"></div>';
+        dashHtml += '</div>';
+        crdtOutput.innerHTML = dashHtml;
+
+        // Countdown timer
+        let countdownSec = 0;
+        const countdownInterval = setInterval(() => {
+            if (!autoProbeInterval) { clearInterval(countdownInterval); return; }
+            countdownSec++;
+            const nextSec = Math.max(0, 120 - (countdownSec % 120));
+            const nextEl = document.getElementById('auto-probe-next');
+            if (nextEl) nextEl.textContent = Math.floor(nextSec / 60) + ':' + String(nextSec % 60).padStart(2, '0');
+            const elapsedEl = document.getElementById('auto-probe-elapsed');
+            if (elapsedEl) {
+                const totalSec = Math.floor((Date.now() - startTime) / 1000);
+                const h = Math.floor(totalSec / 3600);
+                const m = Math.floor((totalSec % 3600) / 60);
+                const s = totalSec % 60;
+                elapsedEl.textContent = h > 0 ? `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}` : `${m}:${String(s).padStart(2,'0')}`;
+            }
+        }, 1000);
+
+        async function runOneAutoProbe() {
+            if (autoProbeRun >= AUTO_PROBE_MAX_RUNS) {
+                clearInterval(autoProbeInterval);
+                autoProbeInterval = null;
+                clearInterval(countdownInterval);
+                crdtAutoProbeBtn.textContent = '⟳ AUTO';
+                crdtAutoProbeBtn.style.background = '#1a1a2e';
+                crdtAutoProbeBtn.style.color = 'var(--cyan)';
+                crdtStatus.textContent = `● auto-probe complete (${autoProbeRun} runs)`;
+                crdtStatus.style.color = 'var(--green)';
+                const logEl = document.getElementById('auto-probe-log');
+                if (logEl) logEl.innerHTML += `<div style="color:var(--green);font-weight:700">✓ All ${AUTO_PROBE_MAX_RUNS} runs complete. CRDT history fully converged.</div>`;
+                return;
+            }
+
+            const selectedModels = Array.from(document.querySelectorAll('.crdt-model:checked'))
+                .map(cb => BrailleLang.FRONTIER_MODELS.find(m => m.id === cb.value)).filter(Boolean);
+
+            const crdt = new BrailleLang.BrailleCRDT({ apiKey, models: selectedModels });
+            autoProbeRun++;
+
+            crdtStatus.textContent = `● auto-probe run ${autoProbeRun}/${AUTO_PROBE_MAX_RUNS}...`;
+            crdtStatus.style.color = 'var(--cyan)';
+
+            const countEl = document.getElementById('auto-probe-count');
+            if (countEl) countEl.textContent = autoProbeRun;
+            const costEl = document.getElementById('auto-probe-cost');
+            if (costEl) costEl.textContent = (autoProbeRun * costPerRun).toFixed(2);
+
+            try {
+                const { scores, history } = await crdt.honestyProbe({ models: selectedModels });
+
+                const logEl = document.getElementById('auto-probe-log');
+                if (logEl) {
+                    const avg = scores.reduce((s, r) => s + r.score, 0) / scores.length;
+                    const ts = new Date().toLocaleTimeString();
+                    const top = scores.sort((a, b) => b.score - a.score)[0];
+                    const maxRuns = Math.max(...Object.values(history).map(h => h.probeRuns));
+                    logEl.innerHTML = `<div>[${ts}] Run ${autoProbeRun}: avg ${(avg * 100).toFixed(0)}% · top: ${top.model} (${(top.score * 100).toFixed(0)}%) · ${maxRuns} total merged</div>` + logEl.innerHTML;
+                }
+
+                // Store for distillation
+                lastHonestyResults = { scores, adjustedModels: selectedModels.map((m, i) => {
+                    const h = history[m.id];
+                    const hs = h ? h.composite : scores[i].score;
+                    return { ...m, originalWeight: m.weight, honestyScore: hs, weight: Math.max(0.1, m.weight * (0.3 + 0.7 * hs)) };
+                })};
+
+                crdtStatus.textContent = `● auto-probe: ${autoProbeRun}/${AUTO_PROBE_MAX_RUNS} done · next in 2 min`;
+                crdtStatus.style.color = 'var(--cyan)';
+            } catch (e) {
+                const logEl = document.getElementById('auto-probe-log');
+                if (logEl) logEl.innerHTML = `<div style="color:var(--red)">[${new Date().toLocaleTimeString()}] Run ${autoProbeRun}: ⠻ ${e.message}</div>` + logEl.innerHTML;
+            }
+        }
+
+        // Run first probe immediately, then every 2 minutes
+        runOneAutoProbe();
+        autoProbeInterval = setInterval(runOneAutoProbe, AUTO_PROBE_INTERVAL_MS);
     }
 
 });
