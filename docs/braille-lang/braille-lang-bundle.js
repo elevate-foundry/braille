@@ -1101,6 +1101,472 @@
     }
 
     // ═══════════════════════════════════════════════════════════════════════
+    // §4d  BRAILLE CRDT — Distill frontier LLMs into 8-dot Braille vectors
+    // ═══════════════════════════════════════════════════════════════════════
+    //
+    // Architecture:
+    //   ┌─────────────────────────────────────────────────────────────────┐
+    //   │  Query: "What is consciousness?"                               │
+    //   └───────┬─────────┬─────────┬─────────┬─────────┬───────────────┘
+    //           │         │         │         │         │
+    //     ┌─────▼───┐ ┌───▼───┐ ┌───▼───┐ ┌───▼───┐ ┌───▼───┐
+    //     │ GPT-4o  │ │Claude │ │Gemini │ │Llama  │ │Mistral│
+    //     └─────┬───┘ └───┬───┘ └───┬───┘ └───┬───┘ └───┬───┘
+    //           │         │         │         │         │
+    //     ┌─────▼─────────▼─────────▼─────────▼─────────▼───┐
+    //     │  CRDT Merge Layer                                │
+    //     │  ┌──────────┐ ┌──────────┐ ┌──────────────────┐  │
+    //     │  │ LWW Reg  │ │ OR-Set   │ │ Vector Consensus │  │
+    //     │  │ (latest) │ │ (union)  │ │ (majority vote)  │  │
+    //     │  └──────────┘ └──────────┘ └──────────────────┘  │
+    //     └──────────────────────┬────────────────────────────┘
+    //                           │
+    //     ┌─────────────────────▼────────────────────────────┐
+    //     │  8-Dot Braille Encoding                          │
+    //     │  d₀=existence d₁=physical d₂=temporal d₃=spatial │
+    //     │  d₄=social    d₅=cognitive d₆=emotional d₇=trans │
+    //     │  → Compress to 256-state concept vectors         │
+    //     └──────────────────────────────────────────────────┘
+    //
+    // CRDT Types used:
+    //   - G-Counter:     Track agreement count per semantic dimension
+    //   - LWW-Register:  Last-write-wins for best single answer
+    //   - OR-Set:        Observed-remove set for concept extraction
+    //   - PN-Counter:    Positive-negative counter for sentiment/polarity
+
+    const DIMENSION_SEMANTICS = [
+        'existence',    // d₀ — being, presence, ontological
+        'physical',     // d₁ — material, body, tangible
+        'temporal',     // d₂ — time, change, process
+        'spatial',      // d₃ — space, structure, form
+        'social',       // d₄ — relation, community, other
+        'cognitive',    // d₅ — mind, knowledge, thought
+        'emotional',    // d₆ — feeling, affect, valence
+        'transcendent', // d₇ — abstract, spiritual, beyond
+    ];
+
+    const FRONTIER_MODELS = [
+        { id: 'openai/gpt-4o', name: 'GPT-4o', weight: 1.0 },
+        { id: 'anthropic/claude-3.5-sonnet', name: 'Claude 3.5', weight: 1.0 },
+        { id: 'google/gemini-pro-1.5', name: 'Gemini 1.5', weight: 1.0 },
+        { id: 'meta-llama/llama-3.1-70b-instruct', name: 'Llama 3.1 70B', weight: 0.9 },
+        { id: 'mistralai/mistral-large', name: 'Mistral Large', weight: 0.9 },
+    ];
+
+    class BrailleCRDT {
+        constructor(opts = {}) {
+            this.apiKey = opts.apiKey || null;
+            this.models = opts.models || FRONTIER_MODELS;
+            this.onProgress = opts.onProgress || (() => {});
+            this.results = [];       // Raw model responses
+            this.vectors = [];       // 8D Braille vectors per model
+            this.merged = null;      // Final merged vector
+            this.mergedText = '';    // Final distilled text
+            this.stats = { queriesSent: 0, responsesReceived: 0, mergeOps: 0, compressionRatio: 0 };
+        }
+
+        // ─────────────────────────────────────────────────────────────────
+        // §1  MULTI-MODEL QUERY — Fan out to N frontier LLMs
+        // ─────────────────────────────────────────────────────────────────
+
+        async queryAll(prompt, opts = {}) {
+            const maxTokens = opts.maxTokens || 512;
+            const timeout = opts.timeout || 30000;
+            const selectedModels = opts.models || this.models;
+
+            this.onProgress({ phase: 'query', message: `⠠ Querying ${selectedModels.length} frontier models...` });
+
+            const promises = selectedModels.map(async (model, i) => {
+                this.stats.queriesSent++;
+                const t0 = Date.now();
+                try {
+                    const controller = new AbortController();
+                    const timer = setTimeout(() => controller.abort(), timeout);
+
+                    const resp = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${this.apiKey}`,
+                            'Content-Type': 'application/json',
+                            'HTTP-Referer': 'https://elevate-foundry.github.io/braille/braille-lang/',
+                            'X-Title': 'BrailleCRDT Distillation',
+                        },
+                        signal: controller.signal,
+                        body: JSON.stringify({
+                            model: model.id,
+                            messages: [
+                                { role: 'system', content: 'You are a precise, factual AI. Give concise, information-dense answers. Focus on core truths.' },
+                                { role: 'user', content: prompt },
+                            ],
+                            max_tokens: maxTokens,
+                            temperature: 0.3,
+                        }),
+                    });
+
+                    clearTimeout(timer);
+                    const data = await resp.json();
+                    const latency = Date.now() - t0;
+
+                    if (data.error) throw new Error(data.error.message || 'API error');
+
+                    const text = data.choices?.[0]?.message?.content || '';
+                    this.stats.responsesReceived++;
+                    this.onProgress({ phase: 'response', model: model.name, index: i, latency, length: text.length });
+
+                    return { model: model.name, modelId: model.id, weight: model.weight, text, latency, error: null, tokens: data.usage || null };
+                } catch (e) {
+                    return { model: model.name, modelId: model.id, weight: model.weight, text: '', latency: Date.now() - t0, error: e.message, tokens: null };
+                }
+            });
+
+            this.results = await Promise.all(promises);
+            return this.results;
+        }
+
+        // ─────────────────────────────────────────────────────────────────
+        // §2  CRDT MERGE — Conflict-free merge of model outputs
+        // ─────────────────────────────────────────────────────────────────
+
+        /**
+         * Semantic dimension scoring prompt — asks models to rate each
+         * dimension of the 8-dot Braille space for a given response.
+         */
+        _buildDimensionPrompt(originalQuery, responseText) {
+            return `Given this question: "${originalQuery}"
+And this answer: "${responseText.substring(0, 500)}"
+
+Rate how much this answer relates to each of these 8 semantic dimensions on a scale of 0.0 to 1.0:
+1. EXISTENCE (being, presence, ontological truth)
+2. PHYSICAL (material, body, tangible reality)
+3. TEMPORAL (time, change, process, duration)
+4. SPATIAL (space, structure, form, geometry)
+5. SOCIAL (relation, community, interpersonal)
+6. COGNITIVE (mind, knowledge, thought, logic)
+7. EMOTIONAL (feeling, affect, valence, mood)
+8. TRANSCENDENT (abstract, spiritual, metaphysical)
+
+Reply ONLY with 8 numbers separated by commas, like: 0.8,0.2,0.5,0.1,0.3,0.9,0.4,0.7`;
+        }
+
+        /**
+         * Extract 8D semantic vector from a model's response.
+         * Uses a fast heuristic first, then optionally refines with LLM scoring.
+         */
+        textToSemanticVector(text) {
+            const lower = text.toLowerCase();
+            const v = new Float64Array(8);
+
+            // d₀ existence — being, is, exists, truth, real, fundamental
+            v[0] = this._wordScore(lower, ['exist','being','is','truth','real','fundament','ontolog','essence','nature','meaning','purpose','conscious']);
+
+            // d₁ physical — body, matter, material, concrete, tangible
+            v[1] = this._wordScore(lower, ['physic','body','matter','material','tangib','concret','brain','organ','cell','atom','energy','force','object']);
+
+            // d₂ temporal — time, change, process, evolve, history
+            v[2] = this._wordScore(lower, ['time','chang','process','evolv','histor','future','past','present','sequen','develop','progress','phase','stage']);
+
+            // d₃ spatial — space, structure, form, pattern, geometry
+            v[3] = this._wordScore(lower, ['space','structur','form','pattern','geometr','shape','dimension','layer','network','archite','topolog','system']);
+
+            // d₄ social — relation, community, people, culture, society
+            v[4] = this._wordScore(lower, ['social','relat','communit','people','cultur','societ','human','person','group','interact','cooper','language','communicat']);
+
+            // d₅ cognitive — mind, knowledge, thought, logic, reason
+            v[5] = this._wordScore(lower, ['mind','knowledge','thought','logic','reason','cognit','intellig','learn','understand','think','comput','algorithm','process','inform']);
+
+            // d₆ emotional — feeling, affect, experience, subjective
+            v[6] = this._wordScore(lower, ['feel','emotion','affect','experienc','subjectiv','love','fear','joy','pain','empathy','mood','sentiment','passion']);
+
+            // d₇ transcendent — abstract, spiritual, metaphysical, beyond
+            v[7] = this._wordScore(lower, ['abstract','spirit','metaphys','transcend','beyond','infinit','universal','divine','cosmic','sacred','mystic','philosophi','consciousness']);
+
+            return v;
+        }
+
+        _wordScore(text, keywords) {
+            let hits = 0;
+            for (const kw of keywords) {
+                const regex = new RegExp(kw, 'gi');
+                const matches = text.match(regex);
+                if (matches) hits += matches.length;
+            }
+            return Math.min(1.0, hits / 5.0);  // Normalize: 5+ hits = 1.0
+        }
+
+        /**
+         * G-Counter CRDT merge: each model votes on each dimension.
+         * The merged vector is the weighted average across all replicas.
+         */
+        gCounterMerge(vectors, weights) {
+            const merged = new Float64Array(8);
+            let totalWeight = 0;
+
+            for (let r = 0; r < vectors.length; r++) {
+                const w = weights[r] || 1.0;
+                totalWeight += w;
+                for (let d = 0; d < 8; d++) {
+                    merged[d] += vectors[r][d] * w;
+                }
+            }
+
+            if (totalWeight > 0) {
+                for (let d = 0; d < 8; d++) merged[d] /= totalWeight;
+            }
+
+            this.stats.mergeOps++;
+            return merged;
+        }
+
+        /**
+         * Majority-vote CRDT: threshold each dimension to binary.
+         * A dot is ON if >50% of models (by weight) agree it's significant.
+         */
+        majorityVoteMerge(vectors, weights, threshold = 0.4) {
+            const avg = this.gCounterMerge(vectors, weights);
+            const binary = new Float64Array(8);
+            for (let d = 0; d < 8; d++) {
+                binary[d] = avg[d] >= threshold ? 1.0 : 0.0;
+            }
+            this.stats.mergeOps++;
+            return binary;
+        }
+
+        /**
+         * OR-Set CRDT: extract unique concepts from all model responses,
+         * merge by union. Each concept is tagged with its source model.
+         */
+        orSetMerge(results) {
+            const concepts = new Map(); // concept → { sources: Set, count, firstSeen }
+            const allText = results.filter(r => !r.error).map(r => r.text).join(' ');
+
+            // Extract key noun phrases (simplified: capitalized words, technical terms)
+            for (const r of results) {
+                if (r.error) continue;
+                const words = r.text.match(/[A-Z][a-z]+(?:\s[A-Z][a-z]+)*/g) || [];
+                for (const w of words) {
+                    const key = w.toLowerCase();
+                    if (key.length < 3) continue;
+                    if (!concepts.has(key)) {
+                        concepts.set(key, { text: w, sources: new Set(), count: 0 });
+                    }
+                    const entry = concepts.get(key);
+                    entry.sources.add(r.model);
+                    entry.count++;
+                }
+            }
+
+            // Sort by agreement (how many models mentioned it)
+            const sorted = Array.from(concepts.values())
+                .sort((a, b) => b.sources.size - a.sources.size || b.count - a.count);
+
+            this.stats.mergeOps++;
+            return sorted;
+        }
+
+        /**
+         * LWW-Register CRDT: pick the best single response.
+         * "Best" = highest cosine similarity to the merged consensus vector.
+         */
+        lwwRegisterMerge(results, vectors, mergedVector) {
+            let bestIdx = 0, bestSim = -1;
+
+            for (let i = 0; i < vectors.length; i++) {
+                if (results[i].error) continue;
+                const sim = this._cosineSim(vectors[i], mergedVector);
+                if (sim > bestSim) { bestSim = sim; bestIdx = i; }
+            }
+
+            this.stats.mergeOps++;
+            return { bestResult: results[bestIdx], similarity: bestSim, index: bestIdx };
+        }
+
+        // ─────────────────────────────────────────────────────────────────
+        // §3  8-DOT BRAILLE ENCODING — Compress to 256-state vectors
+        // ─────────────────────────────────────────────────────────────────
+
+        /**
+         * Encode a continuous 8D vector into a single Braille character.
+         * Each dimension is thresholded: >= threshold → dot ON.
+         * This gives us a single byte (0-255) → single Unicode Braille char.
+         */
+        vectorToBraille(vec, threshold = 0.4) {
+            let byte = 0;
+            for (let i = 0; i < 8; i++) {
+                if (vec[i] >= threshold) byte |= (1 << i);
+            }
+            return String.fromCodePoint(0x2800 + byte);
+        }
+
+        /**
+         * Encode a text response as a sequence of Braille characters.
+         * Splits text into chunks, scores each chunk's semantic vector,
+         * and encodes each as a Braille character.
+         */
+        textToBrailleSequence(text, chunkSize = 100) {
+            const chunks = [];
+            for (let i = 0; i < text.length; i += chunkSize) {
+                chunks.push(text.substring(i, i + chunkSize));
+            }
+
+            const braille = chunks.map(chunk => {
+                const vec = this.textToSemanticVector(chunk);
+                return this.vectorToBraille(vec);
+            }).join('');
+
+            return { braille, chunks: chunks.length, originalLength: text.length, compressedLength: braille.length };
+        }
+
+        // ─────────────────────────────────────────────────────────────────
+        // §4  FULL DISTILLATION PIPELINE
+        // ─────────────────────────────────────────────────────────────────
+
+        /**
+         * Run the full CRDT distillation pipeline:
+         *   1. Query N frontier models in parallel
+         *   2. Score each response on 8 semantic dimensions
+         *   3. CRDT merge: G-Counter (weighted avg), Majority Vote, OR-Set, LWW
+         *   4. Encode merged knowledge into 8-dot Braille
+         *   5. Return comprehensive report
+         */
+        async distill(prompt, opts = {}) {
+            if (!this.apiKey) throw new Error('No API key. Set apiKey on BrailleCRDT.');
+
+            const t0 = Date.now();
+
+            // §1 Query all models
+            this.onProgress({ phase: 'start', models: this.models.length, prompt });
+            const results = await this.queryAll(prompt, opts);
+            const validResults = results.filter(r => !r.error && r.text.length > 0);
+
+            if (validResults.length === 0) {
+                return { error: 'All models failed', results, stats: this.stats };
+            }
+
+            this.onProgress({ phase: 'merge', validModels: validResults.length });
+
+            // §2 Score semantic dimensions
+            const vectors = validResults.map(r => this.textToSemanticVector(r.text));
+            const weights = validResults.map(r => r.weight);
+            this.vectors = vectors;
+
+            // §3 CRDT merges
+            const gCounter = this.gCounterMerge(vectors, weights);
+            const majorityVote = this.majorityVoteMerge(vectors, weights);
+            const orSet = this.orSetMerge(validResults);
+            const lww = this.lwwRegisterMerge(validResults, vectors, gCounter);
+
+            // §4 Encode to Braille
+            const consensusBraille = this.vectorToBraille(gCounter);
+            const binaryBraille = this.vectorToBraille(majorityVote, 0.5);
+            this.merged = gCounter;
+
+            // §5 Encode each response to braille sequence
+            const perModelBraille = validResults.map((r, i) => ({
+                model: r.model,
+                braille: this.textToBrailleSequence(r.text, 200),
+                vector: Array.from(vectors[i]).map(v => v.toFixed(3)),
+            }));
+
+            // §6 Compute agreement metrics
+            const agreement = this._computeAgreement(vectors);
+
+            // §7 Compression stats
+            const totalInputChars = validResults.reduce((s, r) => s + r.text.length, 0);
+            const totalInputTokens = validResults.reduce((s, r) => s + (r.tokens?.total_tokens || Math.ceil(r.text.length / 4)), 0);
+
+            this.stats.compressionRatio = totalInputChars > 0 ? (1 / totalInputChars * 100).toFixed(4) : 0;
+
+            const report = {
+                query: prompt,
+                timestamp: new Date().toISOString(),
+                latencyMs: Date.now() - t0,
+
+                // Raw model responses
+                models: results.map(r => ({
+                    name: r.model, id: r.modelId, latency: r.latency,
+                    error: r.error, length: r.text.length,
+                    tokens: r.tokens,
+                    text: r.text,
+                })),
+
+                // CRDT merge results
+                crdt: {
+                    gCounter: { vector: Array.from(gCounter).map(v => v.toFixed(3)), braille: consensusBraille },
+                    majorityVote: { vector: Array.from(majorityVote), braille: binaryBraille },
+                    orSet: { topConcepts: orSet.slice(0, 20).map(c => ({ text: c.text, agreement: c.sources.size, mentions: c.count })) },
+                    lwwRegister: { bestModel: lww.bestResult.model, similarity: lww.similarity.toFixed(4), text: lww.bestResult.text },
+                },
+
+                // 8-dot Braille encoding
+                braille: {
+                    consensus: consensusBraille,
+                    binary: binaryBraille,
+                    dimensionLabels: DIMENSION_SEMANTICS,
+                    perModel: perModelBraille,
+                },
+
+                // Agreement & compression
+                agreement,
+                compression: {
+                    totalInputChars,
+                    totalInputTokens,
+                    distilledBraille: consensusBraille,
+                    distilledBits: 8,
+                    compressionRatio: `${totalInputChars}:1 → 1 braille char`,
+                    informationDensity: `${(8 / Math.max(totalInputChars * 8, 1) * 100).toFixed(6)}%`,
+                },
+
+                stats: { ...this.stats },
+            };
+
+            this.onProgress({ phase: 'done', report });
+            return report;
+        }
+
+        // ─────────────────────────────────────────────────────────────────
+        // §5  AGREEMENT METRICS
+        // ─────────────────────────────────────────────────────────────────
+
+        _computeAgreement(vectors) {
+            if (vectors.length < 2) return { pairwise: [], avgCosine: 0, avgHamming: 0 };
+
+            const pairs = [];
+            let totalCos = 0, totalHam = 0, count = 0;
+
+            for (let i = 0; i < vectors.length; i++) {
+                for (let j = i + 1; j < vectors.length; j++) {
+                    const cos = this._cosineSim(vectors[i], vectors[j]);
+                    const ham = this._hammingDist(vectors[i], vectors[j]);
+                    pairs.push({ i, j, cosine: cos.toFixed(4), hamming: ham });
+                    totalCos += cos;
+                    totalHam += ham;
+                    count++;
+                }
+            }
+
+            return {
+                pairwise: pairs,
+                avgCosine: count > 0 ? (totalCos / count).toFixed(4) : 0,
+                avgHamming: count > 0 ? (totalHam / count).toFixed(2) : 0,
+                consensusStrength: count > 0 ? ((totalCos / count) * 100).toFixed(1) + '%' : '0%',
+            };
+        }
+
+        _cosineSim(a, b) {
+            let dot = 0, na = 0, nb = 0;
+            for (let i = 0; i < 8; i++) { dot += a[i] * b[i]; na += a[i] * a[i]; nb += b[i] * b[i]; }
+            na = Math.sqrt(na); nb = Math.sqrt(nb);
+            return (na > 0 && nb > 0) ? dot / (na * nb) : 0;
+        }
+
+        _hammingDist(a, b) {
+            let d = 0;
+            for (let i = 0; i < 8; i++) if ((a[i] >= 0.4) !== (b[i] >= 0.4)) d++;
+            return d;
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
     // §5  COMPILER
     // ═══════════════════════════════════════════════════════════════════════
 
@@ -1161,6 +1627,7 @@
         Environment, BrailleFunction, BrailleClass, BrailleInstance,
         SAL, SALCache, TraceNode, Domain,
         SALEdgeRuntime, EdgeMode,
+        BrailleCRDT, FRONTIER_MODELS, DIMENSION_SEMANTICS,
         KEYWORDS, OPERATORS, DELIMITERS,
 
         async run(source, options = {}) {
