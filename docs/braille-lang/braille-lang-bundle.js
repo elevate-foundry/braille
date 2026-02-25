@@ -883,9 +883,9 @@
             if (this.localReady) return true;
             if (typeof window === 'undefined') return false;
 
-            // Check for WebLLM
-            if (!window.webllm) {
-                this.onStatus({ event: 'local_unavailable', reason: 'WebLLM not loaded. Add <script src="https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm"></script>' });
+            // Check for WebGPU support
+            if (!navigator.gpu) {
+                this.onStatus({ event: 'local_unavailable', reason: 'WebGPU not supported in this browser. Try Chrome 113+ or Edge 113+.' });
                 return false;
             }
 
@@ -893,7 +893,10 @@
                 this.localLoading = true;
                 this.onStatus({ event: 'local_loading', modelId: this.localModelId });
 
-                const engine = await window.webllm.CreateMLCEngine(this.localModelId, {
+                // Dynamically import WebLLM as ES module
+                const webllm = await import('https://esm.run/@mlc-ai/web-llm');
+
+                const engine = await webllm.CreateMLCEngine(this.localModelId, {
                     initProgressCallback: (progress) => {
                         this.onStatus({ event: 'local_progress', ...progress });
                         if (progressCb) progressCb(progress);

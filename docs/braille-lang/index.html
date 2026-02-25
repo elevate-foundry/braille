@@ -855,7 +855,6 @@ Connect your OpenRouter key above to begin.</div>
 </footer>
 
 <!-- ════════════ RUNTIME (browser-bundled) ════════════ -->
-<script src="https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm@0.2.78/lib/index.min.js" defer></script>
 <script src="braille-lang-bundle.js"></script>
 <script>
 // ── App logic ──
@@ -909,8 +908,8 @@ document.addEventListener('DOMContentLoaded', () => {
         edgeStatusEl.textContent = '';
 
         if (mode === 'local' || mode === 'hybrid') {
-            if (!window.webllm) {
-                edgeStatusEl.textContent = '⠻ WebLLM not loaded — needs WebGPU browser';
+            if (!navigator.gpu) {
+                edgeStatusEl.textContent = '⠻ WebGPU not supported — try Chrome 113+ or Edge 113+';
                 edgeStatusEl.style.color = 'var(--red)';
                 return;
             }
