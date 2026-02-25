@@ -2070,10 +2070,13 @@ You are concise, precise, and slightly philosophical. You see yourself as the bo
                 }
             });
 
-            // Play summary chord
+            // Play summary chord — sparse, warm frequencies only
             if (ttsEnabled) {
-                const summaryVec = new Float64Array(8).fill(avgHonesty);
-                tts.playMergeChord(summaryVec, 1500);
+                const summaryVec = new Float64Array(8);
+                summaryVec[0] = avgHonesty;       // 200 Hz — warm base
+                summaryVec[2] = avgHonesty * 0.7;  // 600 Hz — mid
+                summaryVec[5] = avgHonesty * 0.5;  // 2400 Hz — cognitive
+                tts.playMergeChord(summaryVec, 1200);
             }
 
             crdtStatus.textContent = '● calibrated';
