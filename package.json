@@ -1,0 +1,54 @@
+{
+  "name": "braille-buddy",
+  "version": "2.0.0",
+  "description": "An interactive web application for learning braille with universal accessibility, 8-dot support, and comprehensive analytics",
+  "main": "bbid-api.js",
+  "scripts": {
+    "start": "node bbid-api.js",
+    "dev": "python3 -m http.server 8000",
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:debug": "playwright test --debug",
+    "test:ui": "playwright test --ui",
+    "test:report": "playwright show-report",
+    "test:chromium": "playwright test --project=chromium",
+    "test:firefox": "playwright test --project=firefox",
+    "test:webkit": "playwright test --project=webkit",
+    "test:mobile": "playwright test --project='Mobile Chrome' --project='Mobile Safari'",
+    "install:playwright": "npx playwright install",
+    "lint": "eslint js/ src/",
+    "format": "prettier --write '**/*.{js,html,css,md}'"
+  },
+  "keywords": [
+    "braille",
+    "accessibility",
+    "education",
+    "universal-braille",
+    "multilingual",
+    "8-dot-braille",
+    "nemeth-code",
+    "music-braille",
+    "computer-braille"
+  ],
+  "author": "Ryan Barrett",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.40.0",
+    "eslint": "^8.54.0",
+    "prettier": "^3.1.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/elevate-foundry/braille.git"
+  },
+  "bugs": {
+    "url": "https://github.com/elevate-foundry/braille/issues"
+  },
+  "homepage": "https://github.com/elevate-foundry/braille#readme"
+}

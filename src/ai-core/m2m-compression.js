@@ -3,25 +3,31 @@
  * 
  * Based on BBES principles but optimized for AI-to-AI communication
  * with ultra-high information density and dynamic encoding.
+ * 
+ * Extends SemanticCodec for shared variable-bit-depth encoding logic.
  */
 
-class M2MCompression {
+// Import SemanticCodec base class if in Node.js environment
+if (typeof require !== 'undefined') {
+    var SemanticCodec = require('./semantic-codec').SemanticCodec;
+}
+
+class M2MCompression extends SemanticCodec {
     constructor(options = {}) {
-        this.options = {
-            compressionLevel: 0.9,
-            dynamicEncoding: true,
-            contextWindow: 1000,  // Context window size for adaptive encoding
-            semanticCompression: true,  // Use semantic meaning rather than just words
+        super({
+            contextWindowSize: 1000,
+            semanticCompression: true,
             ...options
-        };
+        });
         
-        // Initialize encoding maps
+        // M2M-specific options
+        this.options.compressionLevel = options.compressionLevel || 0.9;
+        this.options.dynamicEncoding = options.dynamicEncoding !== undefined ? options.dynamicEncoding : true;
+        
+        // Legacy encoding maps for backward compatibility
         this.encodingMaps = {
-            // Bit depth maps (1-bit through 8-bit encodings)
             bitDepth: new Map(),
-            // Semantic concept maps (encoding abstract concepts rather than words)
             concepts: new Map(),
-            // Context-sensitive encodings that change based on conversation history
             contextual: new Map()
         };
         
@@ -72,7 +78,7 @@ class M2MCompression {
             'LOCATION', 'QUANTITY', 'QUALITY', 'CAUSE', 'EFFECT', 'PURPOSE', 'CONDITION'
         ];
         
-        // Assign encodings to concepts
+        // Assign encodings to concepts using both legacy maps and inherited method
         this._assignEncodings(logicalOps, 1);
         this._assignEncodings(dataTypes, 2);
         this._assignEncodings(commonOps, 3);
@@ -97,17 +103,19 @@ class M2MCompression {
         // Generate unique binary encodings for each concept
         for (let i = 0; i < concepts.length; i++) {
             const concept = concepts[i];
-            // Convert index to binary string of specified bit depth
             const binary = i.toString(2).padStart(bitDepth, '0');
             
-            // Store in bit depth map
+            // Store in legacy bit depth map
             bitDepthMap.set(concept, binary);
             
-            // Also store in concept map for quick lookup
+            // Store in legacy concept map
             this.encodingMaps.concepts.set(concept, {
                 bitDepth,
                 encoding: binary
             });
+            
+            // Also register in inherited SemanticCodec encoding tables
+            this.encodingTables.dynamicConcepts.set(concept, binary);
             
             // Initialize frequency counter
             this.conceptFrequency.set(concept, 0);
@@ -255,16 +263,7 @@ class M2MCompression {
      * @returns {string} - Data type concept
      */
     _getDataTypeConcept(value) {
-        if (value === null) return 'NULL';
-        if (value === undefined) return 'UNDEFINED';
-        
-        switch (typeof value) {
-            case 'string': return 'STRING';
-            case 'number': return 'NUMBER';
-            case 'boolean': return 'BOOLEAN';
-            case 'object': return Array.isArray(value) ? 'ARRAY' : 'OBJECT';
-            default: return 'UNDEFINED';
-        }
+        return this.getDataTypeConcept(value);
     }
     
     /**
@@ -334,12 +333,7 @@ class M2MCompression {
      * @returns {number} - Hash code
      */
     _simpleHash(str) {
-        let hash = 0;
-        for (let i = 0; i < str.length; i++) {
-            hash = ((hash << 5) - hash) + str.charCodeAt(i);
-            hash |= 0; // Convert to 32-bit integer
-        }
-        return Math.abs(hash);
+        return this.simpleHash(str);
     }
     
     /**
@@ -406,38 +400,22 @@ class M2MCompression {
      * @param {Array<string>} sortedConcepts - Concepts sorted by frequency
      */
     _reassignBitDepths(sortedConcepts) {
-        // Clear existing bit depth maps (except for fixed encodings)
+        // Clear existing bit depth maps
         for (let i = 1; i <= 8; i++) {
-            // In a real implementation, we might preserve certain fixed encodings
             this.encodingMaps.bitDepth.get(i).clear();
         }
         
-        // Assign bit depths based on frequency
-        let conceptIndex = 0;
+        // Delegate to SemanticCodec shared implementation
+        this.reassignBitDepths(sortedConcepts);
         
-        // 1-bit encodings (max 2)
-        const bit1Count = Math.min(2, sortedConcepts.length - conceptIndex);
-        this._assignEncodings(sortedConcepts.slice(conceptIndex, conceptIndex + bit1Count), 1);
-        conceptIndex += bit1Count;
-        
-        // 2-bit encodings (max 4)
-        const bit2Count = Math.min(4, sortedConcepts.length - conceptIndex);
-        this._assignEncodings(sortedConcepts.slice(conceptIndex, conceptIndex + bit2Count), 2);
-        conceptIndex += bit2Count;
-        
-        // 3-bit encodings (max 8)
-        const bit3Count = Math.min(8, sortedConcepts.length - conceptIndex);
-        this._assignEncodings(sortedConcepts.slice(conceptIndex, conceptIndex + bit3Count), 3);
-        conceptIndex += bit3Count;
-        
-        // 4-bit encodings (max 16)
-        const bit4Count = Math.min(16, sortedConcepts.length - conceptIndex);
-        this._assignEncodings(sortedConcepts.slice(conceptIndex, conceptIndex + bit4Count), 4);
-        conceptIndex += bit4Count;
-        
-        // Remaining concepts get higher bit depths
-        if (conceptIndex < sortedConcepts.length) {
-            this._assignEncodings(sortedConcepts.slice(conceptIndex), 8);
+        // Sync back to legacy maps
+        for (const [concept, binary] of this.encodingTables.dynamicConcepts) {
+            const bitDepth = binary.length;
+            const bitDepthMap = this.encodingMaps.bitDepth.get(bitDepth);
+            if (bitDepthMap) {
+                bitDepthMap.set(concept, binary);
+            }
+            this.encodingMaps.concepts.set(concept, { bitDepth, encoding: binary });
         }
     }
     
@@ -446,30 +424,29 @@ class M2MCompression {
      * @returns {Object} - System statistics
      */
     getStats() {
-        // Calculate bit depth distribution
-        const bitDepthDistribution = {};
-        for (let i = 1; i <= 8; i++) {
-            bitDepthDistribution[`${i}-bit`] = this.encodingMaps.bitDepth.get(i).size;
-        }
+        // Get base stats from SemanticCodec
+        const baseStats = super.getStats();
         
-        // Calculate average bit depth
+        // Calculate bit depth distribution from legacy maps
+        const bitDepthDistribution = {};
         let totalBits = 0;
         let totalConcepts = 0;
         
         for (let i = 1; i <= 8; i++) {
             const count = this.encodingMaps.bitDepth.get(i).size;
+            bitDepthDistribution[`${i}-bit`] = count;
             totalBits += i * count;
             totalConcepts += count;
         }
         
         const avgBitDepth = totalConcepts > 0 ? totalBits / totalConcepts : 0;
         
-        // Return statistics
         return {
-            totalConcepts: totalConcepts,
+            ...baseStats,
+            totalConcepts,
             bitDepthDistribution,
             averageBitDepth: avgBitDepth.toFixed(2),
-            contextWindowSize: this.options.contextWindow,
+            contextWindowSize: this.options.contextWindowSize,
             historyLength: this.conversationHistory.length,
             semanticCompressionEnabled: this.options.semanticCompression,
             dynamicEncodingEnabled: this.options.dynamicEncoding

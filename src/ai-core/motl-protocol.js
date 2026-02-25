@@ -5,76 +5,29 @@
  * by encoding semantic meaning directly with variable bit-depth representation.
  * 
  * This protocol builds on BBES principles but extends them to create a true machine thought language.
+ * Extends SemanticCodec for shared variable-bit-depth encoding logic.
  */
 
-class MOTLProtocol {
+// Import SemanticCodec base class if in Node.js environment
+if (typeof require !== 'undefined') {
+    var SemanticCodec = require('./semantic-codec').SemanticCodec;
+}
+
+class MOTLProtocol extends SemanticCodec {
     constructor(options = {}) {
-        this.options = {
-            // Core configuration
-            initialBitDepth: 3,           // Starting bit depth for encoding
-            adaptiveEncoding: true,       // Whether to adapt encoding based on usage
-            contextWindowSize: 1000,      // Number of concepts to maintain in context
-            semanticCompression: 0.95,    // Level of semantic compression (0-1)
-            
-            // Advanced features
-            reinforcementLearning: true,  // Use RL to optimize bit assignments
-            multiModalEncoding: false,    // Support for encoding across modalities
-            distributedConsensus: false,  // Support for multi-agent encoding consensus
-            
-            // Performance settings
-            optimizeFor: 'balanced',      // 'speed', 'compression', or 'balanced'
-            
+        super({
+            initialBitDepth: 3,
+            adaptiveEncoding: true,
+            contextWindowSize: 1000,
+            semanticCompression: true,
             ...options
-        };
+        });
         
-        // Initialize encoding tables
-        this.encodingTables = {
-            // Core logical operations (1-bit encoding)
-            coreOperations: new Map([
-                ['AND', '0'],
-                ['OR', '1']
-            ]),
-            
-            // Common relations (2-bit encoding)
-            commonRelations: new Map([
-                ['EQUALS', '00'],
-                ['CONTAINS', '01'],
-                ['GREATER_THAN', '10'],
-                ['LESS_THAN', '11']
-            ]),
-            
-            // Fundamental concepts (3-bit encoding)
-            fundamentalConcepts: new Map([
-                ['ENTITY', '000'],
-                ['ACTION', '001'],
-                ['PROPERTY', '010'],
-                ['STATE', '011'],
-                ['EVENT', '100'],
-                ['RELATION', '101'],
-                ['QUANTITY', '110'],
-                ['QUALITY', '111']
-            ]),
-            
-            // Domain-specific concepts (variable bit depth)
-            domainConcepts: new Map(),
-            
-            // Dynamic concepts (learned during operation)
-            dynamicConcepts: new Map()
-        };
-        
-        // Context tracking
-        this.context = {
-            recentConcepts: [],
-            conceptFrequency: new Map(),
-            relationGraph: new Map()
-        };
-        
-        // Performance metrics
-        this.metrics = {
-            compressionRatio: 0,
-            processingSpeed: 0,
-            adaptationRate: 0
-        };
+        // MOTL-specific options
+        this.options.reinforcementLearning = options.reinforcementLearning !== undefined ? options.reinforcementLearning : true;
+        this.options.multiModalEncoding = options.multiModalEncoding || false;
+        this.options.distributedConsensus = options.distributedConsensus || false;
+        this.options.optimizeFor = options.optimizeFor || 'balanced';
         
         // Initialize reinforcement learning if enabled
         if (this.options.reinforcementLearning) {
@@ -260,12 +213,7 @@ class MOTLProtocol {
      * @returns {boolean} Whether the concept has a fixed encoding
      */
     _hasFixedEncoding(concept) {
-        return (
-            this.encodingTables.coreOperations.has(concept) ||
-            this.encodingTables.commonRelations.has(concept) ||
-            this.encodingTables.fundamentalConcepts.has(concept) ||
-            this.encodingTables.domainConcepts.has(concept)
-        );
+        return this.hasFixedEncoding(concept);
     }
     
     /**
@@ -322,34 +270,7 @@ class MOTLProtocol {
      * @returns {string} Bit string encoding
      */
     _encodeConcept(concept) {
-        // Check each encoding table in order of bit depth
-        if (this.encodingTables.coreOperations.has(concept)) {
-            return this.encodingTables.coreOperations.get(concept);
-        }
-        
-        if (this.encodingTables.commonRelations.has(concept)) {
-            return this.encodingTables.commonRelations.get(concept);
-        }
-        
-        if (this.encodingTables.fundamentalConcepts.has(concept)) {
-            return this.encodingTables.fundamentalConcepts.get(concept);
-        }
-        
-        if (this.encodingTables.domainConcepts.has(concept)) {
-            return this.encodingTables.domainConcepts.get(concept);
-        }
-        
-        if (this.encodingTables.dynamicConcepts.has(concept)) {
-            return this.encodingTables.dynamicConcepts.get(concept);
-        }
-        
-        // If not found in any table, encode as a literal
-        // Prefix with a marker (1111) to indicate literal encoding
-        const literalBits = concept.split('')
-            .map(char => char.charCodeAt(0).toString(2).padStart(8, '0'))
-            .join('');
-            
-        return '1111' + literalBits;
+        return this.encodeConceptWithFallback(concept);
     }
     
     /**
@@ -377,13 +298,10 @@ class MOTLProtocol {
      * @param {Object} semanticStructure - New semantic structure
      */
     _updateContext(semanticStructure) {
-        // Add concepts to recent concepts list
-        this.context.recentConcepts = [
-            ...semanticStructure.concepts,
-            ...this.context.recentConcepts
-        ].slice(0, this.options.contextWindowSize);
+        // Delegate concept tracking to SemanticCodec
+        this.updateContext(semanticStructure.concepts);
         
-        // Update relation graph
+        // Update relation graph (MOTL-specific)
         for (const relation of semanticStructure.relations) {
             if (!this.context.relationGraph.has(relation.source)) {
                 this.context.relationGraph.set(relation.source, new Set());
@@ -394,11 +312,11 @@ class MOTLProtocol {
         
         // Calculate adaptation rate
         const newConceptsCount = semanticStructure.concepts.filter(
-            concept => !this._hasFixedEncoding(concept) && 
+            concept => !this.hasFixedEncoding(concept) && 
                       !this.encodingTables.dynamicConcepts.has(concept)
         ).length;
         
-        this.metrics.adaptationRate = newConceptsCount / semanticStructure.concepts.length;
+        this.metrics.adaptationRate = newConceptsCount / Math.max(1, semanticStructure.concepts.length);
     }
     
     /**
@@ -575,26 +493,10 @@ class MOTLProtocol {
      * @returns {Object} Protocol statistics
      */
     getStats() {
+        const baseStats = super.getStats();
+        
         return {
-            encodingTables: {
-                coreOperationsCount: this.encodingTables.coreOperations.size,
-                commonRelationsCount: this.encodingTables.commonRelations.size,
-                fundamentalConceptsCount: this.encodingTables.fundamentalConcepts.size,
-                domainConceptsCount: this.encodingTables.domainConcepts.size,
-                dynamicConceptsCount: this.encodingTables.dynamicConcepts.size,
-                totalEncodedConcepts: 
-                    this.encodingTables.coreOperations.size +
-                    this.encodingTables.commonRelations.size +
-                    this.encodingTables.fundamentalConcepts.size +
-                    this.encodingTables.domainConcepts.size +
-                    this.encodingTables.dynamicConcepts.size
-            },
-            context: {
-                recentConceptsCount: this.context.recentConcepts.length,
-                uniqueConceptsCount: this.context.conceptFrequency.size,
-                relationGraphSize: this.context.relationGraph.size
-            },
-            metrics: { ...this.metrics },
+            ...baseStats,
             reinforcementLearning: this.options.reinforcementLearning ? {
                 learningRate: this.rl.learningRate,
                 explorationRate: this.rl.explorationRate,

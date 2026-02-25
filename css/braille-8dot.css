@@ -1,0 +1,464 @@
+/**
+ * Braille 8-Dot Cell Styles
+ * 
+ * Visual styling for 8-dot braille cells with support for:
+ * - Multiple sizes (small, medium, large)
+ * - Interactive and static modes
+ * - 6-dot and 8-dot layouts
+ * - Animations and transitions
+ * - Accessibility features
+ */
+
+/* ========================================
+   Base 8-Dot Cell Container
+   ======================================== */
+
+.braille-cell-8dot {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.braille-cell-8dot.interactive {
+    cursor: pointer;
+}
+
+.braille-cell-8dot.interactive:hover {
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+}
+
+/* ========================================
+   Dot Columns
+   ======================================== */
+
+.dot-column {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.dot-column.left {
+    align-items: flex-end;
+}
+
+.dot-column.right {
+    align-items: flex-start;
+}
+
+/* ========================================
+   Individual Dots
+   ======================================== */
+
+.braille-cell-8dot .dot {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #e0e0e0;
+    border: 3px solid #b0b0b0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Active (raised) dot */
+.braille-cell-8dot .dot.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-color: #5568d3;
+    box-shadow: 
+        0 4px 8px rgba(102, 126, 234, 0.4),
+        inset 0 1px 2px rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
+}
+
+/* Interactive dot hover */
+.braille-cell-8dot.interactive .dot:hover {
+    background: #d0d0d0;
+    border-color: #a0a0a0;
+    transform: scale(1.05);
+    cursor: pointer;
+}
+
+.braille-cell-8dot.interactive .dot.active:hover {
+    background: linear-gradient(135deg, #7b8ff5 0%, #8a5cb8 100%);
+    transform: scale(1.15);
+}
+
+/* Focus state for accessibility */
+.braille-cell-8dot .dot:focus {
+    outline: 3px solid #667eea;
+    outline-offset: 3px;
+}
+
+/* ========================================
+   Dot Labels (for learning mode)
+   ======================================== */
+
+.dot-label {
+    font-size: 14px;
+    font-weight: bold;
+    color: #666;
+    user-select: none;
+}
+
+.dot.active .dot-label {
+    color: #fff;
+}
+
+/* ========================================
+   Size Variants
+   ======================================== */
+
+/* Small size */
+.braille-cell-8dot-small {
+    gap: 10px;
+    padding: 10px;
+}
+
+.braille-cell-8dot-small .dot-column {
+    gap: 8px;
+}
+
+.braille-cell-8dot-small .dot {
+    width: 25px;
+    height: 25px;
+    border-width: 2px;
+}
+
+.braille-cell-8dot-small .dot-label {
+    font-size: 10px;
+}
+
+/* Medium size (default) */
+.braille-cell-8dot-medium {
+    gap: 20px;
+    padding: 20px;
+}
+
+.braille-cell-8dot-medium .dot-column {
+    gap: 15px;
+}
+
+.braille-cell-8dot-medium .dot {
+    width: 40px;
+    height: 40px;
+    border-width: 3px;
+}
+
+/* Large size */
+.braille-cell-8dot-large {
+    gap: 30px;
+    padding: 30px;
+}
+
+.braille-cell-8dot-large .dot-column {
+    gap: 25px;
+}
+
+.braille-cell-8dot-large .dot {
+    width: 60px;
+    height: 60px;
+    border-width: 4px;
+}
+
+.braille-cell-8dot-large .dot-label {
+    font-size: 18px;
+}
+
+/* ========================================
+   Mode Variants
+   ======================================== */
+
+/* 6-dot mode - hide dots 7 and 8 */
+.braille-cell-8dot.mode-6dot .dot[data-dot="7"],
+.braille-cell-8dot.mode-6dot .dot[data-dot="8"] {
+    display: none;
+}
+
+/* 8-dot mode - emphasize bottom row */
+.braille-cell-8dot.mode-8dot .dot[data-dot="7"],
+.braille-cell-8dot.mode-8dot .dot[data-dot="8"] {
+    border-color: #9090c0;
+}
+
+.braille-cell-8dot.mode-8dot .dot[data-dot="7"].active,
+.braille-cell-8dot.mode-8dot .dot[data-dot="8"].active {
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    box-shadow: 
+        0 4px 8px rgba(118, 75, 162, 0.4),
+        inset 0 1px 2px rgba(255, 255, 255, 0.3);
+}
+
+/* ========================================
+   Animations
+   ======================================== */
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.2);
+        opacity: 0.8;
+    }
+}
+
+.dot.animate-pulse {
+    animation: pulse 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.braille-cell-8dot {
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* ========================================
+   Unicode Display
+   ======================================== */
+
+.unicode-display {
+    margin-top: 15px;
+    text-align: center;
+    font-size: 48px;
+    font-family: 'DejaVu Sans', 'Segoe UI Symbol', 'Arial Unicode MS', sans-serif;
+    color: #667eea;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ========================================
+   Context-Specific Styling
+   ======================================== */
+
+/* Computer Braille Code mode */
+.braille-cell-8dot.context-computer {
+    background: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%);
+}
+
+.braille-cell-8dot.context-computer .dot.active {
+    background: linear-gradient(135deg, #00acc1 0%, #0097a7 100%);
+}
+
+/* Mathematics (Nemeth) mode */
+.braille-cell-8dot.context-math {
+    background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+}
+
+.braille-cell-8dot.context-math .dot.active {
+    background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+}
+
+/* Music notation mode */
+.braille-cell-8dot.context-music {
+    background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);
+}
+
+.braille-cell-8dot.context-music .dot.active {
+    background: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%);
+}
+
+/* Language-specific mode */
+.braille-cell-8dot.context-language {
+    background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+}
+
+.braille-cell-8dot.context-language .dot.active {
+    background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+}
+
+/* ========================================
+   Responsive Design
+   ======================================== */
+
+@media (max-width: 768px) {
+    .braille-cell-8dot {
+        gap: 15px;
+        padding: 15px;
+    }
+    
+    .braille-cell-8dot .dot-column {
+        gap: 12px;
+    }
+    
+    .braille-cell-8dot .dot {
+        width: 35px;
+        height: 35px;
+    }
+    
+    .braille-cell-8dot-large .dot {
+        width: 50px;
+        height: 50px;
+    }
+}
+
+@media (max-width: 480px) {
+    .braille-cell-8dot {
+        gap: 10px;
+        padding: 10px;
+    }
+    
+    .braille-cell-8dot .dot-column {
+        gap: 8px;
+    }
+    
+    .braille-cell-8dot .dot {
+        width: 30px;
+        height: 30px;
+        border-width: 2px;
+    }
+}
+
+/* ========================================
+   High Contrast Mode
+   ======================================== */
+
+.high-contrast .braille-cell-8dot {
+    background: #000;
+    border: 3px solid #fff;
+}
+
+.high-contrast .braille-cell-8dot .dot {
+    background: #000;
+    border-color: #fff;
+}
+
+.high-contrast .braille-cell-8dot .dot.active {
+    background: #fff;
+    border-color: #fff;
+}
+
+/* ========================================
+   Print Styles
+   ======================================== */
+
+@media print {
+    .braille-cell-8dot {
+        background: white;
+        box-shadow: none;
+        border: 2px solid black;
+    }
+    
+    .braille-cell-8dot .dot {
+        background: white;
+        border-color: black;
+    }
+    
+    .braille-cell-8dot .dot.active {
+        background: black;
+    }
+}
+
+/* ========================================
+   Accessibility Enhancements
+   ======================================== */
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+    .braille-cell-8dot,
+    .braille-cell-8dot .dot {
+        transition: none;
+        animation: none;
+    }
+}
+
+/* Screen reader only content */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+/* ========================================
+   Grid Layout for Multiple Cells
+   ======================================== */
+
+.braille-cell-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 20px;
+    padding: 20px;
+}
+
+.braille-cell-grid-compact {
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 10px;
+}
+
+/* ========================================
+   Comparison View
+   ======================================== */
+
+.braille-comparison {
+    display: flex;
+    gap: 30px;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.braille-comparison-label {
+    text-align: center;
+    margin-top: 10px;
+    font-weight: bold;
+    color: #666;
+}
+
+.braille-comparison-arrow {
+    font-size: 36px;
+    color: #667eea;
+}
+
+/* ========================================
+   Loading State
+   ======================================== */
+
+.braille-cell-8dot.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.braille-cell-8dot.loading .dot {
+    animation: pulse 1s infinite;
+}
+
+/* ========================================
+   Error State
+   ======================================== */
+
+.braille-cell-8dot.error {
+    background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+    border: 2px solid #f44336;
+}
+
+.braille-cell-8dot.error .dot {
+    border-color: #f44336;
+}

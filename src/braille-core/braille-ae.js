@@ -9,6 +9,11 @@
  * implementation would be required.
  */
 
+// Import the shared BBESCodec if in Node.js environment
+if (typeof require !== 'undefined') {
+    var BBESCodec = require('./bbes-codec').BBESCodec;
+}
+
 class BrailleAE {
     constructor(options = {}) {
         // Default options
@@ -239,21 +244,18 @@ class BrailleAE {
      */
     _generateEncoding(pattern) {
         // In a real neural network, this would use the encoder to generate a latent representation
-        // For this prototype, we'll use a simple heuristic
+        // For this prototype, we use the standard braille dot lookup table
         
         // Start with an empty encoding
         let encoding = '';
         
-        // For each character, generate a braille cell
+        // For each character (up to 3), look up the correct braille cell
         for (let i = 0; i < Math.min(pattern.length, 3); i++) {
             const char = pattern[i];
-            const code = char.charCodeAt(0) - 'a'.charCodeAt(0);
+            const brailleChar = BrailleAE.BRAILLE_DOTS[char];
             
-            // Convert to braille (simplified mapping)
-            if (code >= 0 && code < 26) {
-                // Basic braille pattern for a-z
-                const brailleCode = 0x2800 + (1 << (code % 6));
-                encoding += String.fromCodePoint(brailleCode);
+            if (brailleChar) {
+                encoding += brailleChar;
             }
         }
         
@@ -406,19 +408,15 @@ class BrailleAE {
                 // No match, use the character as is
                 const char = text[currentPos];
                 
-                // Simple mapping for basic characters
-                if (/[a-z]/.test(char)) {
-                    const code = char.charCodeAt(0) - 'a'.charCodeAt(0);
-                    const brailleCode = 0x2800 + (1 << (code % 6));
-                    const brailleChar = String.fromCodePoint(brailleCode);
-                    
+                // Look up in standard braille dot table
+                const brailleChar = BrailleAE.BRAILLE_DOTS[char.toLowerCase()];
+                if (brailleChar) {
                     brailleUnicode += brailleChar;
                     
-                    // Convert to binary
-                    const binary = (brailleCode - 0x2800).toString(2).padStart(8, '0');
-                    brailleBinary += binary;
+                    // Convert to binary using BBESCodec
+                    brailleBinary += BBESCodec.brailleToBinary(brailleChar);
                 } else {
-                    // Just use the character as is for non-letters
+                    // Just use the character as is for unmapped characters
                     brailleUnicode += char;
                     brailleBinary += '00000000'; // Placeholder
                 }
@@ -540,20 +538,7 @@ class BrailleAE {
      * @returns {string} - BBES format (base64 encoded)
      */
     _createBBES(binary) {
-        // Pad binary to multiple of 8 for byte alignment
-        while (binary.length % 8 !== 0) {
-            binary += '0';
-        }
-        
-        // Convert binary to byte array
-        const bytes = [];
-        for (let i = 0; i < binary.length; i += 8) {
-            const byte = binary.substr(i, 8);
-            bytes.push(parseInt(byte, 2));
-        }
-        
-        // Convert byte array to base64
-        return btoa(String.fromCharCode(...bytes));
+        return BBESCodec.createBBES(binary);
     }
     
     /**
@@ -563,16 +548,7 @@ class BrailleAE {
      * @returns {string} - Binary representation
      */
     _decodeBBES(bbes) {
-        // Convert base64 to byte array
-        const bytes = atob(bbes).split('').map(c => c.charCodeAt(0));
-        
-        // Convert byte array to binary
-        let binary = '';
-        for (const byte of bytes) {
-            binary += byte.toString(2).padStart(8, '0');
-        }
-        
-        return binary;
+        return BBESCodec.decodeBBES(bbes);
     }
     
     /**
@@ -639,6 +615,17 @@ class BrailleAE {
         return avgEncodingLength / avgPatternLength;
     }
 }
+
+// Standard braille dot patterns (shared with BrailleFST for consistency)
+BrailleAE.BRAILLE_DOTS = {
+    'a': '⠁', 'b': '⠃', 'c': '⠉', 'd': '⠙', 'e': '⠑',
+    'f': '⠋', 'g': '⠛', 'h': '⠓', 'i': '⠊', 'j': '⠚',
+    'k': '⠅', 'l': '⠇', 'm': '⠍', 'n': '⠝', 'o': '⠕',
+    'p': '⠏', 'q': '⠟', 'r': '⠗', 's': '⠎', 't': '⠞',
+    'u': '⠥', 'v': '⠧', 'w': '⠺', 'x': '⠭', 'y': '⠽', 'z': '⠵',
+    ' ': '⠀', '.': '⠲', ',': '⠂', ';': '⠆', ':': '⠒',
+    '!': '⠖', '?': '⠦', '-': '⠤'
+};
 
 // Export the BrailleAE class
 if (typeof module !== 'undefined' && module.exports) {

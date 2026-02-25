@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>8-Dot Braille System Demo - BrailleBuddy</title>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 40px;
+            font-size: 1.2em;
+        }
+
+        .section {
+            margin-bottom: 50px;
+        }
+
+        .section-title {
+            font-size: 1.8em;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .demo-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .demo-card h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .cell-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            background: #667eea;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        .info-box p {
+            margin: 5px 0;
+            color: #1976d2;
+        }
+
+        .unicode-input {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+
+        .unicode-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .pattern-display {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-family: monospace;
+        }
+
+        .comparison-view {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+
+        .arrow {
+            font-size: 36px;
+            color: #667eea;
+        }
+
+        .mode-selector {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .mode-selector button {
+            flex: 1;
+        }
+
+        .mode-selector button.active {
+            background: #764ba2;
+        }
+
+        .keyboard-layout {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .keyboard-row {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 10px 0;
+        }
+
+        .key {
+            width: 50px;
+            height: 50px;
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .key.active {
+            background: #667eea;
+            color: white;
+            border-color: #5568d3;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .context-tabs {
+            display: flex;
+            gap: 5px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .context-tab {
+            padding: 10px 20px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .context-tab.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .context-content {
+            display: none;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 0 10px 10px 10px;
+        }
+
+        .context-content.active {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+
+            .demo-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+    
+    <link rel="stylesheet" href="css/braille-8dot.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🎓 8-Dot Braille System</h1>
+        <p class="subtitle">Extended Braille for Computer Code, Mathematics, Music & All Languages</p>
+
+        <!-- Introduction Section -->
+        <div class="section">
+            <h2 class="section-title">What is 8-Dot Braille?</h2>
+            <div class="info-box">
+                <p><strong>8-dot braille</strong> extends the traditional 6-dot system by adding two additional dots (7 and 8) at the bottom.</p>
+                <p>This provides <strong>256 unique patterns</strong> (2⁸) instead of just 64 (2⁶), enabling:</p>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li>Direct ASCII mapping for computer use</li>
+                    <li>Extended character sets for all world languages</li>
+                    <li>Unambiguous mathematical notation (Nemeth Code)</li>
+                    <li>Precise music braille notation</li>
+                    <li>Case distinction without mode indicators</li>
+                </ul>
+            </div>
+
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-value">256</div>
+                    <div class="stat-label">Unique Patterns</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">50+</div>
+                    <div class="stat-label">Languages</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">U+2800</div>
+                    <div class="stat-label">Unicode Range</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">8</div>
+                    <div class="stat-label">Dots Total</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Interactive Demo Section -->
+        <div class="section">
+            <h2 class="section-title">Interactive 8-Dot Cell</h2>
+            <div class="demo-card">
+                <h3>Try It Yourself!</h3>
+                <p>Click on the dots to create your own 8-dot braille pattern.</p>
+                
+                <div class="mode-selector">
+                    <button id="mode-6dot">6-Dot Mode</button>
+                    <button id="mode-8dot" class="active">8-Dot Mode</button>
+                </div>
+
+                <div class="cell-container">
+                    <div id="interactive-cell"></div>
+                </div>
+
+                <div class="pattern-display" id="pattern-info">
+                    <strong>Pattern:</strong> Empty cell<br>
+                    <strong>Dots:</strong> None<br>
+                    <strong>Unicode:</strong> ⠀ (U+2800)<br>
+                    <strong>Binary:</strong> 00000000
+                </div>
+
+                <div class="controls">
+                    <button id="clear-btn">Clear All</button>
+                    <button id="random-btn">Random Pattern</button>
+                    <button id="fill-btn">Fill All</button>
+                    <button id="mirror-btn">Mirror</button>
+                    <button id="invert-btn">Invert</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 6-Dot vs 8-Dot Comparison -->
+        <div class="section">
+            <h2 class="section-title">6-Dot vs 8-Dot Comparison</h2>
+            <div class="demo-card">
+                <h3>Visual Comparison</h3>
+                <div class="comparison-view">
+                    <div>
+                        <p style="text-align: center; margin-bottom: 10px;"><strong>6-Dot (Traditional)</strong></p>
+                        <div id="cell-6dot"></div>
+                        <p style="text-align: center; margin-top: 10px;">64 patterns</p>
+                    </div>
+                    <div class="arrow">→</div>
+                    <div>
+                        <p style="text-align: center; margin-bottom: 10px;"><strong>8-Dot (Extended)</strong></p>
+                        <div id="cell-8dot"></div>
+                        <p style="text-align: center; margin-top: 10px;">256 patterns</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Context-Specific Examples -->
+        <div class="section">
+            <h2 class="section-title">Context-Specific Applications</h2>
+            
+            <div class="context-tabs">
+                <button class="context-tab active" data-context="computer">Computer Code</button>
+                <button class="context-tab" data-context="math">Mathematics</button>
+                <button class="context-tab" data-context="music">Music</button>
+                <button class="context-tab" data-context="language">Languages</button>
+            </div>
+
+            <div class="context-content active" id="context-computer">
+                <h3>Computer Braille Code (CBC)</h3>
+                <p>8-dot braille allows direct 1:1 mapping with ASCII characters.</p>
+                <div class="demo-grid">
+                    <div class="demo-card">
+                        <h4>Uppercase A</h4>
+                        <div id="computer-A"></div>
+                        <p>Dot 1 only</p>
+                    </div>
+                    <div class="demo-card">
+                        <h4>Lowercase a</h4>
+                        <div id="computer-a"></div>
+                        <p>Dots 1, 7</p>
+                    </div>
+                    <div class="demo-card">
+                        <h4>Number 1</h4>
+                        <div id="computer-1"></div>
+                        <p>Dots 2, 7</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="context-content" id="context-math">
+                <h3>Nemeth Code (Mathematics)</h3>
+                <p>Unambiguous mathematical notation with 8-dot patterns.</p>
+                <div class="demo-grid">
+                    <div class="demo-card">
+                        <h4>Plus (+)</h4>
+                        <div id="math-plus"></div>
+                        <p>Dots 3, 4, 6</p>
+                    </div>
+                    <div class="demo-card">
+                        <h4>Equals (=)</h4>
+                        <div id="math-equals"></div>
+                        <p>Dots 1, 2, 3, 4, 5, 6</p>
+                    </div>
+                    <div class="demo-card">
+                        <h4>Integral (∫)</h4>
+                        <div id="math-integral"></div>
+                        <p>Dots 2, 3, 4, 6</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="context-content" id="context-music">
+                <h3>Music Braille Notation</h3>
+                <p>Precise music notation with extended patterns.</p>
+                <div class="demo-grid">
+                    <div class="demo-card">
+                        <h4>Quarter Note C</h4>
+                        <div id="music-c"></div>
+                        <p>Dots 1, 4, 5</p>
+                    </div>
+                    <div class="demo-card">
+                        <h4>Sharp (♯)</h4>
+                        <div id="music-sharp"></div>
+                        <p>Dots 1, 4, 6</p>
+                    </div>
+                    <div class="demo-card">
+                        <h4>Flat (♭)</h4>
+                        <div id="music-flat"></div>
+                        <p>Dots 1, 2, 6</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="context-content" id="context-language">
+                <h3>Extended Language Support</h3>
+                <p>Support for diacritics and non-Latin scripts.</p>
+                <div class="demo-grid">
+                    <div class="demo-card">
+                        <h4>Vietnamese ă</h4>
+                        <div id="lang-viet"></div>
+                        <p>Dots 1, 6, 7</p>
+                    </div>
+                    <div class="demo-card">
+                        <h4>Arabic with Diacritic</h4>
+                        <div id="lang-arabic"></div>
+                        <p>Extended pattern</p>
+                    </div>
+                    <div class="demo-card">
+                        <h4>Chinese Tone Marker</h4>
+                        <div id="lang-chinese"></div>
+                        <p>Tone in same cell</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 8-Key Keyboard Input -->
+        <div class="section">
+            <h2 class="section-title">8-Key Keyboard Input</h2>
+            <div class="demo-card">
+                <h3>Type Braille with Your Keyboard</h3>
+                <p>Use these 8 keys to input braille patterns:</p>
+                
+                <div class="keyboard-layout">
+                    <div class="keyboard-row">
+                        <div class="key" data-key="f" data-dot="1">F<br><small>Dot 1</small></div>
+                        <div class="key" data-key="d" data-dot="2">D<br><small>Dot 2</small></div>
+                        <div class="key" data-key="s" data-dot="3">S<br><small>Dot 3</small></div>
+                        <div class="key" data-key="a" data-dot="7">A<br><small>Dot 7</small></div>
+                    </div>
+                    <div class="keyboard-row">
+                        <div class="key" data-key="j" data-dot="4">J<br><small>Dot 4</small></div>
+                        <div class="key" data-key="k" data-dot="5">K<br><small>Dot 5</small></div>
+                        <div class="key" data-key="l" data-dot="6">L<br><small>Dot 6</small></div>
+                        <div class="key" data-key=";" data-dot="8">;<br><small>Dot 8</small></div>
+                    </div>
+                </div>
+
+                <div class="cell-container">
+                    <div id="keyboard-cell"></div>
+                </div>
+
+                <p style="text-align: center; margin-top: 20px;">
+                    <button id="submit-key">Submit (Space)</button>
+                    <button id="clear-key">Clear (Backspace)</button>
+                </p>
+            </div>
+        </div>
+
+        <!-- Unicode Pattern Explorer -->
+        <div class="section">
+            <h2 class="section-title">Unicode Pattern Explorer</h2>
+            <div class="demo-card">
+                <h3>Explore All 256 Patterns</h3>
+                <p>Enter a decimal value (0-255) or Unicode character to see the pattern:</p>
+                
+                <input type="number" id="decimal-input" class="unicode-input" 
+                       placeholder="Enter decimal (0-255)" min="0" max="255" value="0">
+                
+                <div class="cell-container">
+                    <div id="explorer-cell"></div>
+                </div>
+
+                <div class="pattern-display" id="explorer-info">
+                    Pattern information will appear here...
+                </div>
+
+                <div class="controls">
+                    <button id="prev-pattern">← Previous</button>
+                    <button id="next-pattern">Next →</button>
+                    <button id="random-pattern">Random</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load Scripts -->
+    <script src="src/braille-8dot/braille-8dot-unicode.js"></script>
+    <script src="src/braille-8dot/braille-8dot-cell.js"></script>
+    
+    <script>
+        // Initialize Unicode converter
+        const converter = new Braille8DotUnicode();
+
+        // Interactive Cell
+        const interactiveCell = new Braille8DotCell('interactive-cell', {
+            size: 'large',
+            interactive: true,
+            showLabels: true,
+            mode: '8dot',
+            onChange: (state) => {
+                const pattern = converter.dotsToUnicode(state.dots);
+                const binary = converter.unicodeToBinary(pattern);
+                const codePoint = pattern.charCodeAt(0).toString(16).toUpperCase();
+                
+                document.getElementById('pattern-info').innerHTML = `
+                    <strong>Pattern:</strong> ${converter.getPatternDescription(pattern)}<br>
+                    <strong>Dots:</strong> ${state.dots.join(', ') || 'None'}<br>
+                    <strong>Unicode:</strong> ${pattern} (U+${codePoint})<br>
+                    <strong>Binary:</strong> ${binary}
+                `;
+            }
+        });
+
+        // Mode switching
+        document.getElementById('mode-6dot').addEventListener('click', function() {
+            interactiveCell.setMode('6dot');
+            this.classList.add('active');
+            document.getElementById('mode-8dot').classList.remove('active');
+        });
+
+        document.getElementById('mode-8dot').addEventListener('click', function() {
+            interactiveCell.setMode('8dot');
+            this.classList.add('active');
+            document.getElementById('mode-6dot').classList.remove('active');
+        });
+
+        // Control buttons
+        document.getElementById('clear-btn').addEventListener('click', () => interactiveCell.clear());
+        document.getElementById('random-btn').addEventListener('click', () => {
+            const pattern = converter.getRandomPattern(true);
+            interactiveCell.setFromUnicode(pattern);
+        });
+        document.getElementById('fill-btn').addEventListener('click', () => {
+            interactiveCell.setDots([1, 2, 3, 4, 5, 6, 7, 8]);
+        });
+        document.getElementById('mirror-btn').addEventListener('click', () => {
+            const state = interactiveCell.getState();
+            const pattern = converter.dotsToUnicode(state.dots);
+            const mirrored = converter.mirrorPattern(pattern);
+            interactiveCell.setFromUnicode(mirrored);
+        });
+        document.getElementById('invert-btn').addEventListener('click', () => {
+            const state = interactiveCell.getState();
+            const pattern = converter.dotsToUnicode(state.dots);
+            const inverted = converter.invertPattern(pattern);
+            interactiveCell.setFromUnicode(inverted);
+        });
+
+        // Comparison cells
+        const cell6dot = new Braille8DotCell('cell-6dot', {
+            size: 'medium',
+            interactive: false,
+            mode: '6dot'
+        });
+        cell6dot.setDots([1, 2, 3, 4, 5, 6]);
+
+        const cell8dot = new Braille8DotCell('cell-8dot', {
+            size: 'medium',
+            interactive: false,
+            mode: '8dot'
+        });
+        cell8dot.setDots([1, 2, 3, 4, 5, 6, 7, 8]);
+
+        // Context examples
+        // Computer
+        new Braille8DotCell('computer-A', {size: 'small', interactive: false}).setDots([1]);
+        new Braille8DotCell('computer-a', {size: 'small', interactive: false}).setDots([1, 7]);
+        new Braille8DotCell('computer-1', {size: 'small', interactive: false}).setDots([2, 7]);
+
+        // Math
+        new Braille8DotCell('math-plus', {size: 'small', interactive: false}).setDots([3, 4, 6]);
+        new Braille8DotCell('math-equals', {size: 'small', interactive: false}).setDots([1, 2, 3, 4, 5, 6]);
+        new Braille8DotCell('math-integral', {size: 'small', interactive: false}).setDots([2, 3, 4, 6]);
+
+        // Music
+        new Braille8DotCell('music-c', {size: 'small', interactive: false}).setDots([1, 4, 5]);
+        new Braille8DotCell('music-sharp', {size: 'small', interactive: false}).setDots([1, 4, 6]);
+        new Braille8DotCell('music-flat', {size: 'small', interactive: false}).setDots([1, 2, 6]);
+
+        // Language
+        new Braille8DotCell('lang-viet', {size: 'small', interactive: false}).setDots([1, 6, 7]);
+        new Braille8DotCell('lang-arabic', {size: 'small', interactive: false}).setDots([1, 2, 4, 7, 8]);
+        new Braille8DotCell('lang-chinese', {size: 'small', interactive: false}).setDots([2, 3, 5, 8]);
+
+        // Context tabs
+        document.querySelectorAll('.context-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.context-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.context-content').forEach(c => c.classList.remove('active'));
+                
+                this.classList.add('active');
+                document.getElementById('context-' + this.dataset.context).classList.add('active');
+            });
+        });
+
+        // Keyboard input
+        const keyboardCell = new Braille8DotCell('keyboard-cell', {
+            size: 'large',
+            interactive: false,
+            mode: '8dot'
+        });
+
+        const keyMap = {
+            'f': 1, 'd': 2, 's': 3, 'a': 7,
+            'j': 4, 'k': 5, 'l': 6, ';': 8
+        };
+
+        let currentDots = [];
+
+        document.addEventListener('keydown', (e) => {
+            const key = e.key.toLowerCase();
+            if (keyMap[key]) {
+                e.preventDefault();
+                const dot = keyMap[key];
+                if (!currentDots.includes(dot)) {
+                    currentDots.push(dot);
+                    keyboardCell.setDots(currentDots);
+                    document.querySelector(`[data-key="${key}"]`).classList.add('active');
+                }
+            } else if (e.key === ' ') {
+                e.preventDefault();
+                // Submit action
+                console.log('Submitted:', currentDots);
+            } else if (e.key === 'Backspace') {
+                e.preventDefault();
+                currentDots = [];
+                keyboardCell.clear();
+                document.querySelectorAll('.key').forEach(k => k.classList.remove('active'));
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            const key = e.key.toLowerCase();
+            if (keyMap[key]) {
+                const dot = keyMap[key];
+                const index = currentDots.indexOf(dot);
+                if (index > -1) {
+                    currentDots.splice(index, 1);
+                    keyboardCell.setDots(currentDots);
+                    document.querySelector(`[data-key="${key}"]`).classList.remove('active');
+                }
+            }
+        });
+
+        // Pattern explorer
+        const explorerCell = new Braille8DotCell('explorer-cell', {
+            size: 'large',
+            interactive: false,
+            mode: '8dot'
+        });
+
+        function updateExplorer(decimal) {
+            const pattern = converter.getPatternByDecimal(decimal);
+            explorerCell.setDots(pattern.dots);
+            
+            document.getElementById('explorer-info').innerHTML = `
+                <strong>Decimal:</strong> ${pattern.decimal}<br>
+                <strong>Binary:</strong> ${pattern.binary}<br>
+                <strong>Dots:</strong> ${pattern.dots.join(', ') || 'None'}<br>
+                <strong>Unicode:</strong> ${pattern.unicode} (${pattern.codePoint})
+            `;
+        }
+
+        document.getElementById('decimal-input').addEventListener('input', (e) => {
+            let value = parseInt(e.target.value);
+            if (value < 0) value = 0;
+            if (value > 255) value = 255;
+            e.target.value = value;
+            updateExplorer(value);
+        });
+
+        document.getElementById('prev-pattern').addEventListener('click', () => {
+            let value = parseInt(document.getElementById('decimal-input').value) - 1;
+            if (value < 0) value = 255;
+            document.getElementById('decimal-input').value = value;
+            updateExplorer(value);
+        });
+
+        document.getElementById('next-pattern').addEventListener('click', () => {
+            let value = parseInt(document.getElementById('decimal-input').value) + 1;
+            if (value > 255) value = 0;
+            document.getElementById('decimal-input').value = value;
+            updateExplorer(value);
+        });
+
+        document.getElementById('random-pattern').addEventListener('click', () => {
+            const value = Math.floor(Math.random() * 256);
+            document.getElementById('decimal-input').value = value;
+            updateExplorer(value);
+        });
+
+        // Initialize explorer
+        updateExplorer(0);
+    </script>
+</body>
+</html>

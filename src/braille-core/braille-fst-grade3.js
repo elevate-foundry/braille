@@ -9,9 +9,10 @@
  * experienced braille readers.
  */
 
-// Import the base BrailleFST class if in Node.js environment
+// Import the shared BBESCodec and base BrailleFST class if in Node.js environment
 if (typeof require !== 'undefined') {
-    const { BrailleFST } = require('./braille-fst');
+    var BBESCodec = require('./bbes-codec').BBESCodec;
+    var BrailleFST = require('./braille-fst').BrailleFST;
 }
 
 class BrailleFSTGrade3 extends BrailleFST {

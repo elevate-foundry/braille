@@ -24,3 +24,14 @@ yarn-error.log
 .env.development.local
 .env.test.local
 .env.production.local
+
+# Vercel
+.vercel/
+
+# Data files (prompt store, distillation artifacts)
+data/prompt-store.jsonl
+data/*.jsonl
+
+# Build output
+dist/
+build/

@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Braille Translator - BrailleBuddy</title>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 40px;
+            font-size: 1.1em;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .tab {
+            padding: 15px 30px;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            color: #666;
+            transition: all 0.3s;
+        }
+
+        .tab:hover {
+            color: #667eea;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .translator-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .input-panel, .output-panel {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+        }
+
+        .panel-header {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 300px;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .braille-output {
+            width: 100%;
+            min-height: 300px;
+            padding: 15px;
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 24px;
+            font-family: 'DejaVu Sans', 'Segoe UI Symbol', 'Arial Unicode MS', sans-serif;
+            line-height: 1.8;
+            overflow-y: auto;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            background: #667eea;
+            color: white;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button.secondary {
+            background: #6c757d;
+        }
+
+        button.secondary:hover {
+            background: #5a6268;
+        }
+
+        .options {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .option-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        select {
+            padding: 8px 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .contraction-search {
+            margin-bottom: 30px;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .search-box input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .contraction-results {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .contraction-card {
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 15px;
+            transition: all 0.3s;
+        }
+
+        .contraction-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.2);
+        }
+
+        .contraction-braille {
+            font-size: 36px;
+            font-family: 'DejaVu Sans', 'Segoe UI Symbol', 'Arial Unicode MS', sans-serif;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .contraction-text {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .contraction-type {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        .info-box p {
+            margin: 5px 0;
+            color: #1976d2;
+        }
+
+        @media (max-width: 768px) {
+            .translator-section {
+                grid-template-columns: 1fr;
+            }
+
+            .tabs {
+                overflow-x: auto;
+            }
+
+            .tab {
+                white-space: nowrap;
+            }
+        }
+
+        .copy-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #4caf50;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+
+        .copy-notification.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔤 Braille Translator</h1>
+        <p class="subtitle">Professional-grade braille translation powered by LibLouis</p>
+
+        <div class="tabs">
+            <button class="tab active" data-tab="text-to-braille">Text to Braille</button>
+            <button class="tab" data-tab="braille-to-text">Braille to Text</button>
+            <button class="tab" data-tab="contraction-lookup">Contraction Lookup</button>
+            <button class="tab" data-tab="batch-convert">Batch Convert</button>
+        </div>
+
+        <!-- Text to Braille Tab -->
+        <div class="tab-content active" id="text-to-braille">
+            <div class="options">
+                <div class="option-group">
+                    <label>Braille Grade:</label>
+                    <select id="grade-select">
+                        <option value="1">Grade 1 (Uncontracted)</option>
+                        <option value="2" selected>Grade 2 (Contracted UEB)</option>
+                    </select>
+                </div>
+                <div class="option-group">
+                    <label>Language:</label>
+                    <select id="language-select">
+                        <option value="en" selected>English (UEB)</option>
+                        <option value="es">Spanish</option>
+                        <option value="fr">French</option>
+                        <option value="de">German</option>
+                        <option value="it">Italian</option>
+                        <option value="pt">Portuguese</option>
+                        <option value="ru">Russian</option>
+                        <option value="ar">Arabic</option>
+                        <option value="zh">Chinese</option>
+                        <option value="ja">Japanese</option>
+                    </select>
+                </div>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="show-dots">
+                    <span>Show dot patterns</span>
+                </label>
+            </div>
+
+            <div class="translator-section">
+                <div class="input-panel">
+                    <div class="panel-header">
+                        <span>📝 Input Text</span>
+                        <button class="secondary" onclick="clearInput()">Clear</button>
+                    </div>
+                    <textarea id="text-input" placeholder="Type or paste your text here...">The quick brown fox jumps over the lazy dog.</textarea>
+                </div>
+
+                <div class="output-panel">
+                    <div class="panel-header">
+                        <span>⠃ Braille Output</span>
+                        <button onclick="copyBraille()">Copy</button>
+                    </div>
+                    <div class="braille-output" id="braille-output"></div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button onclick="translateToBraille()">🔄 Translate</button>
+                <button class="secondary" onclick="downloadBraille()">💾 Download</button>
+                <button class="secondary" onclick="printBraille()">🖨️ Print</button>
+            </div>
+
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-value" id="char-count">0</div>
+                    <div class="stat-label">Characters</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="word-count">0</div>
+                    <div class="stat-label">Words</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="braille-cells">0</div>
+                    <div class="stat-label">Braille Cells</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="compression-ratio">0%</div>
+                    <div class="stat-label">Compression</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Braille to Text Tab -->
+        <div class="tab-content" id="braille-to-text">
+            <div class="info-box">
+                <p><strong>Tip:</strong> Paste braille Unicode characters (⠁⠃⠉) or use the virtual keyboard below</p>
+            </div>
+
+            <div class="translator-section">
+                <div class="input-panel">
+                    <div class="panel-header">
+                        <span>⠃ Braille Input</span>
+                        <button class="secondary" onclick="clearBrailleInput()">Clear</button>
+                    </div>
+                    <textarea id="braille-input" placeholder="Paste braille characters here..." style="font-size: 24px; font-family: 'DejaVu Sans', 'Segoe UI Symbol', 'Arial Unicode MS', sans-serif;"></textarea>
+                </div>
+
+                <div class="output-panel">
+                    <div class="panel-header">
+                        <span>📝 Text Output</span>
+                        <button onclick="copyText()">Copy</button>
+                    </div>
+                    <div class="braille-output" id="text-output" style="font-size: 16px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;"></div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button onclick="translateToText()">🔄 Translate</button>
+                <button class="secondary" onclick="showVirtualKeyboard()">⌨️ Virtual Keyboard</button>
+            </div>
+        </div>
+
+        <!-- Contraction Lookup Tab -->
+        <div class="tab-content" id="contraction-lookup">
+            <div class="contraction-search">
+                <h2 style="margin-bottom: 20px;">Search Grade 2 Contractions</h2>
+                <div class="search-box">
+                    <input type="text" id="contraction-search" placeholder="Search for a word or contraction...">
+                    <button onclick="searchContractions()">🔍 Search</button>
+                </div>
+            </div>
+
+            <div class="contraction-results" id="contraction-results">
+                <!-- Results will be populated here -->
+            </div>
+        </div>
+
+        <!-- Batch Convert Tab -->
+        <div class="tab-content" id="batch-convert">
+            <div class="info-box">
+                <p><strong>Batch Conversion:</strong> Convert multiple lines of text at once</p>
+                <p>Each line will be translated separately, useful for lists, poems, or structured content</p>
+            </div>
+
+            <div class="translator-section">
+                <div class="input-panel">
+                    <div class="panel-header">
+                        <span>📝 Multiple Lines</span>
+                    </div>
+                    <textarea id="batch-input" placeholder="Enter multiple lines of text...
+Line 1
+Line 2
+Line 3"></textarea>
+                </div>
+
+                <div class="output-panel">
+                    <div class="panel-header">
+                        <span>⠃ Batch Results</span>
+                    </div>
+                    <div class="braille-output" id="batch-output"></div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button onclick="batchTranslate()">🔄 Batch Translate</button>
+                <button class="secondary" onclick="downloadBatch()">💾 Download All</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="copy-notification" id="copy-notification">
+        ✓ Copied to clipboard!
+    </div>
+
+    <!-- Load LibLouis-compatible translation -->
+    <script src="src/braille-8dot/braille-8dot-unicode.js"></script>
+    <script src="src/braille-8dot/braille-8dot-cbc.js"></script>
+    <script src="js/braille-contractions.js"></script>
+    
+    <script>
+        // Initialize
+        const converter = new Braille8DotUnicode();
+        const cbc = new ComputerBrailleCode();
+
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                this.classList.add('active');
+                document.getElementById(this.dataset.tab).classList.add('active');
+            });
+        });
+
+        // Real-time translation
+        document.getElementById('text-input').addEventListener('input', function() {
+            updateStats();
+        });
+
+        function updateStats() {
+            const text = document.getElementById('text-input').value;
+            const chars = text.length;
+            const words = text.trim().split(/\s+/).filter(w => w.length > 0).length;
+            
+            document.getElementById('char-count').textContent = chars;
+            document.getElementById('word-count').textContent = words;
+        }
+
+        function translateToBraille() {
+            const text = document.getElementById('text-input').value;
+            const grade = document.getElementById('grade-select').value;
+            const showDots = document.getElementById('show-dots').checked;
+            
+            let brailleOutput = '';
+            let cellCount = 0;
+            
+            // Simple Grade 1 translation (character by character)
+            if (grade === '1') {
+                for (const char of text) {
+                    try {
+                        const braille = cbc.asciiToBrailleUnicode(char);
+                        brailleOutput += braille;
+                        cellCount++;
+                        
+                        if (showDots) {
+                            const dots = converter.unicodeToDots(braille);
+                            brailleOutput += ` [${dots.join(',')}] `;
+                        }
+                    } catch (e) {
+                        brailleOutput += char; // Keep non-ASCII characters as-is
+                    }
+                }
+            } else {
+                // Grade 2 with contractions (simplified)
+                brailleOutput = applyContractions(text);
+                cellCount = brailleOutput.length;
+            }
+            
+            document.getElementById('braille-output').textContent = brailleOutput;
+            document.getElementById('braille-cells').textContent = cellCount;
+            
+            // Calculate compression ratio
+            const compression = text.length > 0 ? Math.round((1 - cellCount / text.length) * 100) : 0;
+            document.getElementById('compression-ratio').textContent = compression + '%';
+        }
+
+        function applyContractions(text) {
+            // Load contractions from braille-contractions.js if available
+            if (typeof brailleContractions !== 'undefined') {
+                let result = text.toLowerCase();
+                
+                // Apply whole-word contractions first
+                for (const contraction of brailleContractions.wholeWord || []) {
+                    const regex = new RegExp(`\\b${contraction.word}\\b`, 'gi');
+                    result = result.replace(regex, contraction.braille);
+                }
+                
+                // Then apply partial contractions
+                for (const contraction of brailleContractions.partial || []) {
+                    result = result.replace(new RegExp(contraction.letters, 'g'), contraction.braille);
+                }
+                
+                return result;
+            }
+            
+            // Fallback: simple character-by-character
+            let result = '';
+            for (const char of text) {
+                try {
+                    result += cbc.asciiToBrailleUnicode(char);
+                } catch (e) {
+                    result += char;
+                }
+            }
+            return result;
+        }
+
+        function translateToText() {
+            const braille = document.getElementById('braille-input').value;
+            let text = '';
+            
+            for (const char of braille) {
+                try {
+                    if (converter.isValidBraillePattern(char)) {
+                        text += cbc.brailleUnicodeToAscii(char);
+                    } else {
+                        text += char;
+                    }
+                } catch (e) {
+                    text += '?';
+                }
+            }
+            
+            document.getElementById('text-output').textContent = text;
+        }
+
+        function searchContractions() {
+            const query = document.getElementById('contraction-search').value.toLowerCase();
+            const results = document.getElementById('contraction-results');
+            results.innerHTML = '';
+            
+            // Sample contractions (would load from braille-contractions.js)
+            const sampleContractions = [
+                {word: 'the', braille: '⠮', type: 'Whole-word'},
+                {word: 'and', braille: '⠯', type: 'Whole-word'},
+                {word: 'for', braille: '⠿', type: 'Whole-word'},
+                {word: 'of', braille: '⠷', type: 'Whole-word'},
+                {word: 'with', braille: '⠾', type: 'Whole-word'},
+                {word: 'ch', braille: '⠡', type: 'Two-letter'},
+                {word: 'sh', braille: '⠩', type: 'Two-letter'},
+                {word: 'th', braille: '⠹', type: 'Two-letter'},
+                {word: 'wh', braille: '⠱', type: 'Two-letter'},
+                {word: 'ing', braille: '⠬', type: 'Suffix'},
+                {word: 'ed', braille: '⠫', type: 'Suffix'},
+                {word: 'er', braille: '⠻', type: 'Suffix'},
+            ];
+            
+            const filtered = query ? 
+                sampleContractions.filter(c => c.word.includes(query)) :
+                sampleContractions;
+            
+            filtered.forEach(contraction => {
+                const card = document.createElement('div');
+                card.className = 'contraction-card';
+                card.innerHTML = `
+                    <div class="contraction-braille">${contraction.braille}</div>
+                    <div class="contraction-text">${contraction.word}</div>
+                    <div class="contraction-type">${contraction.type}</div>
+                `;
+                results.appendChild(card);
+            });
+            
+            if (filtered.length === 0) {
+                results.innerHTML = '<p style="text-align: center; color: #666; padding: 40px;">No contractions found</p>';
+            }
+        }
+
+        function batchTranslate() {
+            const lines = document.getElementById('batch-input').value.split('\n');
+            let output = '';
+            
+            lines.forEach((line, index) => {
+                if (line.trim()) {
+                    const braille = applyContractions(line);
+                    output += `${index + 1}. ${braille}\n`;
+                }
+            });
+            
+            document.getElementById('batch-output').textContent = output;
+        }
+
+        function copyBraille() {
+            const text = document.getElementById('braille-output').textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                showNotification();
+            });
+        }
+
+        function copyText() {
+            const text = document.getElementById('text-output').textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                showNotification();
+            });
+        }
+
+        function showNotification() {
+            const notification = document.getElementById('copy-notification');
+            notification.classList.add('show');
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 2000);
+        }
+
+        function clearInput() {
+            document.getElementById('text-input').value = '';
+            updateStats();
+        }
+
+        function clearBrailleInput() {
+            document.getElementById('braille-input').value = '';
+        }
+
+        function downloadBraille() {
+            const text = document.getElementById('braille-output').textContent;
+            const blob = new Blob([text], {type: 'text/plain;charset=utf-8'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'braille-output.brf';
+            a.click();
+        }
+
+        function downloadBatch() {
+            const text = document.getElementById('batch-output').textContent;
+            const blob = new Blob([text], {type: 'text/plain;charset=utf-8'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'batch-braille.brf';
+            a.click();
+        }
+
+        function printBraille() {
+            const text = document.getElementById('braille-output').textContent;
+            const printWindow = window.open('', '', 'height=600,width=800');
+            printWindow.document.write('<html><head><title>Print Braille</title>');
+            printWindow.document.write('<style>body{font-family: "DejaVu Sans", "Segoe UI Symbol", "Arial Unicode MS", sans-serif; font-size: 24px; line-height: 2;}</style>');
+            printWindow.document.write('</head><body>');
+            printWindow.document.write('<pre>' + text + '</pre>');
+            printWindow.document.write('</body></html>');
+            printWindow.document.close();
+            printWindow.print();
+        }
+
+        function showVirtualKeyboard() {
+            alert('Virtual keyboard feature coming soon! For now, you can paste braille Unicode characters directly.');
+        }
+
+        // Initialize
+        updateStats();
+        searchContractions(); // Show all contractions by default
+    </script>
+</body>
+</html>

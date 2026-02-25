@@ -4,11 +4,12 @@ BrailleCore is a lightweight, efficient system for braille encoding, compression
 
 ## Architecture
 
-BrailleCore consists of three main components:
+BrailleCore consists of four main components:
 
-1. **BrailleFST (Finite State Transducer)** - A deterministic rule-based system for efficient braille encoding/decoding
-2. **BrailleAE (Autoencoder)** - A neural compression system that learns optimal braille contractions (coming soon)
-3. **HapticBBES** - Specialized compression optimized for haptic feedback patterns (coming soon)
+1. **BBESCodec** - Shared codec for all binary ↔ braille ↔ BBES conversions (the foundation layer)
+2. **BrailleFST (Finite State Transducer)** - A deterministic rule-based system for efficient braille encoding/decoding
+3. **BrailleAE (Autoencoder)** - A neural compression system that learns optimal braille contractions
+4. **HapticBBES** - Specialized compression optimized for haptic feedback patterns (coming soon)
 
 ## Why BrailleCore?
 
@@ -21,6 +22,17 @@ While transformer-based models like GPT are powerful for text generation, they'r
 - **Haptic Optimization**: Specifically designed to work with vibration patterns and haptic feedback
 
 ## Components
+
+### BBESCodec
+
+The shared codec centralizes all binary/braille/BBES conversion logic used across the pipeline:
+
+- `BBESCodec.brailleToBinary(braille)` — Convert braille unicode to 6-bit binary
+- `BBESCodec.binaryToBraille(binary)` — Convert 6-bit binary to braille unicode
+- `BBESCodec.createBBES(binary)` — Pack binary into base64-encoded BBES format
+- `BBESCodec.decodeBBES(bbes)` — Unpack BBES back to binary
+
+All methods are static. BrailleFST, BrailleFSTGrade3, and BrailleAE delegate to this codec.
 
 ### BrailleFST
 
@@ -90,10 +102,11 @@ BrailleCore significantly outperforms traditional approaches in terms of:
 ## Roadmap
 
 1. ✅ BrailleFST implementation
-2. 🔄 Comprehensive test suite and benchmarking
-3. 🔄 BrailleAE development
-4. 🔄 HapticBBES integration
-5. 🔄 Multilingual support expansion
+2. ✅ BBESCodec extraction (shared codec layer)
+3. 🔄 Comprehensive test suite and benchmarking
+4. 🔄 BrailleAE development
+5. 🔄 HapticBBES integration
+6. 🔄 Multilingual support expansion
 
 ## Demo
 

@@ -11,6 +11,11 @@
  * - Support for multiple braille standards
  */
 
+// Import the shared BBESCodec if in Node.js environment
+if (typeof require !== 'undefined') {
+    var BBESCodec = require('./bbes-codec').BBESCodec;
+}
+
 class BrailleFST {
     constructor(options = {}) {
         // Default options
@@ -109,20 +114,7 @@ class BrailleFST {
      * @returns {string} - Binary representation (6 bits)
      */
     _brailleToBinary(braille) {
-        // Handle multi-character braille sequences
-        if (braille.length > 1) {
-            return braille.split('').map(b => this._brailleToBinary(b)).join('');
-        }
-        
-        // Get the Unicode code point and subtract the base code point for braille patterns
-        const codePoint = braille.codePointAt(0);
-        const baseCodePoint = '⠀'.codePointAt(0); // Empty braille pattern
-        
-        // The difference gives us the dot pattern (as a decimal number)
-        const dotPattern = codePoint - baseCodePoint;
-        
-        // Convert to 6-bit binary string
-        return dotPattern.toString(2).padStart(6, '0');
+        return BBESCodec.brailleToBinary(braille);
     }
     
     /**
@@ -132,25 +124,7 @@ class BrailleFST {
      * @returns {string} - Braille unicode character
      */
     _binaryToBraille(binary) {
-        // Handle longer binary sequences (multiple characters)
-        if (binary.length > 6) {
-            const chars = [];
-            for (let i = 0; i < binary.length; i += 6) {
-                const chunk = binary.substr(i, 6);
-                chars.push(this._binaryToBraille(chunk));
-            }
-            return chars.join('');
-        }
-        
-        // Convert binary to decimal
-        const dotPattern = parseInt(binary, 2);
-        
-        // Add to base code point to get the braille character
-        const baseCodePoint = '⠀'.codePointAt(0);
-        const codePoint = baseCodePoint + dotPattern;
-        
-        // Convert code point to character
-        return String.fromCodePoint(codePoint);
+        return BBESCodec.binaryToBraille(binary);
     }
     
     /**
@@ -458,20 +432,7 @@ class BrailleFST {
      * @returns {string} - BBES format (base64 encoded)
      */
     _createBBES(binary) {
-        // Pad binary to multiple of 8 for byte alignment
-        while (binary.length % 8 !== 0) {
-            binary += '0';
-        }
-        
-        // Convert binary to byte array
-        const bytes = [];
-        for (let i = 0; i < binary.length; i += 8) {
-            const byte = binary.substr(i, 8);
-            bytes.push(parseInt(byte, 2));
-        }
-        
-        // Convert byte array to base64
-        return btoa(String.fromCharCode(...bytes));
+        return BBESCodec.createBBES(binary);
     }
     
     /**
@@ -481,16 +442,7 @@ class BrailleFST {
      * @returns {string} - Binary representation
      */
     _decodeBBES(bbes) {
-        // Convert base64 to byte array
-        const bytes = atob(bbes).split('').map(c => c.charCodeAt(0));
-        
-        // Convert byte array to binary
-        let binary = '';
-        for (const byte of bytes) {
-            binary += byte.toString(2).padStart(8, '0');
-        }
-        
-        return binary;
+        return BBESCodec.decodeBBES(bbes);
     }
     
     /**

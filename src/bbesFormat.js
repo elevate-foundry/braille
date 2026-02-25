@@ -18,24 +18,61 @@
  */
 
 class BBESFormat {
-    constructor() {
+    constructor(compressionEngine = null) {
         // File format constants
         this.MAGIC_NUMBER = "BBES";
         this.VERSION = 1;
         this.FLAG_CUSTOM_DICTIONARY = 0x0001;
         this.FLAG_AI_OPTIMIZED = 0x0002;
+        this.FLAG_FST_ENCODED = 0x0004;
         
-        // Initialize compression engine
-        this.compressionEngine = window.brailleCompression || new BrailleCompression();
+        // Optional BrailleFST encoder for direct high-fidelity encoding
+        this.fstEncoder = (typeof BrailleFST !== 'undefined') ? new BrailleFST({ grade: 2 }) : null;
         
-        // Wait for compression engine to initialize
-        if (this.compressionEngine && !this.compressionEngine.initialized) {
-            setTimeout(() => {
-                this.initialized = this.compressionEngine.initialized;
-            }, 500);
-        } else {
-            this.initialized = true;
+        // Initialize compression engine via injection or global fallback
+        this.compressionEngine = compressionEngine ||
+            (typeof window !== 'undefined' && window.brailleCompression ? window.brailleCompression : null) ||
+            new BrailleCompression();
+        
+        // Track initialization state
+        this.initialized = this.compressionEngine ? this.compressionEngine.initialized : false;
+        
+        // Store the ready promise for consumers to await
+        this._readyPromise = this._waitForEngine();
+    }
+    
+    /**
+     * Wait for the compression engine to be initialized
+     * @private
+     * @returns {Promise<void>}
+     */
+    async _waitForEngine() {
+        if (this.initialized) return;
+        
+        // Poll until the compression engine is ready (max 5 seconds)
+        const maxWait = 5000;
+        const interval = 50;
+        let waited = 0;
+        
+        while (!this.compressionEngine.initialized && waited < maxWait) {
+            await new Promise(resolve => setTimeout(resolve, interval));
+            waited += interval;
         }
+        
+        this.initialized = this.compressionEngine.initialized;
+        
+        if (!this.initialized) {
+            console.warn('BBESFormat: compression engine failed to initialize within timeout');
+        }
+    }
+    
+    /**
+     * Returns a promise that resolves when the format is ready to use
+     * @returns {Promise<BBESFormat>}
+     */
+    async ready() {
+        await this._readyPromise;
+        return this;
     }
     
     /**
@@ -52,13 +89,24 @@ class BBESFormat {
         // Default options
         const defaults = {
             useCustomDictionary: false,
-            useAIOptimization: false
+            useAIOptimization: false,
+            useFST: false
         };
         
         const settings = { ...defaults, ...options };
         
-        // Compress the text using the compression engine
-        const binary = this.compressionEngine.toBinary(text);
+        // Compress the text — use FST path when requested and available
+        let binary;
+        if (settings.useFST && this.fstEncoder) {
+            const fstResult = this.fstEncoder.encode(text);
+            // Pack the FST binary string into a Uint8Array via BBESCodec
+            const bbesBase64 = BBESCodec.createBBES(fstResult.binary);
+            const raw = atob(bbesBase64);
+            binary = new Uint8Array(raw.length);
+            for (let i = 0; i < raw.length; i++) binary[i] = raw.charCodeAt(i);
+        } else {
+            binary = this.compressionEngine.toBinary(text);
+        }
         
         // Create the BBES header
         const header = new Uint8Array(15); // 4 (magic) + 1 (version) + 2 (flags) + 4 (orig len) + 4 (dict size)
@@ -76,6 +124,7 @@ class BBESFormat {
         let flags = 0;
         if (settings.useCustomDictionary) flags |= this.FLAG_CUSTOM_DICTIONARY;
         if (settings.useAIOptimization) flags |= this.FLAG_AI_OPTIMIZED;
+        if (settings.useFST && this.fstEncoder) flags |= this.FLAG_FST_ENCODED;
         header[5] = flags & 0xFF;
         header[6] = (flags >> 8) & 0xFF;
         
@@ -142,6 +191,7 @@ class BBESFormat {
         const flags = bbesData[5] | (bbesData[6] << 8);
         const hasCustomDictionary = (flags & this.FLAG_CUSTOM_DICTIONARY) !== 0;
         const hasAIOptimization = (flags & this.FLAG_AI_OPTIMIZED) !== 0;
+        const hasFSTEncoding = (flags & this.FLAG_FST_ENCODED) !== 0;
         
         // Read original text length
         const originalLength = bbesData[7] | 
@@ -171,6 +221,12 @@ class BBESFormat {
         }
         
         // Decompress the data
+        if (hasFSTEncoding && this.fstEncoder) {
+            // Convert raw bytes back to base64 BBES string, then decode via FST
+            const bbesBase64 = btoa(String.fromCharCode(...compressedData));
+            return this.fstEncoder.decode(bbesBase64, 'bbes');
+        }
+        
         return this.compressionEngine.fromBinary(compressedData);
     }
     

@@ -6,10 +6,14 @@
  */
 
 class BrailleCompression {
-    constructor() {
+    constructor(hapticEngine = null) {
         this.contractionMap = null;
         this.reverseContractionMap = null;
         this.initialized = false;
+        
+        // Store injected haptic engine, falling back to global if available
+        this.hapticEngine = hapticEngine || 
+            (typeof window !== 'undefined' && window.hapticEngine ? window.hapticEngine : null);
         
         // Initialize the compression system
         this.initialize();
@@ -21,7 +25,7 @@ class BrailleCompression {
     async initialize() {
         try {
             // Load contractions from haptic patterns if available
-            if (window.hapticEngine && window.hapticEngine.patterns) {
+            if (this.hapticEngine && this.hapticEngine.patterns) {
                 await this.initializeFromHapticPatterns();
             } else {
                 // Otherwise, use default contractions
@@ -39,7 +43,7 @@ class BrailleCompression {
      */
     async initializeFromHapticPatterns() {
         try {
-            const patterns = window.hapticEngine.patterns;
+            const patterns = this.hapticEngine.patterns;
             
             this.contractionMap = {};
             this.reverseContractionMap = {};
