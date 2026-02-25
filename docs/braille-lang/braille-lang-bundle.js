@@ -1480,14 +1480,19 @@ Reply ONLY with 8 numbers separated by commas, like: 0.8,0.2,0.5,0.1,0.3,0.9,0.4
         }
 
         _parseVectorResponse(text) {
-            // Extract all floats from the text
-            const nums = text.match(/[01]?\.\d+|[01](?:\.0)?/g);
+            // Extract all decimal numbers from the response
+            const nums = text.match(/\d+\.?\d*/g);
             if (!nums || nums.length < 8) return null;
             const v = new Float64Array(8);
-            for (let i = 0; i < 8; i++) {
-                v[i] = Math.max(0, Math.min(1, parseFloat(nums[i])));
+            let vi = 0;
+            for (const n of nums) {
+                if (vi >= 8) break;
+                const val = parseFloat(n);
+                if (val >= 0 && val <= 1.0) {
+                    v[vi++] = val;
+                }
             }
-            return v;
+            return vi >= 8 ? v : null;
         }
 
         _keywordHeuristic(text) {
