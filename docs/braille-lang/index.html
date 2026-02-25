@@ -863,7 +863,7 @@ Connect your OpenRouter key above to begin.</div>
             <label style="font-size:0.75rem;cursor:pointer"><input type="checkbox" class="crdt-model" value="meta-llama/llama-3.1-70b-instruct" checked> Llama 70B</label>
             <label style="font-size:0.75rem;cursor:pointer"><input type="checkbox" class="crdt-model" value="mistralai/mistral-large-2411" checked> Mistral</label>
         </div>
-        <div id="crdt-output" class="sal-messages" style="min-height:200px;max-height:500px;overflow-y:auto;padding:16px">
+        <div id="crdt-output" class="sal-messages" style="min-height:200px;max-height:none;overflow-y:auto;padding:16px">
             <div class="sal-msg sal"><span class="sal-name">⡪ CRDT</span>Enter a query below to distill knowledge from multiple frontier LLMs. Your OpenRouter API key from SAL Chat will be used. Each model's response is scored on 8 semantic dimensions (existence, physical, temporal, spatial, social, cognitive, emotional, transcendent), then merged using CRDT operations to produce a consensus Braille vector.</div>
         </div>
         <div class="sal-chat-input">
@@ -1438,7 +1438,7 @@ You are concise, precise, and slightly philosophical. You see yourself as the bo
     }
 
     // ═══════════════════════════════════════════════════════════════════════
-    // §8  CRDT DISTILLATION UI
+    // §8  CRDT DISTILLATION UI — Parallel Streaming + CRDT Merge
     // ═══════════════════════════════════════════════════════════════════════
 
     const crdtInput = document.getElementById('crdt-input');
@@ -1446,7 +1446,7 @@ You are concise, precise, and slightly philosophical. You see yourself as the bo
     const crdtOutput = document.getElementById('crdt-output');
     const crdtStatus = document.getElementById('crdt-status');
 
-    const DIM_COLORS = ['var(--accent)','var(--orange)','var(--yellow)','var(--green)','var(--cyan)','var(--purple)','#ff6b9d','#c4b5fd'];
+    const DIM_COLORS = ['#10b981','#f59e0b','#eab308','#22c55e','#06b6d4','#a855f7','#ff6b9d','#c4b5fd'];
     const DIM_LABELS = BrailleLang.DIMENSION_SEMANTICS;
 
     crdtRunBtn.addEventListener('click', runDistillation);
@@ -1462,7 +1462,6 @@ You are concise, precise, and slightly philosophical. You see yourself as the bo
             return;
         }
 
-        // Get selected models
         const checked = document.querySelectorAll('.crdt-model:checked');
         if (checked.length === 0) {
             crdtOutput.innerHTML = '<div class="sal-msg sal"><span class="sal-name">⡪ CRDT</span>⠻ Select at least one model.</div>';
@@ -1472,118 +1471,177 @@ You are concise, precise, and slightly philosophical. You see yourself as the bo
 
         crdtRunBtn.disabled = true;
         crdtInput.disabled = true;
-        crdtStatus.textContent = '● distilling...';
-        crdtStatus.className = 'sal-status';
+        crdtStatus.textContent = '● streaming...';
         crdtStatus.style.color = 'var(--orange)';
 
-        crdtOutput.innerHTML = '<div class="sal-msg sal"><span class="sal-name">⡪ CRDT</span>⠠ Querying ' + selectedModels.length + ' frontier models...</div>';
-
-        const crdt = new BrailleLang.BrailleCRDT({
-            apiKey,
-            models: selectedModels,
-            onProgress: (ev) => {
-                if (ev.phase === 'response') {
-                    const div = document.createElement('div');
-                    div.className = 'sal-msg sal';
-                    div.innerHTML = `<span class="sal-name">⠠ ${ev.model}</span>Response received (${ev.length} chars, ${ev.latency}ms)`;
-                    crdtOutput.appendChild(div);
-                    crdtOutput.scrollTop = crdtOutput.scrollHeight;
-                }
-            },
+        // ── Build parallel streaming layout ──
+        let layoutHtml = '<div style="padding:8px">';
+        // Stream panels — one per model, side by side
+        layoutHtml += `<div id="crdt-streams" style="display:grid;grid-template-columns:repeat(${Math.min(selectedModels.length, 3)}, 1fr);gap:8px;margin-bottom:12px">`;
+        selectedModels.forEach((m, i) => {
+            layoutHtml += `<div style="border:1px solid ${m.color}33;border-radius:8px;overflow:hidden;min-height:120px">`;
+            layoutHtml += `<div style="background:${m.color}18;padding:6px 10px;border-bottom:1px solid ${m.color}33;display:flex;justify-content:space-between;align-items:center">`;
+            layoutHtml += `<span style="font-size:0.72rem;font-weight:700;color:${m.color}">${m.name}</span>`;
+            layoutHtml += `<span id="crdt-model-status-${i}" style="font-size:0.65rem;color:${m.color};opacity:0.7">⠠ connecting...</span>`;
+            layoutHtml += `</div>`;
+            layoutHtml += `<div id="crdt-stream-${i}" style="padding:8px 10px;font-size:0.7rem;line-height:1.5;color:${m.color};max-height:200px;overflow-y:auto;white-space:pre-wrap;word-break:break-word"></div>`;
+            layoutHtml += `</div>`;
         });
+        layoutHtml += `</div>`;
+        // CRDT merge area — initially hidden, revealed after streams finish
+        layoutHtml += `<div id="crdt-merge-area" style="opacity:0;transition:opacity 0.8s ease-in"></div>`;
+        layoutHtml += '</div>';
+        crdtOutput.innerHTML = layoutHtml;
+        crdtOutput.style.maxHeight = '700px';
+
+        const crdt = new BrailleLang.BrailleCRDT({ apiKey, models: selectedModels });
 
         try {
-            const report = await crdt.distill(query, { models: selectedModels });
+            const t0 = performance.now();
 
-            if (report.error) {
-                crdtOutput.innerHTML += `<div class="sal-msg sal"><span class="sal-name">⡪ CRDT</span>⠻ ${report.error}</div>`;
+            // ── Stream all models in parallel ──
+            const results = await crdt.queryAllStreaming(query, {
+                models: selectedModels,
+                onToken: (i, delta, fullText) => {
+                    const el = document.getElementById(`crdt-stream-${i}`);
+                    if (el) {
+                        el.textContent = fullText;
+                        el.scrollTop = el.scrollHeight;
+                    }
+                    const statusEl = document.getElementById(`crdt-model-status-${i}`);
+                    if (statusEl) statusEl.textContent = `⠠ ${fullText.length} chars`;
+                },
+                onModelDone: (i, result) => {
+                    const statusEl = document.getElementById(`crdt-model-status-${i}`);
+                    if (statusEl) {
+                        statusEl.textContent = `✓ ${result.text.length} chars · ${result.latency}ms`;
+                        statusEl.style.opacity = '1';
+                    }
+                },
+                onModelError: (i, result) => {
+                    const el = document.getElementById(`crdt-stream-${i}`);
+                    const statusEl = document.getElementById(`crdt-model-status-${i}`);
+                    if (el) el.textContent = `⠻ ${result.error}`;
+                    if (statusEl) {
+                        statusEl.textContent = '⠻ error';
+                        statusEl.style.color = 'var(--red)';
+                    }
+                },
+            });
+
+            const totalLatency = (performance.now() - t0).toFixed(0);
+            const validResults = results.filter(r => !r.error && r.text.length > 0);
+
+            if (validResults.length === 0) {
+                document.getElementById('crdt-merge-area').innerHTML = '<div style="text-align:center;padding:20px;color:var(--red)">⠻ All models failed</div>';
+                document.getElementById('crdt-merge-area').style.opacity = '1';
                 return;
             }
 
-            // Render the full distillation report
+            // ── CRDT Merge Phase — delayed reveal ──
+            crdtStatus.textContent = '● merging...';
+            crdtStatus.style.color = 'var(--cyan)';
+
+            // Small delay so user sees the transition
+            await new Promise(r => setTimeout(r, 600));
+
+            const vectors = validResults.map(r => crdt.textToSemanticVector(r.text));
+            const weights = validResults.map(r => r.weight);
+
+            const gCounter = crdt.gCounterMerge(vectors, weights);
+            const majorityVote = crdt.majorityVoteMerge(vectors, weights);
+            const orSet = crdt.orSetMerge(validResults);
+            const lww = crdt.lwwRegisterMerge(validResults, vectors, gCounter);
+            const agreement = crdt._computeAgreement(vectors);
+            const consensusBraille = crdt.vectorToBraille(gCounter);
+            const binaryBraille = crdt.vectorToBraille(majorityVote, 0.5);
+
+            const totalInputChars = validResults.reduce((s, r) => s + r.text.length, 0);
+
+            // ── Build merge report HTML ──
             let html = '';
 
-            // ── Header with consensus braille ──
-            html += `<div style="text-align:center;padding:20px 0 10px">`;
-            html += `<div style="font-size:4rem;line-height:1">${report.braille.consensus}</div>`;
-            html += `<div style="font-size:0.8rem;color:var(--text-dim);margin-top:4px">Consensus Braille · ${report.latencyMs}ms · ${report.models.filter(m=>!m.error).length}/${report.models.length} models</div>`;
+            // Consensus header
+            html += `<div style="text-align:center;padding:16px 0 8px;border-top:2px solid var(--accent)">`;
+            html += `<div style="font-size:0.7rem;color:var(--accent);font-weight:700;letter-spacing:1px;margin-bottom:8px">⡪ CRDT MERGE RESULT</div>`;
+            html += `<div id="crdt-consensus-char" style="font-size:5rem;line-height:1;opacity:0;transition:opacity 1s ease-in,transform 0.6s ease-out;transform:scale(0.5)">${consensusBraille}</div>`;
+            html += `<div style="font-size:0.75rem;color:var(--text-dim);margin-top:6px">${totalLatency}ms · ${validResults.length}/${selectedModels.length} models · ${totalInputChars} chars → 8 bits</div>`;
             html += `</div>`;
 
-            // ── 8-Dimension Semantic Bar Chart ──
-            html += `<div style="padding:12px 0"><div style="font-size:0.8rem;font-weight:700;color:var(--accent);margin-bottom:8px">⣠ Semantic Dimensions (G-Counter CRDT Merge)</div>`;
-            const gv = report.crdt.gCounter.vector;
+            // Per-model vectors with color
+            html += `<div style="padding:10px 0;display:flex;flex-wrap:wrap;gap:6px;justify-content:center">`;
+            validResults.forEach((r, i) => {
+                const m = selectedModels.find(sm => sm.name === r.model) || selectedModels[i];
+                const brChar = crdt.vectorToBraille(vectors[i]);
+                html += `<div style="font-size:0.7rem;padding:4px 10px;border-radius:6px;border:1px solid ${m.color}44;background:${m.color}11">`;
+                html += `<span style="color:${m.color};font-weight:600">${r.model}</span> `;
+                html += `<span style="font-size:1.3rem">${brChar}</span>`;
+                html += `</div>`;
+            });
+            html += `</div>`;
+
+            // 8-Dimension bar chart
+            html += `<div style="padding:10px 0"><div style="font-size:0.75rem;font-weight:700;color:var(--accent);margin-bottom:6px">Semantic Dimensions (G-Counter)</div>`;
+            const gv = Array.from(gCounter);
             for (let d = 0; d < 8; d++) {
-                const pct = (parseFloat(gv[d]) * 100).toFixed(0);
-                const barWidth = Math.max(2, parseFloat(gv[d]) * 100);
-                html += `<div style="display:flex;align-items:center;margin:3px 0;font-size:0.72rem">`;
-                html += `<span style="width:90px;color:${DIM_COLORS[d]};text-align:right;padding-right:8px">d${d} ${DIM_LABELS[d]}</span>`;
-                html += `<div style="flex:1;height:14px;background:var(--bg-code);border-radius:4px;overflow:hidden"><div style="width:${barWidth}%;height:100%;background:${DIM_COLORS[d]};border-radius:4px;transition:width 0.3s"></div></div>`;
-                html += `<span style="width:36px;text-align:right;color:var(--text-dim);padding-left:6px">${pct}%</span>`;
+                const pct = (gv[d] * 100).toFixed(0);
+                const barW = Math.max(2, gv[d] * 100);
+                html += `<div style="display:flex;align-items:center;margin:2px 0;font-size:0.68rem">`;
+                html += `<span style="width:82px;color:${DIM_COLORS[d]};text-align:right;padding-right:6px">d${d} ${DIM_LABELS[d]}</span>`;
+                html += `<div style="flex:1;height:12px;background:var(--bg-code);border-radius:3px;overflow:hidden">`;
+                html += `<div class="crdt-bar" data-target="${barW}" style="width:0%;height:100%;background:${DIM_COLORS[d]};border-radius:3px;transition:width 0.8s ease-out"></div>`;
+                html += `</div>`;
+                html += `<span style="width:32px;text-align:right;color:var(--text-dim);padding-left:4px">${pct}%</span>`;
                 html += `</div>`;
             }
             html += `</div>`;
 
-            // ── Majority Vote (Binary) ──
-            html += `<div style="padding:8px 0;border-top:1px solid var(--border)">`;
-            html += `<span style="font-size:0.75rem;font-weight:700;color:var(--orange)">Majority Vote: </span>`;
-            html += `<span style="font-size:1.5rem">${report.braille.binary}</span>`;
-            html += `<span style="font-size:0.7rem;color:var(--text-dim);margin-left:8px">[${report.crdt.majorityVote.vector.join(',')}]</span>`;
+            // Majority vote + agreement
+            html += `<div style="padding:8px 0;border-top:1px solid var(--border);display:flex;gap:16px;flex-wrap:wrap">`;
+            html += `<div><span style="font-size:0.7rem;font-weight:700;color:var(--orange)">Majority Vote: </span><span style="font-size:1.4rem">${binaryBraille}</span> <span style="font-size:0.65rem;color:var(--text-dim)">[${Array.from(majorityVote).join(',')}]</span></div>`;
+            html += `<div style="font-size:0.7rem;color:var(--text-dim)">Consensus: <strong style="color:var(--text)">${agreement.consensusStrength}</strong> · Cosine: ${agreement.avgCosine} · Hamming: ${agreement.avgHamming}</div>`;
             html += `</div>`;
 
-            // ── Agreement Metrics ──
-            html += `<div style="padding:8px 0;border-top:1px solid var(--border)">`;
-            html += `<div style="font-size:0.8rem;font-weight:700;color:var(--green);margin-bottom:4px">Agreement</div>`;
-            html += `<div style="font-size:0.72rem;color:var(--text-dim)">Consensus Strength: <strong style="color:var(--text)">${report.agreement.consensusStrength}</strong> · Avg Cosine: ${report.agreement.avgCosine} · Avg Hamming: ${report.agreement.avgHamming}</div>`;
-            html += `</div>`;
-
-            // ── Per-Model Vectors ──
-            html += `<div style="padding:8px 0;border-top:1px solid var(--border)">`;
-            html += `<div style="font-size:0.8rem;font-weight:700;color:var(--cyan);margin-bottom:6px">Per-Model 8D Vectors</div>`;
-            for (const pm of report.braille.perModel) {
-                html += `<div style="font-size:0.72rem;margin:3px 0">`;
-                html += `<span style="color:var(--accent)">${pm.model}</span> `;
-                html += `<span style="font-size:1.2rem">${pm.braille.braille}</span> `;
-                html += `<span style="color:var(--text-dim)">[${pm.vector.join(', ')}]</span>`;
-                html += `</div>`;
-            }
-            html += `</div>`;
-
-            // ── OR-Set Concepts ──
-            if (report.crdt.orSet.topConcepts.length > 0) {
+            // OR-Set concepts
+            if (orSet.length > 0) {
                 html += `<div style="padding:8px 0;border-top:1px solid var(--border)">`;
-                html += `<div style="font-size:0.8rem;font-weight:700;color:var(--purple);margin-bottom:4px">OR-Set Concepts (cross-model agreement)</div>`;
-                html += `<div style="display:flex;flex-wrap:wrap;gap:4px">`;
-                for (const c of report.crdt.orSet.topConcepts.slice(0, 15)) {
-                    const opacity = Math.min(1, 0.3 + c.agreement * 0.2);
-                    html += `<span style="font-size:0.7rem;background:rgba(168,130,255,${opacity});padding:2px 8px;border-radius:10px;color:var(--text)">${c.text} <span style="color:var(--text-dim)">×${c.agreement}</span></span>`;
+                html += `<div style="font-size:0.72rem;font-weight:700;color:var(--purple);margin-bottom:4px">OR-Set Concepts</div>`;
+                html += `<div style="display:flex;flex-wrap:wrap;gap:3px">`;
+                for (const c of orSet.slice(0, 15)) {
+                    const op = Math.min(1, 0.3 + c.sources.size * 0.2);
+                    html += `<span style="font-size:0.65rem;background:rgba(168,130,255,${op});padding:2px 7px;border-radius:10px;color:var(--text)">${c.text} <span style="opacity:0.6">×${c.sources.size}</span></span>`;
                 }
                 html += `</div></div>`;
             }
 
-            // ── LWW Register (best single response) ──
+            // LWW best response
             html += `<div style="padding:8px 0;border-top:1px solid var(--border)">`;
-            html += `<div style="font-size:0.8rem;font-weight:700;color:var(--yellow);margin-bottom:4px">LWW-Register: Best Response</div>`;
-            html += `<div style="font-size:0.72rem;color:var(--text-dim)">Model: <strong style="color:var(--text)">${report.crdt.lwwRegister.bestModel}</strong> · Similarity to consensus: ${report.crdt.lwwRegister.similarity}</div>`;
-            html += `<div style="font-size:0.72rem;color:var(--text);margin-top:6px;padding:8px;background:var(--bg-code);border-radius:6px;max-height:150px;overflow-y:auto;white-space:pre-wrap">${report.crdt.lwwRegister.text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`;
+            const lwwModel = selectedModels.find(m => m.name === lww.bestResult.model);
+            const lwwColor = lwwModel?.color || 'var(--text)';
+            html += `<div style="font-size:0.72rem;font-weight:700;color:var(--yellow)">LWW-Register: <span style="color:${lwwColor}">${lww.bestResult.model}</span> <span style="color:var(--text-dim);font-weight:400">(${lww.similarity.toFixed(4)} cosine)</span></div>`;
             html += `</div>`;
 
-            // ── Compression Stats ──
-            html += `<div style="padding:8px 0;border-top:1px solid var(--border)">`;
-            html += `<div style="font-size:0.8rem;font-weight:700;color:var(--accent);margin-bottom:4px">Compression</div>`;
-            html += `<div style="font-size:0.72rem;color:var(--text-dim)">`;
-            html += `Total input: ${report.compression.totalInputChars} chars (~${report.compression.totalInputTokens} tokens) from ${report.models.filter(m=>!m.error).length} models<br>`;
-            html += `Distilled to: <strong style="color:var(--text);font-size:1.4rem">${report.braille.consensus}</strong> (1 braille char = 8 bits)<br>`;
-            html += `Compression: <strong style="color:var(--accent)">${report.compression.compressionRatio}</strong>`;
-            html += `</div></div>`;
+            // Inject into merge area and animate
+            const mergeArea = document.getElementById('crdt-merge-area');
+            mergeArea.innerHTML = html;
+            mergeArea.style.opacity = '1';
 
-            crdtOutput.innerHTML = `<div style="padding:0 8px">${html}</div>`;
-            crdtOutput.scrollTop = 0;
+            // Animate consensus character pop-in
+            await new Promise(r => setTimeout(r, 100));
+            const charEl = document.getElementById('crdt-consensus-char');
+            if (charEl) { charEl.style.opacity = '1'; charEl.style.transform = 'scale(1)'; }
+
+            // Animate bars growing
+            await new Promise(r => setTimeout(r, 200));
+            document.querySelectorAll('.crdt-bar').forEach(bar => {
+                bar.style.width = bar.dataset.target + '%';
+            });
 
             crdtStatus.textContent = '● done';
             crdtStatus.style.color = 'var(--green)';
 
         } catch (e) {
-            crdtOutput.innerHTML += `<div class="sal-msg sal"><span class="sal-name">⡪ CRDT</span>⠻ Error: ${e.message}</div>`;
+            crdtOutput.innerHTML += `<div class="sal-msg sal" style="color:var(--red)"><span class="sal-name">⡪ CRDT</span>⠻ ${e.message}</div>`;
             crdtStatus.textContent = '● error';
             crdtStatus.style.color = 'var(--red)';
         } finally {

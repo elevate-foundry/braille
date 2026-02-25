@@ -1146,11 +1146,11 @@
     ];
 
     const FRONTIER_MODELS = [
-        { id: 'openai/gpt-4o', name: 'GPT-4o', weight: 1.0 },
-        { id: 'anthropic/claude-3.5-sonnet', name: 'Claude 3.5', weight: 1.0 },
-        { id: 'google/gemini-2.0-flash-001', name: 'Gemini 2.0 Flash', weight: 1.0 },
-        { id: 'meta-llama/llama-3.1-70b-instruct', name: 'Llama 3.1 70B', weight: 0.9 },
-        { id: 'mistralai/mistral-large-2411', name: 'Mistral Large', weight: 0.9 },
+        { id: 'openai/gpt-4o', name: 'GPT-4o', weight: 1.0, color: '#10b981' },
+        { id: 'anthropic/claude-3.5-sonnet', name: 'Claude 3.5', weight: 1.0, color: '#d4a574' },
+        { id: 'google/gemini-2.0-flash-001', name: 'Gemini 2.0 Flash', weight: 1.0, color: '#60a5fa' },
+        { id: 'meta-llama/llama-3.1-70b-instruct', name: 'Llama 3.1 70B', weight: 0.9, color: '#a78bfa' },
+        { id: 'mistralai/mistral-large-2411', name: 'Mistral Large', weight: 0.9, color: '#f472b6' },
     ];
 
     class BrailleCRDT {
@@ -1216,6 +1216,101 @@
                     return { model: model.name, modelId: model.id, weight: model.weight, text, latency, error: null, tokens: data.usage || null };
                 } catch (e) {
                     return { model: model.name, modelId: model.id, weight: model.weight, text: '', latency: Date.now() - t0, error: e.message, tokens: null };
+                }
+            });
+
+            this.results = await Promise.all(promises);
+            return this.results;
+        }
+
+        /**
+         * Stream responses from all models in parallel via SSE.
+         * Calls onToken(modelIndex, token, fullTextSoFar) for each chunk.
+         * Returns array of results when all streams finish.
+         */
+        async queryAllStreaming(prompt, opts = {}) {
+            const maxTokens = opts.maxTokens || 512;
+            const timeout = opts.timeout || 30000;
+            const selectedModels = opts.models || this.models;
+            const onToken = opts.onToken || (() => {});
+            const onModelDone = opts.onModelDone || (() => {});
+            const onModelError = opts.onModelError || (() => {});
+
+            this.onProgress({ phase: 'query', message: `⠠ Streaming ${selectedModels.length} frontier models...` });
+
+            const promises = selectedModels.map(async (model, i) => {
+                this.stats.queriesSent++;
+                const t0 = Date.now();
+                let fullText = '';
+                try {
+                    const controller = new AbortController();
+                    const timer = setTimeout(() => controller.abort(), timeout);
+
+                    const resp = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${this.apiKey}`,
+                            'Content-Type': 'application/json',
+                            'HTTP-Referer': 'https://elevate-foundry.github.io/braille/braille-lang/',
+                            'X-Title': 'BrailleCRDT Distillation - BrailleLang',
+                        },
+                        signal: controller.signal,
+                        body: JSON.stringify({
+                            model: model.id,
+                            messages: [
+                                { role: 'system', content: 'You are a precise, factual AI. Give concise, information-dense answers. Focus on core truths.' },
+                                { role: 'user', content: prompt },
+                            ],
+                            max_tokens: maxTokens,
+                            temperature: 0.3,
+                            stream: true,
+                        }),
+                    });
+
+                    clearTimeout(timer);
+
+                    if (!resp.ok) {
+                        const errData = await resp.json().catch(() => ({}));
+                        throw new Error(errData.error?.message || `HTTP ${resp.status}`);
+                    }
+
+                    const reader = resp.body.getReader();
+                    const decoder = new TextDecoder();
+                    let buffer = '';
+
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        if (done) break;
+
+                        buffer += decoder.decode(value, { stream: true });
+                        const lines = buffer.split('\n');
+                        buffer = lines.pop() || '';
+
+                        for (const line of lines) {
+                            if (!line.startsWith('data: ')) continue;
+                            const data = line.slice(6).trim();
+                            if (data === '[DONE]') continue;
+                            try {
+                                const parsed = JSON.parse(data);
+                                const delta = parsed.choices?.[0]?.delta?.content || '';
+                                if (delta) {
+                                    fullText += delta;
+                                    onToken(i, delta, fullText);
+                                }
+                            } catch (_) { /* skip malformed SSE chunks */ }
+                        }
+                    }
+
+                    const latency = Date.now() - t0;
+                    this.stats.responsesReceived++;
+                    const result = { model: model.name, modelId: model.id, weight: model.weight, text: fullText, latency, error: null, tokens: null };
+                    onModelDone(i, result);
+                    return result;
+                } catch (e) {
+                    const latency = Date.now() - t0;
+                    const result = { model: model.name, modelId: model.id, weight: model.weight, text: fullText, latency, error: e.message, tokens: null };
+                    onModelError(i, result);
+                    return result;
                 }
             });
 
