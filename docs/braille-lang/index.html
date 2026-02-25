@@ -510,6 +510,7 @@
                 <button class="playground-tab" data-view="tokens">Tokens</button>
                 <button class="playground-tab" data-view="ast">AST</button>
                 <button class="playground-tab" data-view="js">→ JS</button>
+                <button class="playground-tab" data-view="sal">⣠ SAL</button>
             </div>
         </div>
         <div class="playground-body">
@@ -770,12 +771,88 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // Run mode
+            // Run or SAL mode — both need execution
             const interpreter = new BrailleLang.Interpreter({ dryRun: true });
             const startTime = performance.now();
             const result = await interpreter.execute(ast);
             const duration = (performance.now() - startTime).toFixed(1);
 
+            if (currentView === 'sal') {
+                const sal = result.sal;
+                const s = sal.stats;
+                let html = '<span style="color:var(--accent);font-weight:700">⣠ SAL — Symbolic Abstraction Layer</span>\n';
+                html += '<span style="color:var(--text-dim)">Control plane for stochastic computation</span>\n\n';
+
+                // Session
+                html += `<span style="color:var(--yellow)">SESSION</span> ${sal.session.id}\n`;
+                html += `  started: ${sal.session.startedAt}\n\n`;
+
+                // Domain Stats
+                html += `<span style="color:var(--yellow)">DOMAIN PARTITION</span>\n`;
+                html += `  <span style="color:var(--accent)">⠁ Deterministic</span>  ${s.deterministicOps} ops\n`;
+                html += `  <span style="color:var(--orange)">⠠ Stochastic</span>     ${s.stochasticOps} ops\n`;
+                html += `  Total AI calls:   ${s.totalCalls}\n\n`;
+
+                // By Primitive
+                if (s.totalCalls > 0) {
+                    html += `<span style="color:var(--yellow)">AI PRIMITIVES</span>\n`;
+                    for (const [k, v] of Object.entries(s.byPrimitive)) {
+                        if (v > 0) {
+                            const sym = k === 'INFER' ? '⠠' : k === 'EMBED' ? '⠫' : k === 'PROMPT' ? '⡩' : k === 'PIPE' ? '⡪' : k === 'REFLECT' ? '⣠' : '⠭';
+                            html += `  ${sym} ${k.padEnd(10)} ${v} call${v > 1 ? 's' : ''}\n`;
+                        }
+                    }
+                    html += '\n';
+                }
+
+                // Cache
+                const c = s.cache;
+                html += `<span style="color:var(--yellow)">CACHE</span>\n`;
+                html += `  entries:  ${c.entries}\n`;
+                html += `  hits:     <span style="color:var(--green)">${c.hits}</span>\n`;
+                html += `  misses:   ${c.misses}\n`;
+                html += `  hit rate: ${c.hitRate}\n\n`;
+
+                // Trace Log
+                if (sal.stochasticNodes && sal.stochasticNodes.length > 0) {
+                    html += `<span style="color:var(--yellow)">TRACE LOG</span>\n`;
+                    for (const line of sal.stochasticNodes) {
+                        const cached = line.includes('⠹');
+                        const color = cached ? 'var(--green)' : 'var(--orange)';
+                        html += `  <span style="color:${color}">${line}</span>\n`;
+                    }
+                    html += '\n';
+                }
+
+                // Boundaries
+                if (sal.boundaries && sal.boundaries.length > 0) {
+                    html += `<span style="color:var(--yellow)">BOUNDARY MAP</span>\n`;
+                    html += `  <span class="info">Where human decides vs machine guesses</span>\n`;
+                    for (const b of sal.boundaries) {
+                        const fromLabel = b.from === null ? '⟨start⟩' : b.from === '⠁' ? '⠁ DETERMINISTIC' : '⠠ STOCHASTIC';
+                        const toLabel = b.to === '⠁' ? '⠁ DETERMINISTIC' : '⠠ STOCHASTIC';
+                        html += `  ${fromLabel} → <span style="color:var(--accent)">${toLabel}</span> at ${b.at}\n`;
+                    }
+                    html += '\n';
+                }
+
+                // Cost estimate
+                if (s.totalCost > 0) {
+                    html += `<span style="color:var(--yellow)">COST ESTIMATE</span>\n`;
+                    html += `  tokens: ${s.totalTokens.prompt} prompt + ${s.totalTokens.completion} completion\n`;
+                    html += `  est. cost: $${s.totalCost.toFixed(6)}\n`;
+                }
+
+                if (s.totalCalls === 0) {
+                    html += '<span class="info">No AI calls in this program.\nTry the AI Inference or AI Embeddings example to see SAL in action.</span>\n';
+                }
+
+                output.innerHTML = html;
+                stats.textContent = `⣠ ${s.totalCalls} AI calls · ${s.stochasticOps} stochastic · cache ${c.hitRate}`;
+                return;
+            }
+
+            // Run mode
             let html = '';
             for (const line of result.output) {
                 html += line + '\n';

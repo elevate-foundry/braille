@@ -561,6 +561,7 @@
             this.global = new Environment();
             this._initGlobals();
             this.stats = { statementsExecuted: 0, aiCalls: 0, startTime: null, endTime: null };
+            this.sal = new SAL({ cache: true, trace: true });
         }
 
         async execute(ast) {
@@ -568,7 +569,7 @@
             let result = null;
             try { result = await this._exec(ast, this.global); } catch (e) { if (e !== HALT_SIG) throw e; }
             this.stats.endTime = Date.now();
-            return { output: this.output, result, stats: { ...this.stats, durationMs: this.stats.endTime - this.stats.startTime } };
+            return { output: this.output, result, stats: { ...this.stats, durationMs: this.stats.endTime - this.stats.startTime }, sal: this.sal.getReport() };
         }
 
         async _exec(node, env) {
@@ -642,7 +643,7 @@
                     if(r instanceof BrailleFunction){const ce=new Environment(r.closure);if(r.params.length>0)ce.define(r.params[0],l);const res=await this._exec(r.body,ce);return res instanceof ReturnValue?res.value:res;}
                     throw new TypeError('Pipe target not callable');
                 }
-                case 'AIPrimitive': { const args=[];for(const a of node.args)args.push(await this._exec(a,env));this.stats.aiCalls++;return this._aiCall(node.name,args); }
+                case 'AIPrimitive': { const args=[];for(const a of node.args)args.push(await this._exec(a,env));this.stats.aiCalls++;const{result:aiR}=await this.sal.intercept(node.name,args,async(a)=>this._aiCall(node.name,a),{model:this.options.model});return aiR; }
                 case 'AwaitExpr': return this._exec(node.expression,env);
                 case 'NewExpr': { const c=await this._exec(node.callee,env);if(c instanceof BrailleClass)return new BrailleInstance(c);throw new TypeError('Cannot instantiate'); }
                 case 'TypeofExpr': return typeof(await this._exec(node.operand,env));
@@ -695,6 +696,124 @@
             if(typeof v==='object')return JSON.stringify(v);return String(v);
         }
         _hash(s) { let h=0;for(let i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0;}return Math.abs(h)&0xFF; }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // §4b SAL — Symbolic Abstraction Layer (browser build)
+    // ═══════════════════════════════════════════════════════════════════════
+
+    const Domain = Object.freeze({
+        DETERMINISTIC: '⠁',
+        STOCHASTIC:    '⠠',
+        HYBRID:        '⡪',
+    });
+
+    class TraceNode {
+        constructor(p) { Object.assign(this, p); }
+        toCompact() {
+            const c = this.cached ? '⠹' : '⠅';
+            return `${this.domain}${c} #${this.id} ${this.primitive||this.type} [${(this.inputHash||'').slice(0,8)}→${(this.outputHash||'').slice(0,8)}] ${this.latencyMs}ms`;
+        }
+        toJSON() { return { ...this }; }
+    }
+
+    class SALCache {
+        constructor(opts={}) { this.max=opts.maxEntries||1000; this.ttl=opts.ttlMs||3600000; this.store=new Map(); this.hits=0; this.misses=0; }
+        get(h) { const e=this.store.get(h); if(!e){this.misses++;return null;} if(Date.now()-e.ts>this.ttl){this.store.delete(h);this.misses++;return null;} e.hits++;this.hits++;return e; }
+        set(h,o,oh) { if(this.store.size>=this.max){this.store.delete(this.store.keys().next().value);} this.store.set(h,{output:o,outputHash:oh,ts:Date.now(),hits:0}); }
+        clear() { this.store.clear(); this.hits=0; this.misses=0; }
+        getStats() { return { entries:this.store.size, hits:this.hits, misses:this.misses, hitRate:this.hits+this.misses>0?(this.hits/(this.hits+this.misses)*100).toFixed(1)+'%':'0%' }; }
+    }
+
+    class SAL {
+        constructor(opts={}) {
+            this.opts = { cache:opts.cache!==false, trace:opts.trace!==false, maxNodes:opts.maxNodes||10000, trunc:opts.trunc||500, ...opts };
+            this.trace = []; this.nc = 0; this.pstack = [];
+            this.cache = new SALCache({ maxEntries:opts.cacheMax||1000, ttlMs:opts.cacheTtl||3600000 });
+            this.stats = { totalCalls:0, byPrimitive:{INFER:0,EMBED:0,PROMPT:0,PIPE:0,REFLECT:0,SEARCH:0}, totalLatencyMs:0, totalTokens:{prompt:0,completion:0}, totalCost:0, cacheHits:0, cacheMisses:0, deterministicOps:0, stochasticOps:0 };
+            this.session = { id:'sal_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8), startedAt:new Date().toISOString(), endedAt:null };
+        }
+
+        async intercept(primitive, args, execFn, ctx={}) {
+            const t0 = Date.now();
+            const iStr = this._ser(args);
+            const iHash = this._hash(iStr);
+            const pid = this.pstack.length>0 ? this.pstack[this.pstack.length-1] : null;
+            this.stats.totalCalls++;
+            this.stats.byPrimitive[primitive] = (this.stats.byPrimitive[primitive]||0)+1;
+
+            if(this.opts.cache) {
+                const c = this.cache.get(iHash);
+                if(c) { this.stats.cacheHits++; const node=this._node({type:'ai_call',domain:Domain.STOCHASTIC,primitive,inputHash:iHash,outputHash:c.outputHash,input:this._trunc(iStr),output:this._trunc(this._ser(c.output)),parentId:pid,latencyMs:0,cached:true,model:ctx.model||null,tokens:null,cost:0}); return {result:c.output,node}; }
+                this.stats.cacheMisses++;
+            }
+
+            this.pstack.push(this.nc);
+            let result; try { result = await execFn(args); } finally { this.pstack.pop(); }
+            const lat = Date.now()-t0;
+            const oStr = this._ser(result);
+            const oHash = this._hash(oStr);
+
+            let tokens=null, cost=0;
+            if(primitive==='INFER'&&typeof result==='string') {
+                const pt=Math.ceil(iStr.length/4), ct=Math.ceil(result.length/4);
+                tokens={prompt:pt,completion:ct};
+                cost=pt*0.00000015+ct*0.0000006;
+                this.stats.totalTokens.prompt+=pt; this.stats.totalTokens.completion+=ct; this.stats.totalCost+=cost;
+            }
+
+            if(this.opts.cache) this.cache.set(iHash,result,oHash);
+            this.stats.totalLatencyMs+=lat; this.stats.stochasticOps++;
+            const node=this._node({type:'ai_call',domain:Domain.STOCHASTIC,primitive,inputHash:iHash,outputHash:oHash,input:this._trunc(iStr),output:this._trunc(oStr),parentId:pid,latencyMs:lat,cached:false,model:ctx.model||null,tokens,cost});
+            return {result,node};
+        }
+
+        getReport() {
+            this.session.endedAt=new Date().toISOString();
+            return {
+                session:this.session, stats:{...this.stats,cache:this.cache.getStats()},
+                trace:this.trace.map(n=>n.toJSON()),
+                stochasticNodes:this.trace.filter(n=>n.domain===Domain.STOCHASTIC).map(n=>n.toCompact()),
+                deterministicNodes:this.trace.filter(n=>n.domain===Domain.DETERMINISTIC).length,
+                boundaries:this._boundaries(),
+            };
+        }
+
+        getTraceLog() { return this.trace.map(n=>n.toCompact()).join('\n'); }
+
+        getDAG() {
+            return {
+                nodes:this.trace.map(n=>({id:n.id,label:n.primitive||n.type,domain:n.domain,cached:n.cached})),
+                edges:this.trace.filter(n=>n.parentId!==null).map(n=>({from:n.parentId,to:n.id})),
+            };
+        }
+
+        exportForReplay() {
+            return {
+                version:'1.0.0', session:this.session,
+                cache:Array.from(this.cache.store.entries()).map(([h,e])=>({inputHash:h,output:e.output,outputHash:e.outputHash})),
+                trace:this.trace.map(n=>n.toJSON()),
+            };
+        }
+
+        importForReplay(data) { if(data.cache) for(const e of data.cache) this.cache.set(e.inputHash,e.output,e.outputHash); }
+
+        reset() {
+            this.trace=[]; this.nc=0; this.pstack=[];
+            this.stats={totalCalls:0,byPrimitive:{INFER:0,EMBED:0,PROMPT:0,PIPE:0,REFLECT:0,SEARCH:0},totalLatencyMs:0,totalTokens:{prompt:0,completion:0},totalCost:0,cacheHits:0,cacheMisses:0,deterministicOps:0,stochasticOps:0};
+            this.session={id:'sal_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8),startedAt:new Date().toISOString(),endedAt:null};
+        }
+
+        _boundaries() {
+            const b=[]; let last=null;
+            for(const n of this.trace) { if(n.domain!==last){b.push({nodeId:n.id,from:last,to:n.domain,at:n.primitive||n.type,timestamp:n.timestamp});last=n.domain;} }
+            return b;
+        }
+
+        _node(p) { const n=new TraceNode({id:this.nc++,timestamp:new Date().toISOString(),...p}); if(this.opts.trace&&this.trace.length<this.opts.maxNodes)this.trace.push(n); return n; }
+        _hash(s) { let h1=0xdeadbeef,h2=0x41c6ce57; for(let i=0;i<s.length;i++){const c=s.charCodeAt(i);h1=Math.imul(h1^c,2654435761);h2=Math.imul(h2^c,1597334677);} h1=Math.imul(h1^(h1>>>16),2246822507);h1^=Math.imul(h2^(h2>>>13),3266489909);h2=Math.imul(h2^(h2>>>16),2246822507);h2^=Math.imul(h1^(h1>>>13),3266489909); return(4294967296*(2097151&h2)+(h1>>>0)).toString(16).padStart(16,'0'); }
+        _ser(v) { if(v===null||v===undefined)return'null'; if(typeof v==='string')return v; if(typeof v==='number'||typeof v==='boolean')return String(v); try{return JSON.stringify(v);}catch{return String(v);} }
+        _trunc(s) { return s.length<=this.opts.trunc?s:s.slice(0,this.opts.trunc)+'…['+( s.length-this.opts.trunc)+' more]'; }
     }
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -756,6 +875,7 @@
     const BrailleLang = {
         Lexer, Token, Parser, ASTNode, Interpreter, Compiler,
         Environment, BrailleFunction, BrailleClass, BrailleInstance,
+        SAL, SALCache, TraceNode, Domain,
         KEYWORDS, OPERATORS, DELIMITERS,
 
         async run(source, options = {}) {

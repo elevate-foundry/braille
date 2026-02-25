@@ -10,6 +10,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { SAL, Domain } = require('./sal');
 
 class Environment {
     constructor(parent = null) {
@@ -113,6 +114,14 @@ class Interpreter {
             startTime: null,
             endTime: null,
         };
+
+        // ⣠ SAL — Symbolic Abstraction Layer
+        this.sal = new SAL({
+            cacheEnabled: options.salCache !== false,
+            traceEnabled: options.salTrace !== false,
+            maxTraceNodes: options.salMaxTrace || 10000,
+            truncateAt: options.salTruncate || 500,
+        });
     }
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -147,6 +156,7 @@ class Interpreter {
                 ...this.stats,
                 durationMs: this.stats.endTime - this.stats.startTime,
             },
+            sal: this.sal.getReport(),
         };
     }
 
@@ -598,16 +608,25 @@ class Interpreter {
         }
         this.stats.aiCalls++;
 
-        switch (node.name) {
-            case 'INFER':   return this._aiInfer(args);
-            case 'EMBED':   return this._aiEmbed(args);
-            case 'PROMPT':  return this._aiPrompt(args);
-            case 'PIPE':    return this._aiPipe(args);
-            case 'REFLECT': return this._aiReflect(args, env);
-            case 'SEARCH':  return this._aiSearch(args);
-            default:
-                throw new Error(`⠻ Unknown AI primitive: ${node.name}`);
-        }
+        // ⣠ SAL: Route all AI primitives through the Symbolic Abstraction Layer
+        const primitive = node.name;
+        const executeFn = async (a) => {
+            switch (primitive) {
+                case 'INFER':   return this._aiInfer(a);
+                case 'EMBED':   return this._aiEmbed(a);
+                case 'PROMPT':  return this._aiPrompt(a);
+                case 'PIPE':    return this._aiPipe(a);
+                case 'REFLECT': return this._aiReflect(a, env);
+                case 'SEARCH':  return this._aiSearch(a);
+                default:
+                    throw new Error(`⠻ Unknown AI primitive: ${primitive}`);
+            }
+        };
+
+        const { result } = await this.sal.intercept(primitive, args, executeFn, {
+            model: this.options.model,
+        });
+        return result;
     }
 
     /**
