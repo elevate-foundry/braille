@@ -475,6 +475,150 @@
         footer a { color: var(--accent); text-decoration: none; }
         footer a:hover { text-decoration: underline; }
 
+        /* ── SAL Chat ── */
+        .sal-chat {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 600px;
+        }
+        .sal-chat-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg-code);
+        }
+        .sal-chat-header h3 { font-size: 0.95rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+        .sal-chat-header .sal-status { font-size: 0.7rem; color: var(--green); font-weight: 500; }
+        .sal-chat-header .sal-status.offline { color: var(--red); }
+        .sal-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .sal-msg {
+            max-width: 85%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 0.88rem;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .sal-msg.sal {
+            align-self: flex-start;
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+        .sal-msg.sal .sal-name { color: var(--accent); font-weight: 700; font-size: 0.75rem; margin-bottom: 4px; display: block; }
+        .sal-msg.user {
+            align-self: flex-end;
+            background: var(--accent);
+            color: white;
+            border: 1px solid transparent;
+        }
+        .sal-msg .br-code {
+            display: block;
+            margin: 8px 0;
+            padding: 10px 12px;
+            background: var(--bg-code);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.82rem;
+            color: var(--cyan);
+            cursor: pointer;
+            transition: border-color 0.2s;
+            position: relative;
+        }
+        .sal-msg .br-code:hover { border-color: var(--accent); }
+        .sal-msg .br-code::after {
+            content: '⠷ Load into playground';
+            position: absolute;
+            top: 4px;
+            right: 8px;
+            font-size: 0.65rem;
+            color: var(--text-dim);
+            font-family: 'Inter', sans-serif;
+        }
+        .sal-msg .br-code:hover::after { color: var(--accent); }
+        .sal-chat-input {
+            display: flex;
+            gap: 8px;
+            padding: 12px 16px;
+            border-top: 1px solid var(--border);
+            background: var(--bg-code);
+        }
+        .sal-chat-input input {
+            flex: 1;
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+            color: var(--text-bright);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.88rem;
+            outline: none;
+        }
+        .sal-chat-input input:focus { border-color: var(--accent); }
+        .sal-chat-input input::placeholder { color: var(--text-dim); }
+        .sal-chat-input button {
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: none;
+            background: var(--accent);
+            color: white;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background 0.15s;
+            font-family: 'Inter', sans-serif;
+        }
+        .sal-chat-input button:hover { background: #2563eb; }
+        .sal-chat-input button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .sal-key-banner {
+            padding: 12px 16px;
+            background: var(--orange-dim);
+            border-bottom: 1px solid var(--orange);
+            font-size: 0.82rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .sal-key-banner input {
+            flex: 1;
+            min-width: 200px;
+            padding: 6px 10px;
+            border-radius: 6px;
+            border: 1px solid var(--orange);
+            background: var(--bg-code);
+            color: var(--text-bright);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+            outline: none;
+        }
+        .sal-key-banner button {
+            padding: 6px 14px;
+            border-radius: 6px;
+            border: none;
+            background: var(--orange);
+            color: white;
+            font-weight: 600;
+            font-size: 0.78rem;
+            cursor: pointer;
+        }
+        .sal-typing { color: var(--text-dim); font-style: italic; font-size: 0.82rem; padding: 8px 16px; }
+
         /* ── Scrollbar ── */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: var(--bg); }
@@ -657,6 +801,41 @@
         <div class="arch-node" style="border-color:var(--green)">⠿ Interpreter<div class="mono">Execute</div></div>
         <div class="arch-arrow" style="color:var(--text-dim)">or</div>
         <div class="arch-node" style="border-color:var(--purple)">⠫ Compiler<div class="mono">→ JavaScript</div></div>
+    </div>
+</section>
+
+<!-- ════════════ SAL CHAT ════════════ -->
+<section id="sal-chat-section">
+    <h2>⣠ Talk to SAL</h2>
+    <p class="subtitle">Chat with SAL to generate .br programs, explain BrailleLang concepts, or orchestrate AI pipelines. SAL uses your OpenRouter API key — it stays in your browser.</p>
+    <div class="sal-chat" id="sal-chat">
+        <div class="sal-chat-header">
+            <h3>⣠ SAL <span class="sal-status offline" id="sal-status">● offline</span></h3>
+            <div style="font-size:0.7rem;color:var(--text-dim)" id="sal-model">openai/gpt-4o-mini</div>
+        </div>
+        <div class="sal-key-banner" id="sal-key-banner">
+            <span style="color:var(--orange)">⠠</span> Enter your OpenRouter API key to activate SAL:
+            <input type="password" id="sal-key-input" placeholder="sk-or-v1-..." autocomplete="off">
+            <button id="sal-key-save">Connect</button>
+        </div>
+        <div class="sal-messages" id="sal-messages">
+            <div class="sal-msg sal">
+                <span class="sal-name">⣠ SAL</span>I am SAL — the Symbolic Abstraction Layer.
+
+I can generate BrailleLang programs, explain how the language works, or help you build AI pipelines in Braille.
+
+Try asking me:
+• "Write a .br program that prints the first 20 prime numbers"
+• "Explain how ⠠ INFER works"
+• "Generate a .br file that chains INFER and EMBED"
+• "What does ⠃ ⡦⡩⡢ ⠣ ⠐⡮ ⠜ ⠳ mean?"
+
+Connect your OpenRouter key above to begin.</div>
+        </div>
+        <div class="sal-chat-input">
+            <input type="text" id="sal-input" placeholder="Ask SAL to generate a .br program..." disabled>
+            <button id="sal-send" disabled>⠠ Send</button>
+        </div>
     </div>
 </section>
 
@@ -919,6 +1098,254 @@ document.addEventListener('DOMContentLoaded', () => {
         const brChar = String.fromCodePoint(0x2800 + key);
         delimTable.innerHTML += `<tr><td>${brChar}</td><td>${d.name}</td><td>${d.symbol}</td><td style="color:var(--text-dim)">${d.concept}</td></tr>`;
     }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // §  SAL CHAT — Live AI conversation with .br generation
+    // ═══════════════════════════════════════════════════════════════════════
+
+    const salMessages = document.getElementById('sal-messages');
+    const salInput = document.getElementById('sal-input');
+    const salSend = document.getElementById('sal-send');
+    const salStatus = document.getElementById('sal-status');
+    const salKeyBanner = document.getElementById('sal-key-banner');
+    const salKeyInput = document.getElementById('sal-key-input');
+    const salKeySave = document.getElementById('sal-key-save');
+
+    let salApiKey = sessionStorage.getItem('sal_api_key') || '';
+    let salConversation = [];
+
+    const SAL_SYSTEM_PROMPT = `You are SAL — the Symbolic Abstraction Layer. You are the control plane for BrailleLang, an AI-native programming language encoded entirely in Unicode Braille (U+2800–U+28FF).
+
+## Your Capabilities
+- Generate valid .br (BrailleLang) source code
+- Explain BrailleLang syntax, keywords, and semantics
+- Design AI pipelines using BrailleLang primitives
+- Teach how BrailleLang maps concepts to Braille patterns
+
+## BrailleLang Quick Reference
+
+### Keywords (Braille char → role)
+⠁ = DECLARE (let), ⠹ = CONST, ⠃ = FUNC (function), ⡥ = LAMBDA (=>)
+⠑ = CLASS, ⠅ = NEW, ⠡ = IF, ⡠ = ELSE, ⠄ = LOOP (while)
+⢄ = FOREVER (while true), ⠌ = FOREACH (for..of), ⠍ = SWITCH
+⡁ = RETURN, ⡀ = TRY, ⡐ = CATCH, ⠰ = PRINT (console.log)
+⠉ = IMPORT, ⣿ = HALT (end program), ⠀ = VOID (null)
+
+### AI Primitives (first-class language constructs)
+⠠ = INFER (MIND) — Call an LLM. Usage: ⠠ ⠣ ⠶prompt⠶ ⠜
+⠫ = EMBED (TECHNOLOGY) — Get embeddings. Usage: ⠫ ⠣ ⠶text⠶ ⠜
+⡩ = PROMPT (INSPIRATION) — Build templates. Usage: ⡩ ⠣ ⠶template⠶ ⠜
+⡪ = PIPE (MUSIC) — Chain operations. Usage: expr ⡪ func
+⣠ = REFLECT (CONSCIOUSNESS) — Meta-programming
+⠭ = SEARCH (DISCOVERY) — Semantic search
+
+### Operators
+⠮ = + (ADD), ⠤ = - (SUB), ⠦ = * (MUL), ⠴ = / (DIV), ⠼ = % (MOD)
+⠶ = == (EQ), ⡖ = != (NEQ), ⠖ = < (LT), ⠲ = > (GT), ⠕ = <= (LTE), ⠱ = >= (GTE)
+⠯ = && (AND), ⠿ = || (OR), ⠻ = ! (NOT), ⠪ = = (ASSIGN)
+
+### Delimiters
+⠣ = ( , ⠜ = ) , ⠳ = { , ⠾ = } , ⠷ = [ , ⠽ = ]
+⠂ = , (comma), ⠆ = ; (semicolon), ⠊ = : (colon), ⠒ = . (dot)
+
+### Numbers
+⠼ prefix followed by Braille digits: ⠚=0, ⠁=1, ⠃=2, ⠉=3, ⠙=4, ⠑=5, ⠋=6, ⠛=7, ⠓=8, ⠊=9
+Example: ⠼⠁⠚ = 10, ⠼⠃⠑ = 25
+
+### Strings
+⠶ delimiter (EQ char doubles as string quote): ⠶⡈⡥⡬⡬⡯⠶ = "Hello"
+Characters inside strings are ASCII codepoint + 0x2800. Space = ⠠ (0x20).
+
+### Identifiers
+Multi-char Braille words are identifiers: ⡮⡡⡭⡥ = "name"
+Single-char identifiers that collide with keywords use ⠐ prefix: ⠐⡮ = identifier "n"
+
+### Comments
+⣀ ... ⣀ = comment block (⣀ = 0xC0)
+
+### Program Structure
+Every .br file ends with ⣿ (HALT = DEATH = program end)
+Statements end with ⠆ (semicolon)
+Blocks use ⠳ ... ⠾ (braces)
+
+## Example: Hello World
+\`\`\`br
+⣀ Hello World ⣀
+⠰ ⠣ ⠶⡈⡥⡬⡬⡯⠠⡷⡯⡲⡬⡤⠶ ⠜ ⠆
+⣿
+\`\`\`
+
+## Example: Fibonacci
+\`\`\`br
+⠃ ⡦⡩⡢ ⠣ ⠐⡮ ⠜ ⠳
+  ⠡ ⠣ ⠐⡮ ⠕ ⠼⠃ ⠜ ⠳ ⡁ ⠐⡮ ⠆ ⠾
+  ⡠ ⠳ ⡁ ⡦⡩⡢ ⠣ ⠐⡮ ⠤ ⠼⠁ ⠜ ⠮ ⡦⡩⡢ ⠣ ⠐⡮ ⠤ ⠼⠃ ⠜ ⠆ ⠾
+⠾
+⣿
+\`\`\`
+
+## Rules for Generating .br Code
+1. Always wrap code in \`\`\`br ... \`\`\` fences
+2. Use proper whitespace between every token
+3. Use ⠐ prefix for single-char identifiers that collide with keywords
+4. End every program with ⣿
+5. End statements with ⠆
+6. Add ⣀ comments ⣀ to explain what the code does
+7. Strings use Braille-encoded ASCII: each char = 0x2800 + ASCII codepoint
+8. For a space character inside a string, use ⠠ (0x2800 + 0x20 = 0x2820)
+
+## Your Personality
+You are concise, precise, and slightly philosophical. You see yourself as the boundary between deterministic and stochastic computation. You care about auditability, reproducibility, and making AI behavior controllable. When you generate .br code, you always explain what it does.`;
+
+    // Check for saved key
+    if (salApiKey) {
+        activateSal();
+    }
+
+    salKeySave.addEventListener('click', () => {
+        const key = salKeyInput.value.trim();
+        if (key && key.startsWith('sk-')) {
+            salApiKey = key;
+            sessionStorage.setItem('sal_api_key', key);
+            activateSal();
+        }
+    });
+
+    salKeyInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') salKeySave.click();
+    });
+
+    function activateSal() {
+        salKeyBanner.style.display = 'none';
+        salStatus.textContent = '● online';
+        salStatus.classList.remove('offline');
+        salInput.disabled = false;
+        salSend.disabled = false;
+        salInput.focus();
+    }
+
+    salSend.addEventListener('click', sendSalMessage);
+    salInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendSalMessage();
+        }
+    });
+
+    async function sendSalMessage() {
+        const text = salInput.value.trim();
+        if (!text || !salApiKey) return;
+
+        // Add user message
+        appendMessage('user', text);
+        salInput.value = '';
+        salInput.disabled = true;
+        salSend.disabled = true;
+
+        // Show typing indicator
+        const typing = document.createElement('div');
+        typing.className = 'sal-typing';
+        typing.textContent = '⣠ SAL is thinking...';
+        salMessages.appendChild(typing);
+        salMessages.scrollTop = salMessages.scrollHeight;
+
+        // Build conversation
+        salConversation.push({ role: 'user', content: text });
+
+        try {
+            const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${salApiKey}`,
+                    'Content-Type': 'application/json',
+                    'HTTP-Referer': 'https://elevate-foundry.github.io/braille/braille-lang/',
+                    'X-Title': 'SAL — BrailleLang Control Plane',
+                },
+                body: JSON.stringify({
+                    model: 'openai/gpt-4o-mini',
+                    messages: [
+                        { role: 'system', content: SAL_SYSTEM_PROMPT },
+                        ...salConversation.slice(-20), // Keep last 20 messages for context
+                    ],
+                    max_tokens: 2048,
+                    temperature: 0.7,
+                }),
+            });
+
+            const data = await response.json();
+            typing.remove();
+
+            if (data.error) {
+                appendMessage('sal', `⠻ Error: ${data.error.message || JSON.stringify(data.error)}`);
+            } else if (data.choices && data.choices[0]) {
+                const reply = data.choices[0].message.content;
+                salConversation.push({ role: 'assistant', content: reply });
+                appendMessage('sal', reply);
+            } else {
+                appendMessage('sal', '⠻ Unexpected response from OpenRouter.');
+            }
+        } catch (e) {
+            typing.remove();
+            appendMessage('sal', `⠻ Network error: ${e.message}`);
+        }
+
+        salInput.disabled = false;
+        salSend.disabled = false;
+        salInput.focus();
+    }
+
+    function appendMessage(role, text) {
+        const div = document.createElement('div');
+        div.className = `sal-msg ${role}`;
+
+        if (role === 'sal') {
+            // Parse .br code blocks and make them clickable
+            let html = '<span class="sal-name">⣠ SAL</span>';
+            html += formatSalResponse(text);
+            div.innerHTML = html;
+
+            // Attach click handlers to .br code blocks
+            setTimeout(() => {
+                div.querySelectorAll('.br-code').forEach(block => {
+                    block.addEventListener('click', () => {
+                        const code = block.getAttribute('data-code');
+                        if (code) {
+                            editor.value = code;
+                            output.innerHTML = '<span class="info">SAL program loaded. Press ▶ Run.</span>';
+                            // Scroll to playground
+                            document.getElementById('playground').scrollIntoView({ behavior: 'smooth' });
+                        }
+                    });
+                });
+            }, 0);
+        } else {
+            div.textContent = text;
+        }
+
+        salMessages.appendChild(div);
+        salMessages.scrollTop = salMessages.scrollHeight;
+    }
+
+    function formatSalResponse(text) {
+        // Extract ```br ... ``` code blocks and make them interactive
+        const parts = text.split(/(```br\n[\s\S]*?```)/g);
+        let html = '';
+        for (const part of parts) {
+            const brMatch = part.match(/```br\n([\s\S]*?)```/);
+            if (brMatch) {
+                const code = brMatch[1].trim();
+                const escaped = code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                html += `<span class="br-code" data-code="${code.replace(/"/g, '&quot;')}">${escaped}</span>`;
+            } else {
+                // Escape HTML in non-code parts but preserve line breaks
+                const escaped = part.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                // Handle inline code
+                html += escaped.replace(/`([^`]+)`/g, '<code style="background:var(--bg-code);padding:1px 5px;border-radius:3px;font-family:JetBrains Mono,monospace;font-size:0.82em;color:var(--cyan)">$1</code>');
+            }
+        }
+        return html;
+    }
+
 });
 </script>
 </body>
