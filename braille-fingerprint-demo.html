@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BrailleBuddy - Universal Braille Learning with Multilingual Support</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            width: 100%;
+            background-color: #2c3e50;
+            color: white;
+            padding: 15px 0;
+            position: relative;
+        }
+        h1 {
+            color: white;
+            margin: 0;
+            font-size: 24px;
+        }
+        header p {
+            margin: 5px 0 0;
+            font-size: 14px;
+            opacity: 0.8;
+        }
+        .container {
+            width: 100%;
+            max-width: 420px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            position: relative;
+            height: 80vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .mobile-frame {
+            border: 12px solid #2c3e50;
+            border-radius: 30px;
+            overflow: hidden;
+            max-width: 360px;
+            width: 100%;
+            margin: 20px auto;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+            height: 80vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        .mobile-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+        }
+        .settings-icon {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 24px;
+            color: white;
+            cursor: pointer;
+            z-index: 100;
+        }
+        .settings-panel {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 80%;
+            height: 100%;
+            background-color: white;
+            box-shadow: -2px 0 5px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            overflow-y: auto;
+            padding: 20px;
+            transition: transform 0.3s ease;
+            transform: translateX(100%);
+            box-sizing: border-box;
+        }
+        .settings-panel.active {
+            transform: translateX(0);
+        }
+        .settings-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 20px;
+            cursor: pointer;
+            color: #2c3e50;
+        }
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .card h2 {
+            color: #3498db;
+            font-size: 18px;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+        .card h3 {
+            font-size: 16px;
+            color: #555;
+            margin-top: 15px;
+            margin-bottom: 10px;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+        code {
+            font-family: 'Courier New', Courier, monospace;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+            display: inline-block;
+            text-align: center;
+        }
+        button:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .primary-button {
+            background-color: #3498db;
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        .settings-section {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        .braille-cell {
+            display: inline-block;
+            width: 30px;
+            height: 45px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+            margin: 5px;
+            position: relative;
+        }
+        .dot {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background-color: #333;
+            border-radius: 50%;
+        }
+        .dot.filled {
+            background-color: #3498db;
+        }
+        .dot-1 { top: 5px; left: 11px; }
+        .dot-2 { top: 19px; left: 11px; }
+        .dot-3 { top: 33px; left: 11px; }
+        .dot-4 { top: 5px; right: 11px; }
+        .dot-5 { top: 19px; right: 11px; }
+        .dot-6 { top: 33px; right: 11px; }
+        
+        /* Number sign styling */
+        .number-sign {
+            background-color: #e6f7ff;
+            border: 1px solid #91d5ff;
+        }
+        .number-sign .dot.filled {
+            background-color: #1890ff;
+        }
+        .haptic-controls {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e8f4fc;
+            border-radius: 8px;
+        }
+        .haptic-mode {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .haptic-mode label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        .intensity-slider {
+            width: 100%;
+            margin: 10px 0;
+        }
+        .braille-display {
+            font-size: 24px;
+            margin: 20px 0;
+            min-height: 50px;
+        }
+        .binary-display {
+            font-family: monospace;
+            margin: 10px 0;
+            word-break: break-all;
+        }
+        .status {
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .option-group {
+            margin-bottom: 15px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .radio-group {
+            margin-top: 5px;
+            width: 100%;
+        }
+        .status-message {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #d4edda;
+            color: #155724;
+            width: 100%;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+    <div class="mobile-frame">
+        <header>
+            <h1>BrailleBuddy</h1>
+            <p>Universal Braille Learning</p>
+            <div class="settings-icon" id="settings-toggle">⚙️</div>
+        </header>
+        
+        <div class="mobile-content">
+            <div class="card">
+                <textarea id="input-text" rows="3" placeholder="Enter text to encode in braille...">Hello BrailleBuddy!</textarea>
+                <button id="encode-and-feel" class="primary-button">Encode & Feel Braille Pattern</button>
+                
+                <div class="braille-display" id="braille-output"></div>
+                
+                <h3>Visual Braille:</h3>
+                <div id="visual-braille"></div>
+                
+                <div class="timing-info" id="timing-info" style="margin-top: 15px; padding: 10px; background-color: #f0f8ff; border-radius: 5px; font-size: 14px;">
+                    <p style="margin: 0;"><strong>Timing:</strong> <span id="visual-time">-</span> | <strong>Haptic:</strong> <span id="haptic-time">-</span></p>
+                </div>
+                
+                <div class="binary-display" id="binary-output" style="display: none;"></div>
+            </div>
+        </div>
+        
+        <div id="settings-panel" class="settings-panel" style="display: none;">
+            <div class="settings-header">
+                <h2>Settings</h2>
+                <button id="close-settings" class="close-button">×</button>
+            </div>
+            
+            <div class="settings-section">
+                <h3>Haptic Feedback</h3>
+                <div class="option-group">
+                    <label>Mode:</label>
+                    <div class="radio-group" style="display: flex; flex-direction: column; align-items: flex-start;">
+                        <div style="margin: 5px 0;">
+                            <input type="radio" id="standard" name="haptic-mode" value="standard" checked>
+                            <label for="standard">Standard</label>
+                        </div>
+                        
+                        <div style="margin: 5px 0;">
+                            <input type="radio" id="rhythmic" name="haptic-mode" value="rhythmic">
+                            <label for="rhythmic">Rhythmic</label>
+                        </div>
+                        
+                        <div style="margin: 5px 0;">
+                            <input type="radio" id="frequency" name="haptic-mode" value="frequency">
+                            <label for="frequency">Frequency</label>
+                        </div>
+                        
+                        <div style="margin: 5px 0;">
+                            <input type="radio" id="biological" name="haptic-mode" value="biological">
+                            <label for="biological">Biological</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="option-group">
+                    <label for="intensity">Intensity: <span id="intensity-value">5</span></label>
+                    <input type="range" id="intensity" min="1" max="10" value="5" style="width: 100%; max-width: 250px;">
+                </div>
+                
+                <button id="test-haptic" class="secondary-button">Test Haptic Feedback</button>
+                <div id="haptic-status" class="status-message" style="display: none;"></div>
+            </div>
+            
+            <div class="settings-section">
+                <h3>Advanced</h3>
+                <div class="option-group">
+                    <label>API Connection:</label>
+                    <button id="test-api" class="secondary-button">Test API Connection</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Braille mapping
+        const brailleMap = {
+            'a': '⠁', 'b': '⠃', 'c': '⠉', 'd': '⠙', 'e': '⠑',
+            'f': '⠋', 'g': '⠛', 'h': '⠓', 'i': '⠊', 'j': '⠚',
+            'k': '⠅', 'l': '⠇', 'm': '⠍', 'n': '⠝', 'o': '⠕',
+            'p': '⠏', 'q': '⠟', 'r': '⠗', 's': '⠎', 't': '⠞',
+            'u': '⠥', 'v': '⠧', 'w': '⠺', 'x': '⠭', 'y': '⠽', 'z': '⠵',
+            ' ': '⠀', '.': '⠲', ',': '⠂', ';': '⠆', ':': '⠒', '!': '⠖',
+            // Numbers use the same patterns as a-j with a number sign prefix (⠼)
+            '1': '⠁', '2': '⠃', '3': '⠉', '4': '⠙', '5': '⠑',
+            '6': '⠋', '7': '⠛', '8': '⠓', '9': '⠊', '0': '⠚'
+        };
+
+        // Binary representation of braille patterns
+        const brailleBinaryMap = {
+            '⠁': '100000', '⠃': '110000', '⠉': '100100', '⠙': '100110',
+            '⠑': '100010', '⠋': '110100', '⠛': '110110', '⠓': '110010',
+            '⠊': '010100', '⠚': '010110', '⠅': '101000', '⠇': '111000',
+            '⠍': '101100', '⠝': '101110', '⠕': '101010', '⠏': '111100',
+            '⠟': '111110', '⠗': '111010', '⠎': '011100', '⠞': '011110',
+            '⠥': '101001', '⠧': '111001', '⠺': '010111', '⠭': '101101',
+            '⠽': '101111', '⠵': '101011', '⠀': '000000', '⠖': '111101',
+            '⠲': '010011', '⠂': '010000', '⠦': '011101', '⠆': '110000',
+            '⠒': '110010', '⠄': '001000', '⠤': '001001', '⠼': '001111'
+        };
+
+        // Haptic patterns for different modes
+        const hapticPatterns = {
+            standard: {
+                dot1: [50, 50],
+                dot2: [50, 50],
+                dot3: [50, 50],
+                dot4: [50, 50],
+                dot5: [50, 50],
+                dot6: [50, 50],
+                character: [200]
+            },
+            rhythmic: {
+                dot1: [100, 50, 50, 50],
+                dot2: [75, 50, 75, 50],
+                dot3: [50, 50, 100, 50],
+                dot4: [50, 50, 50, 100],
+                dot5: [75, 75, 75, 75],
+                dot6: [100, 100, 100, 100],
+                character: [300]
+            },
+            frequency: {
+                dot1: [30, 20, 30, 20, 30, 20],
+                dot2: [40, 20, 40, 20, 40, 20],
+                dot3: [50, 20, 50, 20, 50, 20],
+                dot4: [60, 20, 60, 20, 60, 20],
+                dot5: [70, 20, 70, 20, 70, 20],
+                dot6: [80, 20, 80, 20, 80, 20],
+                character: [400]
+            },
+            biological: {
+                dot1: [20, 10, 40, 10, 20],
+                dot2: [25, 15, 35, 15, 25],
+                dot3: [30, 20, 30, 20, 30],
+                dot4: [35, 25, 25, 25, 35],
+                dot5: [40, 30, 20, 30, 40],
+                dot6: [45, 35, 15, 35, 45],
+                character: [250]
+            }
+        };
+
+        // Function to check if vibration API is available
+        function isVibrationAvailable() {
+            return 'vibrate' in navigator;
+        }
+
+        // Function to trigger haptic feedback
+        function triggerHapticFeedback(pattern, intensity = 5) {
+            if (!isVibrationAvailable()) {
+                document.getElementById('haptic-status').textContent = 'Vibration API not supported on this device';
+                document.getElementById('haptic-status').className = 'status error';
+                return false;
+            }
+            
+            // Scale pattern based on intensity (1-10)
+            const scaleFactor = intensity / 5;
+            const scaledPattern = pattern.map(duration => Math.round(duration * scaleFactor));
+            
+            try {
+                navigator.vibrate(scaledPattern);
+                document.getElementById('haptic-status').textContent = 'Haptic feedback triggered successfully';
+                document.getElementById('haptic-status').className = 'status success';
+                return true;
+            } catch (error) {
+                document.getElementById('haptic-status').textContent = 'Error triggering haptic feedback: ' + error.message;
+                document.getElementById('haptic-status').className = 'status error';
+                return false;
+            }
+        }
+
+        // Function to encode text to braille
+        function encodeToBraille(text) {
+            let result = '';
+            let inNumberSequence = false;
+            
+            // Process each character
+            for (let i = 0; i < text.length; i++) {
+                const char = text[i].toLowerCase();
+                const isNumber = /[0-9]/.test(char);
+                
+                // Check if we're starting a number sequence
+                if (isNumber && !inNumberSequence) {
+                    result += '⠼'; // Add number sign
+                    inNumberSequence = true;
+                }
+                // Check if we're ending a number sequence
+                else if (!isNumber && inNumberSequence) {
+                    inNumberSequence = false;
+                }
+                
+                // Add the braille character
+                result += brailleMap[char] || char;
+            }
+            
+            return result;
+        }
+
+        // Function to convert braille to binary representation
+        function brailleToBinary(brailleText) {
+            return brailleText.split('').map(char => brailleBinaryMap[char] || '000000').join(' ');
+        }
+
+        // Function to create visual braille cells
+        function createVisualBraille(brailleText) {
+            const visualBrailleContainer = document.getElementById('visual-braille');
+            visualBrailleContainer.innerHTML = '';
+            
+            // Track if we're in a number sequence
+            let inNumberSequence = false;
+            
+            brailleText.split('').forEach((brailleChar, index) => {
+                const binary = brailleBinaryMap[brailleChar] || '000000';
+                
+                const cellDiv = document.createElement('div');
+                cellDiv.className = 'braille-cell';
+                
+                // Check if this is a number sign
+                if (brailleChar === '⠼') {
+                    inNumberSequence = true;
+                    cellDiv.classList.add('number-sign');
+                    cellDiv.title = 'Number Sign';
+                } 
+                // Check if we're ending a number sequence (next char is not a number)
+                else if (inNumberSequence) {
+                    const nextChar = brailleText[index + 1];
+                    const isNextCharNumber = nextChar && ['⠁', '⠃', '⠉', '⠙', '⠑', '⠋', '⠛', '⠓', '⠊', '⠚'].includes(nextChar);
+                    
+                    if (!isNextCharNumber) {
+                        inNumberSequence = false;
+                    }
+                    
+                    // Add title to show what this represents
+                    if (['⠁', '⠃', '⠉', '⠙', '⠑', '⠋', '⠛', '⠓', '⠊', '⠚'].includes(brailleChar)) {
+                        const numberMap = {'⠁': '1', '⠃': '2', '⠉': '3', '⠙': '4', '⠑': '5', '⠋': '6', '⠛': '7', '⠓': '8', '⠊': '9', '⠚': '0'};
+                        cellDiv.title = `Number ${numberMap[brailleChar]}`;
+                    } else {
+                        cellDiv.title = brailleChar;
+                    }
+                } else {
+                    // Regular character
+                    // Find the letter this represents
+                    const letter = Object.keys(brailleMap).find(key => brailleMap[key] === brailleChar);
+                    cellDiv.title = letter ? letter.toUpperCase() : brailleChar;
+                }
+                
+                // Create dots
+                for (let i = 0; i < 6; i++) {
+                    const dot = document.createElement('div');
+                    dot.className = `dot dot-${i+1} ${binary[i] === '1' ? 'filled' : ''}`;
+                    cellDiv.appendChild(dot);
+                }
+                
+                visualBrailleContainer.appendChild(cellDiv);
+            });
+        }
+
+        // Function to generate a fingerprint
+        async function generateFingerprint() {
+            const fingerprintStatus = document.getElementById('fingerprint-status');
+            const fingerprintData = document.getElementById('fingerprint-data');
+            
+            fingerprintStatus.textContent = 'Generating fingerprint...';
+            fingerprintStatus.className = 'status';
+            
+            try {
+                // Collect browser data
+                const components = {
+                    userAgent: navigator.userAgent,
+                    language: navigator.language,
+                    platform: navigator.platform,
+                    screenResolution: `${window.screen.width}x${window.screen.height}`,
+                    colorDepth: window.screen.colorDepth,
+                    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                    timezoneOffset: new Date().getTimezoneOffset(),
+                    localStorage: !!window.localStorage,
+                    sessionStorage: !!window.sessionStorage,
+                    cookiesEnabled: navigator.cookieEnabled,
+                    doNotTrack: navigator.doNotTrack,
+                    plugins: Array.from(navigator.plugins || []).map(p => p.name).join(','),
+                    timestamp: new Date().toISOString()
+                };
+                
+                // Create a hash of the components
+                const jsonComponents = JSON.stringify(components);
+                const hashBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(jsonComponents));
+                const hashArray = Array.from(new Uint8Array(hashBuffer));
+                const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+                
+                // Display the fingerprint
+                fingerprintStatus.textContent = 'Fingerprint generated successfully';
+                fingerprintStatus.className = 'status success';
+                
+                const fingerprintResult = {
+                    visitorId: hashHex,
+                    components: components,
+                    timestamp: new Date().toISOString()
+                };
+                
+                fingerprintData.textContent = JSON.stringify(fingerprintResult, null, 2);
+                return fingerprintResult;
+                
+            } catch (error) {
+                fingerprintStatus.textContent = 'Error generating fingerprint: ' + error.message;
+                fingerprintStatus.className = 'status error';
+                fingerprintData.textContent = '';
+                return null;
+            }
+        }
+
+        // Function to test API connection
+        async function testApiConnection() {
+            const apiStatus = document.getElementById('api-status');
+            const apiResponse = document.getElementById('api-response');
+            
+            apiStatus.textContent = 'Testing API connection...';
+            apiStatus.className = 'status';
+            
+            try {
+                const fingerprint = await generateFingerprint();
+                
+                if (!fingerprint) {
+                    throw new Error('Failed to generate fingerprint');
+                }
+                
+                const response = await fetch('/api/customFingerprint', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        visitorId: fingerprint.visitorId,
+                        hapticFeedbackEnabled: true,
+                        includeRawComponents: true
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'API request failed');
+                }
+                
+                apiStatus.textContent = 'API connection successful';
+                apiStatus.className = 'status success';
+                apiResponse.textContent = JSON.stringify(data, null, 2);
+                
+            } catch (error) {
+                apiStatus.textContent = 'API connection failed: ' + error.message;
+                apiStatus.className = 'status error';
+                apiResponse.textContent = '';
+            }
+        }
+
+        // Function to feel braille pattern
+        function feelBraillePattern() {
+            const brailleText = document.getElementById('braille-output').textContent;
+            if (!brailleText) return;
+            
+            const hapticMode = document.querySelector('input[name="haptic-mode"]:checked').value;
+            const intensity = parseInt(document.getElementById('intensity').value);
+            
+            // Start timing for haptic feedback
+            const hapticStartTime = performance.now();
+            
+            // Create a haptic pattern for the braille text
+            let fullPattern = [];
+            let totalDuration = 0;
+            
+            brailleText.split('').forEach(brailleChar => {
+                const binary = brailleBinaryMap[brailleChar] || '000000';
+                
+                // Add vibration for each dot that is filled
+                for (let i = 0; i < 6; i++) {
+                    if (binary[i] === '1') {
+                        const dotPattern = hapticPatterns[hapticMode][`dot${i+1}`];
+                        fullPattern = fullPattern.concat(dotPattern);
+                        // Calculate total duration
+                        totalDuration += dotPattern.reduce((sum, val) => sum + val, 0);
+                    }
+                }
+                
+                // Add pause between characters
+                fullPattern = fullPattern.concat(hapticPatterns[hapticMode].character);
+                totalDuration += hapticPatterns[hapticMode].character.reduce((sum, val) => sum + val, 0);
+            });
+            
+            // Display estimated haptic duration
+            document.getElementById('haptic-time').textContent = `${(totalDuration / 1000).toFixed(2)}s (estimated)`;
+            
+            // Trigger the haptic feedback
+            triggerHapticFeedback(fullPattern, intensity);
+            
+            // After haptic feedback completes (approximately), update the timing
+            setTimeout(() => {
+                const hapticEndTime = performance.now();
+                const hapticDuration = (hapticEndTime - hapticStartTime) / 1000;
+                document.getElementById('haptic-time').textContent = `${hapticDuration.toFixed(2)}s (actual)`;
+            }, totalDuration + 100);
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Settings toggle
+            document.getElementById('settings-toggle').addEventListener('click', function() {
+                document.getElementById('settings-panel').style.display = 'block';
+                setTimeout(() => {
+                    document.getElementById('settings-panel').classList.add('active');
+                }, 10);
+            });
+            
+            document.getElementById('close-settings').addEventListener('click', function() {
+                document.getElementById('settings-panel').classList.remove('active');
+                setTimeout(() => {
+                    document.getElementById('settings-panel').style.display = 'none';
+                }, 300); // Match the transition duration
+            });
+            
+            // Test haptic feedback button
+            document.getElementById('test-haptic').addEventListener('click', function() {
+                const hapticStatus = document.getElementById('haptic-status');
+                hapticStatus.style.display = 'block';
+                hapticStatus.textContent = 'Haptic feedback triggered successfully';
+                hapticStatus.className = 'status-message';
+                
+                // Create a simple test pattern based on selected mode
+                const hapticMode = document.querySelector('input[name="haptic-mode"]:checked').value;
+                const intensity = parseInt(document.getElementById('intensity').value);
+                const testPattern = hapticPatterns[hapticMode].dot1.concat(
+                    hapticPatterns[hapticMode].dot3,
+                    hapticPatterns[hapticMode].dot5,
+                    hapticPatterns[hapticMode].character
+                );
+                
+                triggerHapticFeedback(testPattern, intensity);
+                
+                // Hide status message after 3 seconds
+                setTimeout(() => {
+                    hapticStatus.style.display = 'none';
+                }, 3000);
+            });
+            
+            // Test API connection
+            document.getElementById('test-api').addEventListener('click', function() {
+                // Simulate API connection test
+                alert('API connection test successful!');
+            });
+            
+            // Update intensity value display
+            document.getElementById('intensity').addEventListener('input', function() {
+                document.getElementById('intensity-value').textContent = this.value;
+            });
+            
+            // Encode and feel braille pattern
+            document.getElementById('encode-and-feel').addEventListener('click', () => {
+                // Reset timing display
+                document.getElementById('visual-time').textContent = '-';
+                document.getElementById('haptic-time').textContent = '-';
+                
+                // Start timing for visual display
+                const visualStartTime = performance.now();
+                
+                const inputText = document.getElementById('input-text').value;
+                const brailleText = encodeToBraille(inputText);
+                const binaryText = brailleToBinary(brailleText);
+                
+                document.getElementById('braille-output').textContent = brailleText;
+                document.getElementById('binary-output').textContent = binaryText;
+                
+                createVisualBraille(brailleText);
+                
+                // End timing for visual display
+                const visualEndTime = performance.now();
+                const visualDuration = (visualEndTime - visualStartTime) / 1000;
+                document.getElementById('visual-time').textContent = `${visualDuration.toFixed(2)}s`;
+                
+                // Automatically trigger haptic feedback after encoding
+                setTimeout(feelBraillePattern, 500); // Small delay to ensure visual rendering completes
+            });
+        });
+        
+    </script>
+</body>
+</html>
