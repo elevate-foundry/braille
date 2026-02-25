@@ -1146,11 +1146,24 @@
     ];
 
     const FRONTIER_MODELS = [
-        { id: 'openai/gpt-4o', name: 'GPT-4o', weight: 1.0, color: '#10b981' },
-        { id: 'anthropic/claude-3.5-sonnet', name: 'Claude 3.5', weight: 1.0, color: '#d4a574' },
-        { id: 'google/gemini-2.0-flash-001', name: 'Gemini 2.0 Flash', weight: 1.0, color: '#60a5fa' },
-        { id: 'meta-llama/llama-3.1-70b-instruct', name: 'Llama 3.1 70B', weight: 0.9, color: '#a78bfa' },
-        { id: 'mistralai/mistral-large-2411', name: 'Mistral Large', weight: 0.9, color: '#f472b6' },
+        // ── Tier 1: Flagship frontier ──
+        { id: 'openai/gpt-4o', name: 'GPT-4o', weight: 1.0, color: '#10b981', tpm: 30000 },
+        { id: 'anthropic/claude-3.5-sonnet', name: 'Claude 3.5', weight: 1.0, color: '#d4a574', tpm: 40000 },
+        { id: 'google/gemini-2.0-flash-001', name: 'Gemini 2.0 Flash', weight: 1.0, color: '#60a5fa', tpm: 60000 },
+        // ── Tier 2: Strong frontier ──
+        { id: 'meta-llama/llama-3.1-70b-instruct', name: 'Llama 3.1 70B', weight: 0.9, color: '#a78bfa', tpm: 30000 },
+        { id: 'mistralai/mistral-large-2411', name: 'Mistral Large', weight: 0.9, color: '#f472b6', tpm: 30000 },
+        { id: 'qwen/qwen-2.5-72b-instruct', name: 'Qwen 2.5 72B', weight: 0.9, color: '#f97316', tpm: 30000 },
+        { id: 'deepseek/deepseek-chat', name: 'DeepSeek V3', weight: 0.9, color: '#14b8a6', tpm: 30000 },
+        // ── Tier 3: Fast / high-throughput ──
+        { id: 'openai/gpt-4o-mini', name: 'GPT-4o Mini', weight: 0.8, color: '#34d399', tpm: 60000 },
+        { id: 'anthropic/claude-3-haiku', name: 'Claude 3 Haiku', weight: 0.8, color: '#fbbf24', tpm: 50000 },
+        { id: 'google/gemini-2.0-flash-lite-001', name: 'Gemini 2.0 Lite', weight: 0.8, color: '#93c5fd', tpm: 80000 },
+        { id: 'meta-llama/llama-3.1-8b-instruct', name: 'Llama 3.1 8B', weight: 0.7, color: '#c084fc', tpm: 60000 },
+        { id: 'mistralai/mistral-small-2503', name: 'Mistral Small', weight: 0.7, color: '#fb7185', tpm: 50000 },
+        { id: 'qwen/qwen-2.5-7b-instruct', name: 'Qwen 2.5 7B', weight: 0.7, color: '#fdba74', tpm: 60000 },
+        { id: 'microsoft/phi-4', name: 'Phi-4', weight: 0.7, color: '#67e8f9', tpm: 50000 },
+        { id: 'deepseek/deepseek-r1', name: 'DeepSeek R1', weight: 0.85, color: '#2dd4bf', tpm: 30000 },
     ];
 
     class BrailleCRDT {

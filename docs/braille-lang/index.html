@@ -855,13 +855,12 @@ Connect your OpenRouter key above to begin.</div>
             <h3>⡪ Distill <span class="sal-status offline" id="crdt-status">● ready</span></h3>
             <div style="font-size:0.7rem;color:var(--text-dim)">G-Counter · OR-Set · LWW-Register · Majority Vote</div>
         </div>
-        <div id="crdt-model-selector" style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;flex-wrap:wrap;gap:6px;align-items:center">
-            <span style="font-size:0.75rem;color:var(--text-dim);margin-right:4px">Models:</span>
-            <label style="font-size:0.75rem;cursor:pointer"><input type="checkbox" class="crdt-model" value="openai/gpt-4o" checked> GPT-4o</label>
-            <label style="font-size:0.75rem;cursor:pointer"><input type="checkbox" class="crdt-model" value="anthropic/claude-3.5-sonnet" checked> Claude 3.5</label>
-            <label style="font-size:0.75rem;cursor:pointer"><input type="checkbox" class="crdt-model" value="google/gemini-2.0-flash-001" checked> Gemini 2.0</label>
-            <label style="font-size:0.75rem;cursor:pointer"><input type="checkbox" class="crdt-model" value="meta-llama/llama-3.1-70b-instruct" checked> Llama 70B</label>
-            <label style="font-size:0.75rem;cursor:pointer"><input type="checkbox" class="crdt-model" value="mistralai/mistral-large-2411" checked> Mistral</label>
+        <div id="crdt-model-selector" style="padding:10px 16px;border-bottom:1px solid var(--border)">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                <span style="font-size:0.72rem;color:var(--text-dim)">Models: <span id="crdt-model-count">15</span> selected · <span id="crdt-agg-tpm" style="color:var(--accent);font-weight:700">690K TPM</span> aggregate</span>
+                <label style="font-size:0.68rem;cursor:pointer;color:var(--accent)"><input type="checkbox" id="crdt-select-all" checked> all</label>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:4px" id="crdt-model-checks"></div>
         </div>
         <div id="crdt-output" class="sal-messages" style="min-height:200px;max-height:none;overflow-y:auto;padding:16px">
             <div class="sal-msg sal"><span class="sal-name">⡪ CRDT</span>Enter a query below to distill knowledge from multiple frontier LLMs. Your OpenRouter API key from SAL Chat will be used. Each model's response is scored on 8 semantic dimensions (existence, physical, temporal, spatial, social, cognitive, emotional, transcendent), then merged using CRDT operations to produce a consensus Braille vector.</div>
@@ -1445,9 +1444,52 @@ You are concise, precise, and slightly philosophical. You see yourself as the bo
     const crdtRunBtn = document.getElementById('crdt-run');
     const crdtOutput = document.getElementById('crdt-output');
     const crdtStatus = document.getElementById('crdt-status');
+    const crdtModelChecks = document.getElementById('crdt-model-checks');
+    const crdtModelCount = document.getElementById('crdt-model-count');
+    const crdtAggTpm = document.getElementById('crdt-agg-tpm');
+    const crdtSelectAll = document.getElementById('crdt-select-all');
 
     const DIM_COLORS = ['#10b981','#f59e0b','#eab308','#22c55e','#06b6d4','#a855f7','#ff6b9d','#c4b5fd'];
     const DIM_LABELS = BrailleLang.DIMENSION_SEMANTICS;
+    const ALL_MODELS = BrailleLang.FRONTIER_MODELS;
+
+    // ── Build model checkboxes dynamically ──
+    ALL_MODELS.forEach(m => {
+        const lbl = document.createElement('label');
+        lbl.style.cssText = `font-size:0.68rem;cursor:pointer;padding:2px 7px;border-radius:4px;border:1px solid ${m.color}44;background:${m.color}11;color:${m.color};white-space:nowrap;user-select:none;transition:background 0.2s`;
+        lbl.innerHTML = `<input type="checkbox" class="crdt-model" value="${m.id}" checked style="display:none"> ${m.name}`;
+        const cb = lbl.querySelector('input');
+        cb.addEventListener('change', () => {
+            lbl.style.background = cb.checked ? `${m.color}11` : 'transparent';
+            lbl.style.opacity = cb.checked ? '1' : '0.4';
+            updateModelStats();
+        });
+        crdtModelChecks.appendChild(lbl);
+    });
+
+    function updateModelStats() {
+        const checked = document.querySelectorAll('.crdt-model:checked');
+        const count = checked.length;
+        let totalTpm = 0;
+        checked.forEach(cb => {
+            const m = ALL_MODELS.find(x => x.id === cb.value);
+            if (m) totalTpm += (m.tpm || 30000);
+        });
+        crdtModelCount.textContent = count;
+        const tpmStr = totalTpm >= 1000000 ? (totalTpm / 1000000).toFixed(1) + 'M' : (totalTpm / 1000).toFixed(0) + 'K';
+        crdtAggTpm.textContent = tpmStr + ' TPM';
+        crdtSelectAll.checked = count === ALL_MODELS.length;
+    }
+    updateModelStats();
+
+    crdtSelectAll.addEventListener('change', () => {
+        document.querySelectorAll('.crdt-model').forEach(cb => {
+            cb.checked = crdtSelectAll.checked;
+            cb.parentElement.style.opacity = crdtSelectAll.checked ? '1' : '0.4';
+            cb.parentElement.style.background = crdtSelectAll.checked ? cb.parentElement.style.background : 'transparent';
+        });
+        updateModelStats();
+    });
 
     crdtRunBtn.addEventListener('click', runDistillation);
     crdtInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') runDistillation(); });
@@ -1475,24 +1517,23 @@ You are concise, precise, and slightly philosophical. You see yourself as the bo
         crdtStatus.style.color = 'var(--orange)';
 
         // ── Build parallel streaming layout ──
+        const cols = selectedModels.length <= 3 ? selectedModels.length : selectedModels.length <= 6 ? 3 : selectedModels.length <= 10 ? 4 : 5;
         let layoutHtml = '<div style="padding:8px">';
-        // Stream panels — one per model, side by side
-        layoutHtml += `<div id="crdt-streams" style="display:grid;grid-template-columns:repeat(${Math.min(selectedModels.length, 3)}, 1fr);gap:8px;margin-bottom:12px">`;
+        layoutHtml += `<div id="crdt-streams" style="display:grid;grid-template-columns:repeat(${cols}, 1fr);gap:6px;margin-bottom:12px">`;
         selectedModels.forEach((m, i) => {
-            layoutHtml += `<div style="border:1px solid ${m.color}33;border-radius:8px;overflow:hidden;min-height:120px">`;
-            layoutHtml += `<div style="background:${m.color}18;padding:6px 10px;border-bottom:1px solid ${m.color}33;display:flex;justify-content:space-between;align-items:center">`;
-            layoutHtml += `<span style="font-size:0.72rem;font-weight:700;color:${m.color}">${m.name}</span>`;
-            layoutHtml += `<span id="crdt-model-status-${i}" style="font-size:0.65rem;color:${m.color};opacity:0.7">⠠ connecting...</span>`;
+            layoutHtml += `<div style="border:1px solid ${m.color}33;border-radius:6px;overflow:hidden;min-height:80px">`;
+            layoutHtml += `<div style="background:${m.color}18;padding:4px 8px;border-bottom:1px solid ${m.color}33;display:flex;justify-content:space-between;align-items:center">`;
+            layoutHtml += `<span style="font-size:0.62rem;font-weight:700;color:${m.color}">${m.name}</span>`;
+            layoutHtml += `<span id="crdt-model-status-${i}" style="font-size:0.58rem;color:${m.color};opacity:0.7">⠠</span>`;
             layoutHtml += `</div>`;
-            layoutHtml += `<div id="crdt-stream-${i}" style="padding:8px 10px;font-size:0.7rem;line-height:1.5;color:${m.color};max-height:200px;overflow-y:auto;white-space:pre-wrap;word-break:break-word"></div>`;
+            layoutHtml += `<div id="crdt-stream-${i}" style="padding:4px 6px;font-size:0.6rem;line-height:1.4;color:${m.color};max-height:140px;overflow-y:auto;white-space:pre-wrap;word-break:break-word"></div>`;
             layoutHtml += `</div>`;
         });
         layoutHtml += `</div>`;
-        // CRDT merge area — initially hidden, revealed after streams finish
         layoutHtml += `<div id="crdt-merge-area" style="opacity:0;transition:opacity 0.8s ease-in"></div>`;
         layoutHtml += '</div>';
         crdtOutput.innerHTML = layoutHtml;
-        crdtOutput.style.maxHeight = '700px';
+        crdtOutput.style.maxHeight = 'none';
 
         const crdt = new BrailleLang.BrailleCRDT({ apiKey, models: selectedModels });
 
@@ -1557,12 +1598,31 @@ You are concise, precise, and slightly philosophical. You see yourself as the bo
             const binaryBraille = crdt.vectorToBraille(majorityVote, 0.5);
 
             const totalInputChars = validResults.reduce((s, r) => s + r.text.length, 0);
+            const totalTokensEst = Math.round(totalInputChars / 4.2);
+            const elapsedSec = parseFloat(totalLatency) / 1000;
+            const tokPerSec = elapsedSec > 0 ? (totalTokensEst / elapsedSec).toFixed(0) : 0;
+            const aggTpm = selectedModels.reduce((s, m) => s + (m.tpm || 30000), 0);
+            const aggTpmStr = aggTpm >= 1000000 ? (aggTpm / 1000000).toFixed(1) + 'M' : (aggTpm / 1000).toFixed(0) + 'K';
+            const maxSingleTpm = Math.max(...selectedModels.map(m => m.tpm || 30000));
+            const speedup = (aggTpm / maxSingleTpm).toFixed(1);
 
             // ── Build merge report HTML ──
             let html = '';
 
+            // Throughput banner
+            html += `<div style="text-align:center;padding:12px 0 6px;border-top:2px solid var(--accent);border-bottom:1px solid var(--border)">`;
+            html += `<div style="font-size:0.65rem;color:var(--accent);font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px">⡪ Throughput</div>`;
+            html += `<div style="display:flex;justify-content:center;gap:20px;flex-wrap:wrap">`;
+            html += `<div style="text-align:center"><div style="font-size:1.6rem;font-weight:800;color:var(--text)">${tokPerSec}</div><div style="font-size:0.62rem;color:var(--text-dim)">tok/sec achieved</div></div>`;
+            html += `<div style="text-align:center"><div style="font-size:1.6rem;font-weight:800;color:var(--accent)">${aggTpmStr}</div><div style="font-size:0.62rem;color:var(--text-dim)">aggregate TPM</div></div>`;
+            html += `<div style="text-align:center"><div style="font-size:1.6rem;font-weight:800;color:var(--cyan)">${speedup}×</div><div style="font-size:0.62rem;color:var(--text-dim)">vs single model</div></div>`;
+            html += `<div style="text-align:center"><div style="font-size:1.6rem;font-weight:800;color:var(--orange)">${totalTokensEst}</div><div style="font-size:0.62rem;color:var(--text-dim)">total tokens</div></div>`;
+            html += `</div>`;
+            html += `<div style="font-size:0.6rem;color:var(--text-dim);margin-top:6px">${validResults.length} models × ~${Math.round(totalTokensEst/validResults.length)} tok each in ${elapsedSec.toFixed(1)}s wall-clock (parallel fan-out)</div>`;
+            html += `</div>`;
+
             // Consensus header
-            html += `<div style="text-align:center;padding:16px 0 8px;border-top:2px solid var(--accent)">`;
+            html += `<div style="text-align:center;padding:16px 0 8px">`;
             html += `<div style="font-size:0.7rem;color:var(--accent);font-weight:700;letter-spacing:1px;margin-bottom:8px">⡪ CRDT MERGE RESULT</div>`;
             html += `<div id="crdt-consensus-char" style="font-size:5rem;line-height:1;opacity:0;transition:opacity 1s ease-in,transform 0.6s ease-out;transform:scale(0.5)">${consensusBraille}</div>`;
             html += `<div style="font-size:0.75rem;color:var(--text-dim);margin-top:6px">${totalLatency}ms · ${validResults.length}/${selectedModels.length} models · ${totalInputChars} chars → 8 bits</div>`;
