@@ -1026,7 +1026,7 @@
                             'Authorization': `Bearer ${this.apiKey}`,
                             'Content-Type': 'application/json',
                             'HTTP-Referer': 'https://elevate-foundry.github.io/braille/braille-lang/',
-                            'X-Title': 'SAL Edge Runtime',
+                            'X-Title': 'SAL Edge Runtime - BrailleLang',
                         },
                         body: JSON.stringify({
                             model: this.model,
@@ -1067,7 +1067,7 @@
                             'Authorization': `Bearer ${this.apiKey}`,
                             'Content-Type': 'application/json',
                             'HTTP-Referer': 'https://elevate-foundry.github.io/braille/braille-lang/',
-                            'X-Title': 'SAL Edge Runtime',
+                            'X-Title': 'SAL Edge Runtime - BrailleLang',
                         },
                         body: JSON.stringify({
                             model: this.model,
@@ -1189,7 +1189,7 @@
                             'Authorization': `Bearer ${this.apiKey}`,
                             'Content-Type': 'application/json',
                             'HTTP-Referer': 'https://elevate-foundry.github.io/braille/braille-lang/',
-                            'X-Title': 'BrailleCRDT Distillation',
+                            'X-Title': 'BrailleCRDT Distillation - BrailleLang',
                         },
                         signal: controller.signal,
                         body: JSON.stringify({
