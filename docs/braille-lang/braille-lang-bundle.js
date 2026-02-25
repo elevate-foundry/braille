@@ -1166,6 +1166,29 @@
         { id: 'deepseek/deepseek-r1', name: 'DeepSeek R1', weight: 0.85, color: '#2dd4bf', tpm: 30000 },
     ];
 
+    const CRDT_SYSTEM_PROMPT = `You are a BrailleCRDT scoring node in the system at https://elevate-foundry.github.io/braille/braille-lang/
+
+Your ONLY job: given a user query, output exactly 8 floating-point numbers (0.0 to 1.0) separated by commas. Nothing else. No words, no explanation, no markdown.
+
+Each number scores how strongly the query relates to one of the 8 semantic dimensions of 8-dot Braille (Unicode U+2800-U+28FF), as defined by the BrailleConceptAtlas:
+
+d0 EXISTENCE (being, presence, ontological truth, identity)
+d1 PHYSICAL (material, body, tangible, energy, matter)
+d2 TEMPORAL (time, change, process, duration, history)
+d3 SPATIAL (space, structure, form, geometry, pattern)
+d4 SOCIAL (relation, community, culture, interpersonal)
+d5 COGNITIVE (mind, knowledge, thought, logic, reason)
+d6 EMOTIONAL (feeling, affect, valence, mood, empathy)
+d7 TRANSCENDENT (abstract, spiritual, metaphysical, infinite)
+
+Example query: "What is love?"
+Example output: 0.7,0.2,0.3,0.1,0.8,0.4,1.0,0.6
+
+Example query: "How does gravity work?"
+Example output: 0.5,0.9,0.4,0.8,0.1,0.7,0.1,0.3
+
+RESPOND WITH ONLY 8 COMMA-SEPARATED NUMBERS. NOTHING ELSE.`;
+
     class BrailleCRDT {
         constructor(opts = {}) {
             this.apiKey = opts.apiKey || null;
@@ -1208,11 +1231,11 @@
                         body: JSON.stringify({
                             model: model.id,
                             messages: [
-                                { role: 'system', content: 'You are a precise, factual AI. Give concise, information-dense answers. Focus on core truths.' },
+                                { role: 'system', content: CRDT_SYSTEM_PROMPT },
                                 { role: 'user', content: prompt },
                             ],
-                            max_tokens: maxTokens,
-                            temperature: 0.3,
+                            max_tokens: 80,
+                            temperature: 0.1,
                         }),
                     });
 
@@ -1271,11 +1294,11 @@
                         body: JSON.stringify({
                             model: model.id,
                             messages: [
-                                { role: 'system', content: 'You are a precise, factual AI. Give concise, information-dense answers. Focus on core truths.' },
+                                { role: 'system', content: CRDT_SYSTEM_PROMPT },
                                 { role: 'user', content: prompt },
                             ],
-                            max_tokens: maxTokens,
-                            temperature: 0.3,
+                            max_tokens: 80,
+                            temperature: 0.1,
                             stream: true,
                         }),
                     });
@@ -1346,16 +1369,16 @@
             const onRoundDone = opts.onRoundDone || (() => {});
 
             const facets = [
-                `Answer precisely: ${prompt}`,
-                `What are the key facts about: ${prompt}`,
-                `Explain the mechanisms or causes: ${prompt}`,
-                `What are the implications or consequences: ${prompt}`,
-                `Give a contrarian or alternative perspective: ${prompt}`,
-                `Summarize the historical context: ${prompt}`,
-                `What are common misconceptions about: ${prompt}`,
-                `What would an expert say about: ${prompt}`,
-                `Give a practical, real-world perspective: ${prompt}`,
-                `What is the future outlook: ${prompt}`,
+                prompt,
+                `Score the core meaning of: ${prompt}`,
+                `Score the physical and material aspects of: ${prompt}`,
+                `Score the temporal and causal aspects of: ${prompt}`,
+                `Score the social and relational aspects of: ${prompt}`,
+                `Score the emotional and experiential aspects of: ${prompt}`,
+                `Score from an expert perspective: ${prompt}`,
+                `Score the abstract and philosophical aspects of: ${prompt}`,
+                `Score the practical, real-world implications of: ${prompt}`,
+                `Score contrarian/alternative interpretation of: ${prompt}`,
             ];
 
             const allRounds = [];
@@ -1444,37 +1467,40 @@ Reply ONLY with 8 numbers separated by commas, like: 0.8,0.2,0.5,0.1,0.3,0.9,0.4
         }
 
         /**
-         * Extract 8D semantic vector from a model's response.
-         * Uses a fast heuristic first, then optionally refines with LLM scoring.
+         * Parse a model's response as an 8D semantic vector.
+         * Expects "0.8,0.2,0.5,0.1,0.3,0.9,0.4,0.7" format.
+         * Falls back to keyword heuristic if parsing fails.
          */
         textToSemanticVector(text) {
+            // Try to parse 8 floats from the response
+            const parsed = this._parseVectorResponse(text);
+            if (parsed) return parsed;
+            // Fallback: keyword heuristic
+            return this._keywordHeuristic(text);
+        }
+
+        _parseVectorResponse(text) {
+            // Extract all floats from the text
+            const nums = text.match(/[01]?\.\d+|[01](?:\.0)?/g);
+            if (!nums || nums.length < 8) return null;
+            const v = new Float64Array(8);
+            for (let i = 0; i < 8; i++) {
+                v[i] = Math.max(0, Math.min(1, parseFloat(nums[i])));
+            }
+            return v;
+        }
+
+        _keywordHeuristic(text) {
             const lower = text.toLowerCase();
             const v = new Float64Array(8);
-
-            // d₀ existence — being, is, exists, truth, real, fundamental
             v[0] = this._wordScore(lower, ['exist','being','is','truth','real','fundament','ontolog','essence','nature','meaning','purpose','conscious']);
-
-            // d₁ physical — body, matter, material, concrete, tangible
             v[1] = this._wordScore(lower, ['physic','body','matter','material','tangib','concret','brain','organ','cell','atom','energy','force','object']);
-
-            // d₂ temporal — time, change, process, evolve, history
             v[2] = this._wordScore(lower, ['time','chang','process','evolv','histor','future','past','present','sequen','develop','progress','phase','stage']);
-
-            // d₃ spatial — space, structure, form, pattern, geometry
             v[3] = this._wordScore(lower, ['space','structur','form','pattern','geometr','shape','dimension','layer','network','archite','topolog','system']);
-
-            // d₄ social — relation, community, people, culture, society
             v[4] = this._wordScore(lower, ['social','relat','communit','people','cultur','societ','human','person','group','interact','cooper','language','communicat']);
-
-            // d₅ cognitive — mind, knowledge, thought, logic, reason
             v[5] = this._wordScore(lower, ['mind','knowledge','thought','logic','reason','cognit','intellig','learn','understand','think','comput','algorithm','process','inform']);
-
-            // d₆ emotional — feeling, affect, experience, subjective
             v[6] = this._wordScore(lower, ['feel','emotion','affect','experienc','subjectiv','love','fear','joy','pain','empathy','mood','sentiment','passion']);
-
-            // d₇ transcendent — abstract, spiritual, metaphysical, beyond
             v[7] = this._wordScore(lower, ['abstract','spirit','metaphys','transcend','beyond','infinit','universal','divine','cosmic','sacred','mystic','philosophi','consciousness']);
-
             return v;
         }
 
