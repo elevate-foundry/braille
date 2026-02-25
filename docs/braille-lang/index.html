@@ -1600,8 +1600,15 @@ You are concise, precise, and slightly philosophical. You see yourself as the bo
             const validResults = results.filter(r => !r.error && r.text.length > 0);
 
             if (validResults.length === 0) {
-                document.getElementById('crdt-merge-area').innerHTML = '<div style="text-align:center;padding:20px;color:var(--red)">⠻ All models failed</div>';
-                document.getElementById('crdt-merge-area').style.opacity = '1';
+                const mergeEl = document.getElementById('crdt-merge-area');
+                if (mergeEl) {
+                    mergeEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--red)">⠻ All models failed</div>';
+                    mergeEl.style.opacity = '1';
+                }
+                crdtStatus.textContent = '● error';
+                crdtStatus.style.color = 'var(--red)';
+                crdtRunBtn.disabled = false;
+                crdtInput.disabled = false;
                 return;
             }
 
