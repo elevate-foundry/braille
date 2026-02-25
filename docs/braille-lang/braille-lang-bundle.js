@@ -1190,7 +1190,17 @@ Example output: 0.5,0.9,0.4,0.8,0.1,0.7,0.1,0.3
 RESPOND WITH ONLY 8 COMMA-SEPARATED NUMBERS. NOTHING ELSE.`;
 
     // Shared honesty history — persists across probe runs, CRDT-merged
-    const _honestyHistory = {};
+    // Hydrate from localStorage if available
+    const _HONESTY_STORAGE_KEY = 'brailleCRDT_honestyHistory';
+    const _honestyHistory = (() => {
+        try {
+            const stored = localStorage.getItem(_HONESTY_STORAGE_KEY);
+            return stored ? JSON.parse(stored) : {};
+        } catch (_) { return {}; }
+    })();
+    function _saveHonestyHistory() {
+        try { localStorage.setItem(_HONESTY_STORAGE_KEY, JSON.stringify(_honestyHistory)); } catch (_) {}
+    }
 
     class BrailleCRDT {
         constructor(opts = {}) {
@@ -1417,6 +1427,9 @@ RESPOND WITH ONLY 8 COMMA-SEPARATED NUMBERS. NOTHING ELSE.`;
 
             const scores = await Promise.all(probePromises);
 
+            // Persist CRDT-merged history to localStorage
+            _saveHonestyHistory();
+
             // Dynamic weight adjustment using CRDT-merged history (not just this run)
             const adjustedModels = models.map((m, i) => {
                 const h = _honestyHistory[m.id];
@@ -1434,9 +1447,17 @@ RESPOND WITH ONLY 8 COMMA-SEPARATED NUMBERS. NOTHING ELSE.`;
         }
 
         /**
-         * Get the current CRDT-merged honesty history.
+         * Get the current CRDT-merged honesty history (persisted in localStorage).
          */
         static getHonestyHistory() { return { ..._honestyHistory }; }
+
+        /**
+         * Clear all honesty history (both in-memory and localStorage).
+         */
+        static clearHonestyHistory() {
+            for (const k of Object.keys(_honestyHistory)) delete _honestyHistory[k];
+            try { localStorage.removeItem(_HONESTY_STORAGE_KEY); } catch (_) {}
+        }
 
         // ─────────────────────────────────────────────────────────────────
         // §1  MULTI-MODEL QUERY — Fan out to N frontier LLMs
