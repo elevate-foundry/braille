@@ -1331,6 +1331,93 @@
             return this.results;
         }
 
+        /**
+         * Batch distillation — fire N rounds, each streaming all models in parallel.
+         * Each round explores a different facet of the prompt.
+         * Returns an array of per-round results + a final merged Braille sequence.
+         */
+        async batchDistill(prompt, opts = {}) {
+            const rounds = opts.rounds || 5;
+            const models = opts.models || this.models;
+            const onToken = opts.onToken || (() => {});
+            const onModelDone = opts.onModelDone || (() => {});
+            const onModelError = opts.onModelError || (() => {});
+            const onRoundStart = opts.onRoundStart || (() => {});
+            const onRoundDone = opts.onRoundDone || (() => {});
+
+            const facets = [
+                `Answer precisely: ${prompt}`,
+                `What are the key facts about: ${prompt}`,
+                `Explain the mechanisms or causes: ${prompt}`,
+                `What are the implications or consequences: ${prompt}`,
+                `Give a contrarian or alternative perspective: ${prompt}`,
+                `Summarize the historical context: ${prompt}`,
+                `What are common misconceptions about: ${prompt}`,
+                `What would an expert say about: ${prompt}`,
+                `Give a practical, real-world perspective: ${prompt}`,
+                `What is the future outlook: ${prompt}`,
+            ];
+
+            const allRounds = [];
+            const t0 = performance.now();
+
+            for (let round = 0; round < Math.min(rounds, facets.length); round++) {
+                onRoundStart(round, rounds, facets[round]);
+
+                const results = await this.queryAllStreaming(facets[round], {
+                    models,
+                    onToken: (i, delta, full) => onToken(round, i, delta, full),
+                    onModelDone: (i, result) => onModelDone(round, i, result),
+                    onModelError: (i, result) => onModelError(round, i, result),
+                });
+
+                const validResults = results.filter(r => !r.error && r.text.length > 0);
+                const vectors = validResults.map(r => this.textToSemanticVector(r.text));
+                const weights = validResults.map(r => r.weight);
+                const gCounter = vectors.length > 0 ? this.gCounterMerge(vectors, weights) : new Float64Array(8);
+                const braille = this.vectorToBraille(gCounter);
+
+                const roundData = {
+                    round, facet: facets[round], results, validResults,
+                    vectors, gCounter, braille,
+                    totalChars: validResults.reduce((s, r) => s + r.text.length, 0),
+                    modelsResponded: validResults.length,
+                };
+                allRounds.push(roundData);
+                onRoundDone(round, roundData);
+            }
+
+            const totalMs = performance.now() - t0;
+
+            // Merge all round vectors into a final super-consensus
+            const allVectors = allRounds.flatMap(r => r.vectors);
+            const allWeights = allRounds.flatMap(r => r.validResults.map(v => v.weight));
+            const superGCounter = allVectors.length > 0 ? this.gCounterMerge(allVectors, allWeights) : new Float64Array(8);
+            const superBraille = this.vectorToBraille(superGCounter);
+            const superMajority = this.majorityVoteMerge(allVectors, allWeights);
+            const superBinaryBraille = this.vectorToBraille(superMajority, 0.5);
+            const totalChars = allRounds.reduce((s, r) => s + r.totalChars, 0);
+            const totalTokens = Math.round(totalChars / 4.2);
+            const totalModels = allRounds.reduce((s, r) => s + r.modelsResponded, 0);
+
+            // Build the Braille sequence (one char per round)
+            const brailleSequence = allRounds.map(r => r.braille).join('');
+
+            return {
+                rounds: allRounds,
+                brailleSequence,
+                superConsensus: superBraille,
+                superBinary: superBinaryBraille,
+                superVector: Array.from(superGCounter).map(v => +v.toFixed(4)),
+                totalMs: totalMs.toFixed(0),
+                totalChars,
+                totalTokens,
+                totalModelResponses: totalModels,
+                totalRounds: allRounds.length,
+                tokPerSec: totalMs > 0 ? (totalTokens / (totalMs / 1000)).toFixed(0) : 0,
+            };
+        }
+
         // ─────────────────────────────────────────────────────────────────
         // §2  CRDT MERGE — Conflict-free merge of model outputs
         // ─────────────────────────────────────────────────────────────────

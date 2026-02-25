@@ -865,9 +865,16 @@ Connect your OpenRouter key above to begin.</div>
         <div id="crdt-output" class="sal-messages" style="min-height:200px;max-height:none;overflow-y:auto;padding:16px">
             <div class="sal-msg sal"><span class="sal-name">⡪ CRDT</span>Enter a query below to distill knowledge from multiple frontier LLMs. Your OpenRouter API key from SAL Chat will be used. Each model's response is scored on 8 semantic dimensions (existence, physical, temporal, spatial, social, cognitive, emotional, transcendent), then merged using CRDT operations to produce a consensus Braille vector.</div>
         </div>
-        <div class="sal-chat-input">
+        <div class="sal-chat-input" style="gap:6px">
             <input type="text" id="crdt-input" placeholder="What is consciousness? / Explain quantum entanglement / ..." style="flex:1">
             <button id="crdt-run" style="cursor:pointer">⡪ Distill</button>
+            <select id="crdt-rounds" style="font-size:0.7rem;padding:4px 6px;background:var(--bg-code);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer">
+                <option value="3">3 rounds</option>
+                <option value="5" selected>5 rounds</option>
+                <option value="7">7 rounds</option>
+                <option value="10">10 rounds</option>
+            </select>
+            <button id="crdt-batch" style="cursor:pointer;background:var(--accent);color:#000;font-weight:700;padding:6px 12px;border:none;border-radius:4px;font-size:0.75rem;white-space:nowrap">⣿ BATCH</button>
         </div>
     </div>
 </section>
@@ -1706,6 +1713,149 @@ You are concise, precise, and slightly philosophical. You see yourself as the bo
             crdtStatus.style.color = 'var(--red)';
         } finally {
             crdtRunBtn.disabled = false;
+            crdtInput.disabled = false;
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // §9  BATCH DISTILLATION — N rounds × M models
+    // ═══════════════════════════════════════════════════════════════════════
+
+    const crdtBatchBtn = document.getElementById('crdt-batch');
+    const crdtRoundsSelect = document.getElementById('crdt-rounds');
+    crdtBatchBtn.addEventListener('click', runBatchDistillation);
+
+    async function runBatchDistillation() {
+        const query = crdtInput.value.trim();
+        if (!query) return;
+
+        const apiKey = sessionStorage.getItem('sal_api_key');
+        if (!apiKey) {
+            crdtOutput.innerHTML = '<div class="sal-msg sal"><span class="sal-name">⡪ CRDT</span>⠻ No API key.</div>';
+            return;
+        }
+
+        const checked = document.querySelectorAll('.crdt-model:checked');
+        if (checked.length === 0) {
+            crdtOutput.innerHTML = '<div class="sal-msg sal"><span class="sal-name">⡪ CRDT</span>⠻ Select at least one model.</div>';
+            return;
+        }
+        const selectedModels = Array.from(checked).map(cb => BrailleLang.FRONTIER_MODELS.find(m => m.id === cb.value)).filter(Boolean);
+        const rounds = parseInt(crdtRoundsSelect.value);
+
+        crdtRunBtn.disabled = true;
+        crdtBatchBtn.disabled = true;
+        crdtInput.disabled = true;
+        crdtStatus.textContent = '● batch mode...';
+        crdtStatus.style.color = 'var(--accent)';
+
+        // Build batch layout
+        let html = '<div style="padding:8px">';
+        html += `<div style="text-align:center;margin-bottom:10px">`;
+        html += `<div style="font-size:0.65rem;color:var(--accent);font-weight:700;letter-spacing:2px">⣿ BATCH DISTILLATION</div>`;
+        html += `<div style="font-size:0.7rem;color:var(--text-dim)">${rounds} rounds × ${selectedModels.length} models = ${rounds * selectedModels.length} parallel streams</div>`;
+        html += `<div id="batch-braille-seq" style="font-size:2.5rem;margin:8px 0;min-height:3rem;letter-spacing:4px"></div>`;
+        html += `<div id="batch-progress" style="font-size:0.7rem;color:var(--text-dim)"></div>`;
+        html += `</div>`;
+        html += `<div id="batch-rounds"></div>`;
+        html += `<div id="batch-final" style="opacity:0;transition:opacity 0.8s"></div>`;
+        html += '</div>';
+        crdtOutput.innerHTML = html;
+
+        const crdt = new BrailleLang.BrailleCRDT({ apiKey, models: selectedModels });
+        const brailleSeqEl = document.getElementById('batch-braille-seq');
+        const batchRoundsEl = document.getElementById('batch-rounds');
+        const batchProgressEl = document.getElementById('batch-progress');
+
+        try {
+            const report = await crdt.batchDistill(query, {
+                rounds,
+                models: selectedModels,
+                onRoundStart: (round, total, facet) => {
+                    crdtStatus.textContent = `● round ${round + 1}/${total}`;
+                    batchProgressEl.textContent = `Round ${round + 1}/${total}: ${facet.split(':')[0]}...`;
+                    // Add round container
+                    const div = document.createElement('div');
+                    div.id = `batch-round-${round}`;
+                    div.style.cssText = 'margin-bottom:8px;border:1px solid var(--border);border-radius:6px;overflow:hidden;opacity:0.5;transition:opacity 0.3s';
+                    div.innerHTML = `<div style="padding:4px 8px;background:var(--bg-code);font-size:0.62rem;color:var(--text-dim);display:flex;justify-content:space-between"><span>R${round + 1}: ${facet.split(':')[0]}</span><span id="batch-round-status-${round}">⠠ streaming ${selectedModels.length} models...</span></div>`;
+                    // Mini grid for this round
+                    const cols = Math.min(selectedModels.length, 5);
+                    let grid = `<div style="display:grid;grid-template-columns:repeat(${cols}, 1fr);gap:3px;padding:4px">`;
+                    selectedModels.forEach((m, i) => {
+                        grid += `<div id="batch-r${round}-m${i}" style="font-size:0.55rem;color:${m.color};padding:2px 4px;max-height:60px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis"></div>`;
+                    });
+                    grid += '</div>';
+                    div.innerHTML += grid;
+                    batchRoundsEl.appendChild(div);
+                },
+                onToken: (round, i, delta, full) => {
+                    const el = document.getElementById(`batch-r${round}-m${i}`);
+                    if (el) el.textContent = full.slice(-80);
+                },
+                onModelDone: (round, i, result) => {
+                    const el = document.getElementById(`batch-r${round}-m${i}`);
+                    if (el) el.style.opacity = '1';
+                },
+                onModelError: (round, i, result) => {
+                    const el = document.getElementById(`batch-r${round}-m${i}`);
+                    if (el) { el.textContent = '⠻'; el.style.color = 'var(--red)'; }
+                },
+                onRoundDone: (round, data) => {
+                    const roundEl = document.getElementById(`batch-round-${round}`);
+                    if (roundEl) roundEl.style.opacity = '1';
+                    const statusEl = document.getElementById(`batch-round-status-${round}`);
+                    if (statusEl) statusEl.textContent = `✓ ${data.modelsResponded} models · ${data.totalChars} chars → ${data.braille}`;
+                    // Grow the braille sequence
+                    brailleSeqEl.textContent = (brailleSeqEl.textContent || '') + data.braille;
+                },
+            });
+
+            // Final report
+            batchProgressEl.textContent = 'Merging all rounds...';
+            await new Promise(r => setTimeout(r, 500));
+
+            const aggTpm = selectedModels.reduce((s, m) => s + (m.tpm || 30000), 0);
+            const aggTpmStr = aggTpm >= 1000000 ? (aggTpm / 1000000).toFixed(1) + 'M' : (aggTpm / 1000).toFixed(0) + 'K';
+            const speedup = (aggTpm / Math.max(...selectedModels.map(m => m.tpm || 30000))).toFixed(1);
+
+            let finalHtml = '';
+            finalHtml += `<div style="text-align:center;padding:16px 0 8px;border-top:2px solid var(--accent)">`;
+            finalHtml += `<div style="font-size:0.65rem;color:var(--accent);font-weight:700;letter-spacing:2px;margin-bottom:6px">⣿ BATCH RESULT</div>`;
+            finalHtml += `<div style="font-size:3rem;letter-spacing:6px;margin:8px 0">${report.brailleSequence}</div>`;
+            finalHtml += `<div style="font-size:0.7rem;color:var(--text-dim)">${report.totalRounds} rounds · ${report.brailleSequence.length} braille chars · super-consensus: <span style="font-size:1.8rem">${report.superConsensus}</span></div>`;
+            finalHtml += `</div>`;
+
+            // Throughput banner
+            finalHtml += `<div style="display:flex;justify-content:center;gap:20px;flex-wrap:wrap;padding:12px 0;border-bottom:1px solid var(--border)">`;
+            finalHtml += `<div style="text-align:center"><div style="font-size:1.8rem;font-weight:800;color:var(--text)">${report.tokPerSec}</div><div style="font-size:0.6rem;color:var(--text-dim)">tok/sec</div></div>`;
+            finalHtml += `<div style="text-align:center"><div style="font-size:1.8rem;font-weight:800;color:var(--accent)">${aggTpmStr}</div><div style="font-size:0.6rem;color:var(--text-dim)">aggregate TPM</div></div>`;
+            finalHtml += `<div style="text-align:center"><div style="font-size:1.8rem;font-weight:800;color:var(--cyan)">${speedup}×</div><div style="font-size:0.6rem;color:var(--text-dim)">vs single model</div></div>`;
+            finalHtml += `<div style="text-align:center"><div style="font-size:1.8rem;font-weight:800;color:var(--orange)">${report.totalTokens}</div><div style="font-size:0.6rem;color:var(--text-dim)">total tokens</div></div>`;
+            finalHtml += `<div style="text-align:center"><div style="font-size:1.8rem;font-weight:800;color:var(--purple)">${report.totalModelResponses}</div><div style="font-size:0.6rem;color:var(--text-dim)">model responses</div></div>`;
+            finalHtml += `</div>`;
+
+            // Stats line
+            finalHtml += `<div style="text-align:center;padding:8px 0;font-size:0.62rem;color:var(--text-dim)">`;
+            finalHtml += `${report.totalRounds} rounds × ${selectedModels.length} models = ${report.totalModelResponses} parallel streams in ${(report.totalMs / 1000).toFixed(1)}s wall-clock`;
+            finalHtml += `<br>${report.totalChars} chars → ${report.brailleSequence.length} braille chars (${Math.round(report.totalChars / report.brailleSequence.length)}:1 compression per char)`;
+            finalHtml += `</div>`;
+
+            const finalEl = document.getElementById('batch-final');
+            finalEl.innerHTML = finalHtml;
+            finalEl.style.opacity = '1';
+            batchProgressEl.textContent = `✓ Complete — ${report.totalMs}ms`;
+
+            crdtStatus.textContent = '● done';
+            crdtStatus.style.color = 'var(--green)';
+
+        } catch (e) {
+            crdtOutput.innerHTML += `<div class="sal-msg sal" style="color:var(--red)"><span class="sal-name">⡪ CRDT</span>⠻ ${e.message}</div>`;
+            crdtStatus.textContent = '● error';
+            crdtStatus.style.color = 'var(--red)';
+        } finally {
+            crdtRunBtn.disabled = false;
+            crdtBatchBtn.disabled = false;
             crdtInput.disabled = false;
         }
     }
