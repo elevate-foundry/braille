@@ -1148,9 +1148,9 @@
     const FRONTIER_MODELS = [
         { id: 'openai/gpt-4o', name: 'GPT-4o', weight: 1.0 },
         { id: 'anthropic/claude-3.5-sonnet', name: 'Claude 3.5', weight: 1.0 },
-        { id: 'google/gemini-pro-1.5', name: 'Gemini 1.5', weight: 1.0 },
+        { id: 'google/gemini-2.0-flash-001', name: 'Gemini 2.0 Flash', weight: 1.0 },
         { id: 'meta-llama/llama-3.1-70b-instruct', name: 'Llama 3.1 70B', weight: 0.9 },
-        { id: 'mistralai/mistral-large', name: 'Mistral Large', weight: 0.9 },
+        { id: 'mistralai/mistral-large-2411', name: 'Mistral Large', weight: 0.9 },
     ];
 
     class BrailleCRDT {
