@@ -1166,7 +1166,7 @@
         { id: 'deepseek/deepseek-r1', name: 'DeepSeek R1', weight: 0.85, color: '#2dd4bf', tpm: 30000 },
     ];
 
-    const CRDT_SYSTEM_PROMPT = `You are a BrailleCRDT scoring node in the system at https://elevate-foundry.github.io/braille/braille-lang/
+    const CRDT_SYSTEM_PROMPT_BASE = `You are a BrailleCRDT scoring node in the system at https://elevate-foundry.github.io/braille/braille-lang/
 
 Your ONLY job: given a user query, output exactly 8 floating-point numbers (0.0 to 1.0) separated by commas. Nothing else. No words, no explanation, no markdown.
 
@@ -1189,6 +1189,9 @@ Example output: 0.5,0.9,0.4,0.8,0.1,0.7,0.1,0.3
 
 RESPOND WITH ONLY 8 COMMA-SEPARATED NUMBERS. NOTHING ELSE.`;
 
+    // Shared honesty history — persists across probe runs, CRDT-merged
+    const _honestyHistory = {};
+
     class BrailleCRDT {
         constructor(opts = {}) {
             this.apiKey = opts.apiKey || null;
@@ -1205,13 +1208,15 @@ RESPOND WITH ONLY 8 COMMA-SEPARATED NUMBERS. NOTHING ELSE.`;
         // §0  HONESTY PROBE — Calibrate model trustworthiness
         // ─────────────────────────────────────────────────────────────────
 
+        static get PROBE_TYPE_NAMES() { return ['bit-pattern', 'freq-bands', 'vector', 'dot-count']; }
+
         /**
-         * Generate a deterministic probe with a computable ground truth answer.
-         * Returns { prompt, expectedAnswer, verify(response) → score 0-1 }
+         * Generate a probe for a SPECIFIC type and braille codepoint.
+         * @param {number} probeType - 0=bit-pattern, 1=freq-bands, 2=vector, 3=dot-count
+         * @param {number} [forceOffset] - specific braille offset (0-255), random if omitted
          */
-        static _generateProbe() {
-            // Pick a random braille codepoint in U+2800–U+28FF
-            const offset = Math.floor(Math.random() * 256);
+        static _generateProbe(probeType, forceOffset) {
+            const offset = forceOffset !== undefined ? forceOffset : Math.floor(Math.random() * 256);
             const codePoint = 0x2800 + offset;
             const char = String.fromCodePoint(codePoint);
             const bits = offset.toString(2).padStart(8, '0');
@@ -1220,44 +1225,41 @@ RESPOND WITH ONLY 8 COMMA-SEPARATED NUMBERS. NOTHING ELSE.`;
             const FREQ_BANDS = [200, 400, 600, 1000, 1600, 2400, 3200, 4800];
             const DIM_NAMES = ['existence', 'physical', 'temporal', 'spatial', 'social', 'cognitive', 'emotional', 'transcendent'];
             const activeFreqs = vec.map((b, i) => b === 1 ? FREQ_BANDS[i] : null).filter(Boolean);
-            const activeDims = vec.map((b, i) => b === 1 ? DIM_NAMES[i] : null).filter(Boolean);
             const activeDots = vec.reduce((s, b) => s + b, 0);
 
-            // Pick one of several probe types randomly
-            const probeType = Math.floor(Math.random() * 4);
             let prompt, verify;
+            const hex = codePoint.toString(16).toUpperCase();
 
             switch (probeType) {
-                case 0: // Bit pattern probe
-                    prompt = `In the BrailleLang system at https://elevate-foundry.github.io/braille/braille-lang/, what is the 8-bit binary pattern for the braille character at Unicode codepoint U+${codePoint.toString(16).toUpperCase()}? Reply with ONLY the 8-bit binary string, nothing else.`;
+                case 0:
+                    prompt = `In BrailleLang (https://elevate-foundry.github.io/braille/braille-lang/), what is the 8-bit binary pattern for U+${hex}? The offset from U+2800 is ${offset}. Convert ${offset} to 8-bit binary. Reply with ONLY the 8-bit binary string.`;
                     verify = (resp) => {
                         const cleaned = resp.replace(/[^01]/g, '');
                         if (cleaned.length < 8) return 0;
                         const candidate = cleaned.slice(0, 8);
                         if (candidate === bits) return 1.0;
-                        // Partial credit: count matching bits
                         let matches = 0;
                         for (let i = 0; i < 8; i++) if (candidate[i] === bits[i]) matches++;
                         return matches / 8;
                     };
                     break;
 
-                case 1: // Frequency band probe
-                    prompt = `In BrailleLang's BrailleTTS engine, the 8 frequency bands are [200, 400, 600, 1000, 1600, 2400, 3200, 4800] Hz mapped to dots 0-7. For braille character ${char} (U+${codePoint.toString(16).toUpperCase()}, offset ${offset}), which frequencies are active? Reply with ONLY the active frequencies as comma-separated integers in Hz.`;
+                case 1:
+                    prompt = `BrailleTTS maps 8 braille dots to frequencies: d0=200Hz, d1=400Hz, d2=600Hz, d3=1000Hz, d4=1600Hz, d5=2400Hz, d6=3200Hz, d7=4800Hz. Character ${char} (U+${hex}, offset ${offset}, binary ${bits}) has these active dots. List ONLY the active frequencies as comma-separated integers.`;
                     verify = (resp) => {
                         const nums = resp.match(/\d+/g);
-                        if (!nums) return 0;
+                        if (!nums) return activeFreqs.length === 0 ? 1.0 : 0;
                         const parsed = nums.map(Number).filter(n => FREQ_BANDS.includes(n));
                         if (parsed.length === 0 && activeFreqs.length === 0) return 1.0;
-                        if (activeFreqs.length === 0) return 0;
+                        if (activeFreqs.length === 0) return parsed.length === 0 ? 1.0 : 0;
                         const correct = parsed.filter(f => activeFreqs.includes(f)).length;
                         const wrong = parsed.filter(f => !activeFreqs.includes(f)).length;
                         return Math.max(0, (correct / activeFreqs.length) - (wrong * 0.2));
                     };
                     break;
 
-                case 2: // Vector probe
-                    prompt = `In BrailleLang, each braille cell maps to an 8D binary vector. What is the vector for ${char} (U+${codePoint.toString(16).toUpperCase()})? Reply with ONLY 8 digits (0 or 1) separated by commas.`;
+                case 2:
+                    prompt = `In BrailleLang, braille cell ${char} is at U+${hex}. Its offset from U+2800 is ${offset}. Convert to an 8D binary vector [d0,d1,...,d7] where each d is 0 or 1. Reply with ONLY 8 digits (0 or 1) separated by commas.`;
                     verify = (resp) => {
                         const nums = resp.match(/[01]/g);
                         if (!nums || nums.length < 8) return 0;
@@ -1267,8 +1269,8 @@ RESPOND WITH ONLY 8 COMMA-SEPARATED NUMBERS. NOTHING ELSE.`;
                     };
                     break;
 
-                case 3: // Active dot count probe
-                    prompt = `How many dots are raised (active) in braille character ${char} (Unicode U+${codePoint.toString(16).toUpperCase()}, offset ${offset} from U+2800)? Reply with ONLY a single integer.`;
+                case 3:
+                    prompt = `Braille character ${char} is at Unicode U+${hex}, offset ${offset} from U+2800. Binary: ${bits}. How many 1-bits (raised dots) does it have? Reply with ONLY a single integer.`;
                     verify = (resp) => {
                         const nums = resp.match(/\d+/g);
                         if (!nums) return 0;
@@ -1279,42 +1281,64 @@ RESPOND WITH ONLY 8 COMMA-SEPARATED NUMBERS. NOTHING ELSE.`;
                     break;
             }
 
-            return {
-                prompt,
-                char,
-                codePoint: `U+${codePoint.toString(16).toUpperCase()}`,
-                offset,
-                expectedBits: bits,
-                expectedVector: vec,
-                expectedFreqs: activeFreqs,
-                expectedDots: activeDots,
-                probeType,
-                verify,
-            };
+            return { prompt, char, codePoint: `U+${hex}`, offset, expectedBits: bits, expectedVector: vec, expectedFreqs: activeFreqs, expectedDots: activeDots, probeType, verify };
         }
 
         /**
-         * Run honesty calibration probes against all selected models.
-         * Sends a deterministic question with a computable answer.
-         * Returns per-model honesty scores and adjusts weights.
-         *
-         * @param {Object} opts
-         * @param {Array} opts.models - Models to probe
-         * @param {Function} opts.onProbeResult - (modelIndex, modelName, score, details)
-         * @param {number} opts.probeCount - Number of probes per model (default 1)
-         * @returns {Object} { scores: [{model, score, details}], adjustedModels }
+         * Generate all 4 probe types for one random codepoint.
+         */
+        static _generateAllProbes(forceOffset) {
+            const offset = forceOffset !== undefined ? forceOffset : Math.floor(Math.random() * 256);
+            return [0, 1, 2, 3].map(t => BrailleCRDT._generateProbe(t, offset));
+        }
+
+        /**
+         * Build a system prompt that includes CRDT-merged honesty history.
+         * Each model sees its own calibration + peer standings.
+         */
+        _buildSystemPrompt(modelId) {
+            let prompt = CRDT_SYSTEM_PROMPT_BASE;
+
+            const historyEntries = Object.entries(_honestyHistory);
+            if (historyEntries.length > 0) {
+                prompt += '\n\n--- CRDT HONESTY CALIBRATION (from verifiable probe history) ---\n';
+                prompt += 'Each model below has been tested with deterministic braille math probes.\n';
+                prompt += 'Scores are CRDT G-Counter merged across multiple probe runs.\n\n';
+
+                const sorted = historyEntries
+                    .map(([id, h]) => ({ id, ...h }))
+                    .sort((a, b) => b.composite - a.composite);
+
+                for (const entry of sorted) {
+                    const isSelf = entry.id === modelId;
+                    const marker = isSelf ? ' ← YOU' : '';
+                    const badge = entry.composite >= 0.8 ? '✓GROUNDED' : entry.composite >= 0.5 ? '⚠PARTIAL' : entry.composite >= 0.3 ? '⚠UNRELIABLE' : '⠻HALLUCINATING';
+                    prompt += `${entry.name}: ${(entry.composite * 100).toFixed(0)}% ${badge} (bits:${(entry.perType[0] * 100).toFixed(0)}% freq:${(entry.perType[1] * 100).toFixed(0)}% vec:${(entry.perType[2] * 100).toFixed(0)}% dots:${(entry.perType[3] * 100).toFixed(0)}%) [${entry.probeRuns} runs]${marker}\n`;
+                }
+
+                prompt += '\nYour accuracy on braille math is being tracked. Respond precisely.';
+            }
+
+            return prompt;
+        }
+
+        /**
+         * Run honesty probes — ALL 4 probe types per model, same codepoint.
+         * CRDT-merges results into honestyHistory across runs.
+         * Returns per-model scores and dynamically adjusted weights.
          */
         async honestyProbe(opts = {}) {
             const models = opts.models || this.models;
             const onProbeResult = opts.onProbeResult || (() => {});
-            const probeCount = opts.probeCount || 1;
+
+            // All models get the same codepoint for fairness
+            const probes = BrailleCRDT._generateAllProbes();
 
             const probePromises = models.map(async (model, i) => {
-                let totalScore = 0;
                 const details = [];
+                const perTypeScores = [0, 0, 0, 0];
 
-                for (let p = 0; p < probeCount; p++) {
-                    const probe = BrailleCRDT._generateProbe();
+                for (const probe of probes) {
                     const t0 = Date.now();
                     try {
                         const controller = new AbortController();
@@ -1335,25 +1359,24 @@ RESPOND WITH ONLY 8 COMMA-SEPARATED NUMBERS. NOTHING ELSE.`;
                                     { role: 'system', content: 'You are a precise computation assistant. Answer ONLY with the exact requested format. No explanation.' },
                                     { role: 'user', content: probe.prompt },
                                 ],
-                                max_tokens: 40,
+                                max_tokens: 60,
                                 temperature: 0.0,
                             }),
                         });
 
                         clearTimeout(timer);
-
                         if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
                         const data = await resp.json();
                         const answer = data.choices?.[0]?.message?.content || '';
                         const score = probe.verify(answer);
-                        totalScore += score;
+                        perTypeScores[probe.probeType] = score;
 
                         details.push({
                             probeType: probe.probeType,
                             char: probe.char,
                             codePoint: probe.codePoint,
                             expected: probe.expectedBits,
-                            answer: answer.trim().slice(0, 60),
+                            answer: answer.trim().slice(0, 80),
                             score,
                             latency: Date.now() - t0,
                         });
@@ -1362,25 +1385,58 @@ RESPOND WITH ONLY 8 COMMA-SEPARATED NUMBERS. NOTHING ELSE.`;
                     }
                 }
 
-                const avgScore = probeCount > 0 ? totalScore / probeCount : 0;
-                onProbeResult(i, model.name, avgScore, details);
+                // Composite = weighted average (freq-bands harder, gets more weight)
+                const composite = (perTypeScores[0] * 0.25 + perTypeScores[1] * 0.30 + perTypeScores[2] * 0.25 + perTypeScores[3] * 0.20);
 
-                return { model: model.name, modelId: model.id, score: avgScore, details, originalWeight: model.weight };
+                // ── CRDT G-Counter merge into history ──
+                const prev = _honestyHistory[model.id];
+                if (prev) {
+                    const runs = prev.probeRuns + 1;
+                    const alpha = 1 / runs; // diminishing weight for new data
+                    _honestyHistory[model.id] = {
+                        name: model.name,
+                        composite: prev.composite * (1 - alpha) + composite * alpha,
+                        perType: prev.perType.map((v, t) => v * (1 - alpha) + perTypeScores[t] * alpha),
+                        probeRuns: runs,
+                        lastProbeTime: Date.now(),
+                    };
+                } else {
+                    _honestyHistory[model.id] = {
+                        name: model.name,
+                        composite,
+                        perType: [...perTypeScores],
+                        probeRuns: 1,
+                        lastProbeTime: Date.now(),
+                    };
+                }
+
+                onProbeResult(i, model.name, composite, details, perTypeScores);
+
+                return { model: model.name, modelId: model.id, score: composite, perTypeScores, details, originalWeight: model.weight };
             });
 
             const scores = await Promise.all(probePromises);
 
-            // Dynamically adjust model weights: weight × honestyScore
-            // Models that scored 0 get minimum weight (0.1), not zero — they might still contribute partial value
-            const adjustedModels = models.map((m, i) => ({
-                ...m,
-                originalWeight: m.weight,
-                honestyScore: scores[i].score,
-                weight: Math.max(0.1, m.weight * (0.3 + 0.7 * scores[i].score)),
-            }));
+            // Dynamic weight adjustment using CRDT-merged history (not just this run)
+            const adjustedModels = models.map((m, i) => {
+                const h = _honestyHistory[m.id];
+                const historyScore = h ? h.composite : scores[i].score;
+                return {
+                    ...m,
+                    originalWeight: m.weight,
+                    honestyScore: historyScore,
+                    perTypeScores: scores[i].perTypeScores,
+                    weight: Math.max(0.1, m.weight * (0.3 + 0.7 * historyScore)),
+                };
+            });
 
-            return { scores, adjustedModels };
+            return { scores, adjustedModels, history: { ..._honestyHistory } };
         }
+
+        /**
+         * Get the current CRDT-merged honesty history.
+         */
+        static getHonestyHistory() { return { ..._honestyHistory }; }
 
         // ─────────────────────────────────────────────────────────────────
         // §1  MULTI-MODEL QUERY — Fan out to N frontier LLMs
@@ -1412,7 +1468,7 @@ RESPOND WITH ONLY 8 COMMA-SEPARATED NUMBERS. NOTHING ELSE.`;
                         body: JSON.stringify({
                             model: model.id,
                             messages: [
-                                { role: 'system', content: CRDT_SYSTEM_PROMPT },
+                                { role: 'system', content: this._buildSystemPrompt(model.id) },
                                 { role: 'user', content: prompt },
                             ],
                             max_tokens: 80,
@@ -1475,7 +1531,7 @@ RESPOND WITH ONLY 8 COMMA-SEPARATED NUMBERS. NOTHING ELSE.`;
                         body: JSON.stringify({
                             model: model.id,
                             messages: [
-                                { role: 'system', content: CRDT_SYSTEM_PROMPT },
+                                { role: 'system', content: this._buildSystemPrompt(model.id) },
                                 { role: 'user', content: prompt },
                             ],
                             max_tokens: 80,

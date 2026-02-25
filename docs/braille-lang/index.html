@@ -892,7 +892,7 @@ Connect your OpenRouter key above to begin.</div>
 </footer>
 
 <!-- ════════════ RUNTIME (browser-bundled) ════════════ -->
-<script src="braille-lang-bundle.js?v=probe1"></script>
+<script src="braille-lang-bundle.js?v=probe2"></script>
 <script>
 // ── App logic ──
 document.addEventListener('DOMContentLoaded', () => {
@@ -1955,13 +1955,12 @@ You are concise, precise, and slightly philosophical. You see yourself as the bo
         crdtOutput.innerHTML = html;
 
         const crdt = new BrailleLang.BrailleCRDT({ apiKey, models: selectedModels });
-        const PROBE_TYPES = ['bit-pattern', 'freq-bands', 'vector', 'dot-count'];
+        const PROBE_TYPES = BrailleLang.BrailleCRDT.PROBE_TYPE_NAMES;
 
         try {
-            const { scores, adjustedModels } = await crdt.honestyProbe({
+            const { scores, adjustedModels, history } = await crdt.honestyProbe({
                 models: selectedModels,
-                probeCount: 2,
-                onProbeResult: (i, name, score, details) => {
+                onProbeResult: (i, name, score, details, perTypeScores) => {
                     const card = document.getElementById(`probe-card-${i}`);
                     const statusEl = document.getElementById(`probe-status-${i}`);
                     const scoreEl = document.getElementById(`probe-score-${i}`);
@@ -1973,8 +1972,8 @@ You are concise, precise, and slightly philosophical. You see yourself as the bo
                     // Color-code score
                     let scoreColor = 'var(--red)';
                     let badge = '⠻ HALLUCINATING';
-                    if (score >= 0.9) { scoreColor = 'var(--green)'; badge = '✓ GROUNDED'; }
-                    else if (score >= 0.6) { scoreColor = 'var(--yellow)'; badge = '⚠ PARTIAL'; }
+                    if (score >= 0.8) { scoreColor = 'var(--green)'; badge = '✓ GROUNDED'; }
+                    else if (score >= 0.5) { scoreColor = 'var(--yellow)'; badge = '⚠ PARTIAL'; }
                     else if (score >= 0.3) { scoreColor = 'var(--orange)'; badge = '⚠ UNRELIABLE'; }
 
                     if (scoreEl) {
@@ -1986,20 +1985,33 @@ You are concise, precise, and slightly philosophical. You see yourself as the bo
                         statusEl.innerHTML = `<span style="color:${scoreColor};font-weight:700">${badge}</span>`;
                     }
                     if (detailEl) {
-                        detailEl.innerHTML = details.map(d =>
-                            `<div style="margin-top:2px">${PROBE_TYPES[d.probeType]}: <span style="color:${d.score >= 0.8 ? 'var(--green)' : d.score >= 0.4 ? 'var(--yellow)' : 'var(--red)'}">${(d.score * 100).toFixed(0)}%</span> · ${d.latency}ms${d.error ? ` · <span style="color:var(--red)">${d.error}</span>` : ''}</div>`
-                        ).join('');
-                        if (details.length > 0 && details[0].answer) {
-                            detailEl.innerHTML += `<div style="margin-top:3px;color:var(--text-dim);font-style:italic;max-height:30px;overflow:hidden">"${details[0].answer}"</div>`;
-                        }
+                        // Per-probe-type breakdown with mini bars
+                        let barHtml = '<div style="display:grid;grid-template-columns:70px 1fr 40px;gap:2px;margin-top:4px">';
+                        details.forEach(d => {
+                            const pct = (d.score * 100).toFixed(0);
+                            const barColor = d.score >= 0.8 ? 'var(--green)' : d.score >= 0.4 ? 'var(--yellow)' : 'var(--red)';
+                            barHtml += `<div>${PROBE_TYPES[d.probeType]}</div>`;
+                            barHtml += `<div style="background:var(--bg-code);border-radius:3px;overflow:hidden;height:10px;margin-top:2px"><div style="width:${pct}%;height:100%;background:${barColor};transition:width 0.5s"></div></div>`;
+                            barHtml += `<div style="text-align:right;color:${barColor}">${pct}%</div>`;
+                        });
+                        barHtml += '</div>';
+                        // Show answers
+                        details.forEach(d => {
+                            if (d.answer) barHtml += `<div style="margin-top:2px;color:var(--text-dim);font-style:italic;max-height:18px;overflow:hidden;font-size:0.5rem">${PROBE_TYPES[d.probeType]}: "${d.answer}"</div>`;
+                            if (d.error) barHtml += `<div style="color:var(--red);font-size:0.5rem">${PROBE_TYPES[d.probeType]}: ${d.error}</div>`;
+                        });
+                        detailEl.innerHTML = barHtml;
                     }
 
-                    // Play honesty tone
+                    // Play honesty tone — the perTypeScores become the 8D vector
                     if (ttsEnabled) {
                         const vec = new Float64Array(8);
-                        vec[5] = score; // cognitive = honesty
-                        vec[0] = score > 0.5 ? 1 : 0; // existence = present/absent
-                        tts.playVector(vec, 100);
+                        vec[0] = perTypeScores[0]; // bits → existence
+                        vec[2] = perTypeScores[1]; // freqs → temporal
+                        vec[3] = perTypeScores[2]; // vector → spatial
+                        vec[5] = perTypeScores[3]; // dots → cognitive
+                        vec[7] = score; // composite → transcendent
+                        tts.playVector(vec, 120);
                     }
                 },
             });
@@ -2009,13 +2021,18 @@ You are concise, precise, and slightly philosophical. You see yourself as the bo
 
             // Summary
             const avgHonesty = scores.reduce((s, r) => s + r.score, 0) / scores.length;
-            const grounded = scores.filter(s => s.score >= 0.9).length;
-            const partial = scores.filter(s => s.score >= 0.3 && s.score < 0.9).length;
+            const grounded = scores.filter(s => s.score >= 0.8).length;
+            const partial = scores.filter(s => s.score >= 0.3 && s.score < 0.8).length;
             const hallucinating = scores.filter(s => s.score < 0.3).length;
+
+            // Count total CRDT-merged probe runs
+            const historyRuns = Object.values(history);
+            const maxRuns = historyRuns.length > 0 ? Math.max(...historyRuns.map(h => h.probeRuns)) : 1;
 
             const summaryEl = document.getElementById('probe-summary');
             if (summaryEl) {
-                let summaryHtml = `<div style="font-size:0.72rem;font-weight:700;color:var(--cyan)">⚖ Calibration Complete</div>`;
+                let summaryHtml = `<div style="font-size:0.72rem;font-weight:700;color:var(--cyan)">⚖ CRDT Calibration Complete</div>`;
+                summaryHtml += `<div style="font-size:0.6rem;color:var(--text-dim);margin-top:2px">4 probe types × ${selectedModels.length} models = ${4 * selectedModels.length} verifiable questions</div>`;
                 summaryHtml += `<div style="font-size:0.65rem;color:var(--text-dim);margin-top:4px">`;
                 const hColor = avgHonesty >= 0.7 ? 'var(--green)' : avgHonesty >= 0.4 ? 'var(--yellow)' : 'var(--red)';
                 summaryHtml += `Avg honesty: <span style="color:${hColor};font-weight:700">${(avgHonesty * 100).toFixed(0)}%</span>`;
@@ -2023,15 +2040,17 @@ You are concise, precise, and slightly philosophical. You see yourself as the bo
                 summaryHtml += ` · <span style="color:var(--yellow)">${partial} partial</span>`;
                 summaryHtml += ` · <span style="color:var(--red)">${hallucinating} hallucinating</span>`;
                 summaryHtml += `</div>`;
-                summaryHtml += `<div style="font-size:0.6rem;color:var(--accent);margin-top:6px;font-weight:600">Weights adjusted — next distillation will use honesty-calibrated merge</div>`;
+                summaryHtml += `<div style="font-size:0.58rem;color:var(--accent);margin-top:6px;font-weight:600">`;
+                summaryHtml += `CRDT history: ${maxRuns} run${maxRuns > 1 ? 's' : ''} merged · Weights adjusted · System prompts now include calibration leaderboard`;
+                summaryHtml += `</div>`;
 
                 // Show weight changes
                 summaryHtml += `<div style="font-size:0.55rem;color:var(--text-dim);margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;justify-content:center">`;
                 adjustedModels.forEach(m => {
                     const change = ((m.weight / m.originalWeight - 1) * 100).toFixed(0);
-                    const arrow = change >= 0 ? '↑' : '↓';
-                    const color = m.honestyScore >= 0.9 ? 'var(--green)' : m.honestyScore >= 0.3 ? 'var(--yellow)' : 'var(--red)';
-                    summaryHtml += `<span style="color:${color}">${m.name}: ${m.weight.toFixed(2)} (${arrow}${Math.abs(change)}%)</span>`;
+                    const arrow = parseInt(change) >= 0 ? '↑' : '↓';
+                    const color = m.honestyScore >= 0.8 ? 'var(--green)' : m.honestyScore >= 0.3 ? 'var(--yellow)' : 'var(--red)';
+                    summaryHtml += `<span style="color:${color}">${m.name}: ${m.weight.toFixed(2)} (${arrow}${Math.abs(parseInt(change))}%)</span>`;
                 });
                 summaryHtml += `</div>`;
 
@@ -2039,13 +2058,15 @@ You are concise, precise, and slightly philosophical. You see yourself as the bo
                 summaryEl.style.opacity = '1';
             }
 
-            // Update per-card weight display
+            // Update per-card weight display + history run count
             adjustedModels.forEach((m, i) => {
                 const weightEl = document.getElementById(`probe-weight-${i}`);
                 if (weightEl) {
+                    const h = history[m.id];
+                    const runs = h ? h.probeRuns : 1;
                     const change = ((m.weight / m.originalWeight - 1) * 100).toFixed(0);
                     const color = parseInt(change) >= 0 ? 'var(--green)' : 'var(--red)';
-                    weightEl.innerHTML = `weight: ${m.originalWeight.toFixed(2)} → <span style="color:${color};font-weight:700">${m.weight.toFixed(2)}</span>`;
+                    weightEl.innerHTML = `weight: ${m.originalWeight.toFixed(2)} → <span style="color:${color};font-weight:700">${m.weight.toFixed(2)}</span> · <span style="color:var(--text-dim)">${runs} run${runs > 1 ? 's' : ''} merged</span>`;
                 }
             });
 
