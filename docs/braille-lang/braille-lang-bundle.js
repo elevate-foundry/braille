@@ -1160,7 +1160,7 @@
         { id: 'anthropic/claude-3-haiku', name: 'Claude 3 Haiku', weight: 0.8, color: '#fbbf24', tpm: 50000 },
         { id: 'google/gemini-2.0-flash-lite-001', name: 'Gemini 2.0 Lite', weight: 0.8, color: '#93c5fd', tpm: 80000 },
         { id: 'meta-llama/llama-3.1-8b-instruct', name: 'Llama 3.1 8B', weight: 0.7, color: '#c084fc', tpm: 60000 },
-        { id: 'mistralai/mistral-small-2503', name: 'Mistral Small', weight: 0.7, color: '#fb7185', tpm: 50000 },
+        { id: 'mistralai/mistral-small-24b-instruct-2501', name: 'Mistral Small', weight: 0.7, color: '#fb7185', tpm: 50000 },
         { id: 'qwen/qwen-2.5-7b-instruct', name: 'Qwen 2.5 7B', weight: 0.7, color: '#fdba74', tpm: 60000 },
         { id: 'microsoft/phi-4', name: 'Phi-4', weight: 0.7, color: '#67e8f9', tpm: 50000 },
         { id: 'deepseek/deepseek-r1', name: 'DeepSeek R1', weight: 0.85, color: '#2dd4bf', tpm: 30000 },
