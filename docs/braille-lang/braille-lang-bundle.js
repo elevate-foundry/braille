@@ -562,6 +562,13 @@
             this._initGlobals();
             this.stats = { statementsExecuted: 0, aiCalls: 0, startTime: null, endTime: null };
             this.sal = new SAL({ cache: true, trace: true });
+            this.edge = new SALEdgeRuntime({
+                mode: options.edgeMode || EdgeMode.DRY_RUN,
+                apiKey: options.apiKey || null,
+                model: options.model || 'openai/gpt-4o-mini',
+                dryRunFn: (prim, a) => this._aiCall(prim, a),
+                onStatus: options.onEdgeStatus || (() => {}),
+            });
         }
 
         async execute(ast) {
@@ -643,7 +650,7 @@
                     if(r instanceof BrailleFunction){const ce=new Environment(r.closure);if(r.params.length>0)ce.define(r.params[0],l);const res=await this._exec(r.body,ce);return res instanceof ReturnValue?res.value:res;}
                     throw new TypeError('Pipe target not callable');
                 }
-                case 'AIPrimitive': { const args=[];for(const a of node.args)args.push(await this._exec(a,env));this.stats.aiCalls++;const{result:aiR}=await this.sal.intercept(node.name,args,async(a)=>this._aiCall(node.name,a),{model:this.options.model});return aiR; }
+                case 'AIPrimitive': { const args=[];for(const a of node.args)args.push(await this._exec(a,env));this.stats.aiCalls++;const{result:aiR}=await this.sal.intercept(node.name,args,async(a)=>this.edge.execute(node.name,a,(fa)=>this._aiCall(node.name,fa)),{model:this.edge.mode!==EdgeMode.DRY_RUN?this.edge.getStatus().modelId:this.options.model});return aiR; }
                 case 'AwaitExpr': return this._exec(node.expression,env);
                 case 'NewExpr': { const c=await this._exec(node.callee,env);if(c instanceof BrailleClass)return new BrailleInstance(c);throw new TypeError('Cannot instantiate'); }
                 case 'TypeofExpr': return typeof(await this._exec(node.operand,env));
@@ -817,6 +824,280 @@
     }
 
     // ═══════════════════════════════════════════════════════════════════════
+    // §4c  SAL EDGE RUNTIME — Pluggable AI backend (offline → local → cloud)
+    // ═══════════════════════════════════════════════════════════════════════
+
+    /**
+     * Edge mode tiers:
+     *   ⠁ CACHE_ONLY  — Pure offline replay from SAL cache. Zero network.
+     *   ⠠ LOCAL       — In-browser LLM via WebLLM (WebGPU). No internet.
+     *   ⡪ HYBRID      — Local-first, OpenRouter fallback. Best of both.
+     *   ⠳ CLOUD       — OpenRouter only (original behavior).
+     *   ⠀ DRY_RUN     — Mock responses (default playground mode).
+     */
+    const EdgeMode = Object.freeze({
+        CACHE_ONLY: 'cache_only',
+        LOCAL:      'local',
+        HYBRID:     'hybrid',
+        CLOUD:      'cloud',
+        DRY_RUN:    'dry_run',
+    });
+
+    class SALEdgeRuntime {
+        constructor(opts = {}) {
+            this.mode = opts.mode || EdgeMode.DRY_RUN;
+            this.apiKey = opts.apiKey || null;
+            this.model = opts.model || 'openai/gpt-4o-mini';
+            this.localModel = opts.localModel || null;  // WebLLM engine ref
+            this.localModelId = opts.localModelId || 'SmolLM2-360M-Instruct-q4f16_1-MLC';
+            this.localReady = false;
+            this.localLoading = false;
+            this.onStatus = opts.onStatus || (() => {});
+            this._dryRunFn = opts.dryRunFn || null;  // fallback for dry-run
+        }
+
+        /**
+         * Get a human-readable status object for the UI.
+         */
+        getStatus() {
+            return {
+                mode: this.mode,
+                localReady: this.localReady,
+                localLoading: this.localLoading,
+                hasApiKey: !!this.apiKey,
+                modelId: this.mode === EdgeMode.LOCAL || this.mode === EdgeMode.HYBRID
+                    ? this.localModelId : this.model,
+                tier: this.mode === EdgeMode.CACHE_ONLY ? '⠁ offline (cache replay)'
+                    : this.mode === EdgeMode.LOCAL ? '⠠ edge (local LLM)'
+                    : this.mode === EdgeMode.HYBRID ? '⡪ hybrid (local + cloud)'
+                    : this.mode === EdgeMode.CLOUD ? '⠳ cloud (OpenRouter)'
+                    : '⠀ dry-run (mock)',
+            };
+        }
+
+        /**
+         * Initialize local model via WebLLM if available.
+         * Returns a promise that resolves when the model is ready.
+         */
+        async initLocal(progressCb) {
+            if (this.localReady) return true;
+            if (typeof window === 'undefined') return false;
+
+            // Check for WebLLM
+            if (!window.webllm) {
+                this.onStatus({ event: 'local_unavailable', reason: 'WebLLM not loaded. Add <script src="https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm"></script>' });
+                return false;
+            }
+
+            try {
+                this.localLoading = true;
+                this.onStatus({ event: 'local_loading', modelId: this.localModelId });
+
+                const engine = await window.webllm.CreateMLCEngine(this.localModelId, {
+                    initProgressCallback: (progress) => {
+                        this.onStatus({ event: 'local_progress', ...progress });
+                        if (progressCb) progressCb(progress);
+                    },
+                });
+
+                this.localModel = engine;
+                this.localReady = true;
+                this.localLoading = false;
+                this.onStatus({ event: 'local_ready', modelId: this.localModelId });
+                return true;
+            } catch (e) {
+                this.localLoading = false;
+                this.onStatus({ event: 'local_error', error: e.message });
+                return false;
+            }
+        }
+
+        /**
+         * Execute an AI primitive via the current edge mode.
+         * This is the function passed to SAL.intercept as executeFn.
+         */
+        async execute(primitive, args, fallbackFn) {
+            switch (this.mode) {
+                case EdgeMode.CACHE_ONLY:
+                    // Cache-only: SAL cache handles it. If cache miss, return a
+                    // deterministic placeholder instead of failing.
+                    return this._cacheOnlyFallback(primitive, args);
+
+                case EdgeMode.LOCAL:
+                    return this._executeLocal(primitive, args);
+
+                case EdgeMode.HYBRID:
+                    // Try local first, fall back to cloud
+                    try {
+                        if (this.localReady) return await this._executeLocal(primitive, args);
+                    } catch (_) { /* fall through to cloud */ }
+                    if (this.apiKey) return this._executeCloud(primitive, args);
+                    return this._cacheOnlyFallback(primitive, args);
+
+                case EdgeMode.CLOUD:
+                    if (this.apiKey) return this._executeCloud(primitive, args);
+                    return fallbackFn ? fallbackFn(args) : this._cacheOnlyFallback(primitive, args);
+
+                case EdgeMode.DRY_RUN:
+                default:
+                    return fallbackFn ? fallbackFn(args) : this._dryRun(primitive, args);
+            }
+        }
+
+        // ── Tier 1: Cache-only fallback ──
+        _cacheOnlyFallback(primitive, args) {
+            const prompt = String(args[0] || '');
+            switch (primitive) {
+                case 'INFER': return `[⠁ CACHE_ONLY] No cached response for: "${prompt.substring(0, 60)}"`;
+                case 'EMBED': return Array.from({ length: 8 }, () => 0.0);
+                case 'PROMPT': return prompt;
+                case 'PIPE': return prompt;
+                case 'REFLECT': return `[⠁ CACHE_ONLY] reflect: ${prompt.substring(0, 60)}`;
+                case 'SEARCH': return [];
+                default: return null;
+            }
+        }
+
+        // ── Tier 2: Local WebLLM inference ──
+        async _executeLocal(primitive, args) {
+            const prompt = String(args[0] || '');
+
+            switch (primitive) {
+                case 'INFER': {
+                    if (!this.localModel) throw new Error('Local model not initialized');
+                    const resp = await this.localModel.chat.completions.create({
+                        messages: [{ role: 'user', content: prompt }],
+                        max_tokens: 512,
+                        temperature: 0.7,
+                    });
+                    return resp.choices[0]?.message?.content || '';
+                }
+                case 'EMBED': {
+                    // WebLLM doesn't support embeddings natively.
+                    // Generate a deterministic pseudo-embedding from the prompt hash.
+                    const h = this._quickHash(prompt);
+                    return Array.from({ length: 8 }, (_, i) => ((h >> (i * 4)) & 0xF) / 15.0);
+                }
+                case 'PROMPT': {
+                    let t = prompt;
+                    const vars = args[1] || {};
+                    if (vars instanceof Map) for (const [k, v] of vars) t = t.replace(new RegExp(`\\{${k}\\}`, 'g'), String(v));
+                    return t;
+                }
+                case 'PIPE': {
+                    return async (input) => {
+                        let r = input;
+                        for (const fn of args) {
+                            if (typeof fn === 'function') r = await fn(r);
+                            else if (typeof fn === 'string') r = fn.replace('{input}', String(r));
+                        }
+                        return r;
+                    };
+                }
+                case 'REFLECT': {
+                    if (!this.localModel) return `[⠠ LOCAL] reflect: ${prompt.substring(0, 60)}`;
+                    const resp = await this.localModel.chat.completions.create({
+                        messages: [{ role: 'user', content: `Analyze this code and explain what it does:\n${prompt}` }],
+                        max_tokens: 256,
+                    });
+                    return resp.choices[0]?.message?.content || '';
+                }
+                case 'SEARCH': {
+                    const corpus = args[1] || [];
+                    const terms = prompt.toLowerCase().split(/\s+/);
+                    return corpus.filter(d => terms.some(t => String(d).toLowerCase().includes(t)));
+                }
+                default: return null;
+            }
+        }
+
+        // ── Tier 3: Cloud (OpenRouter) ──
+        async _executeCloud(primitive, args) {
+            const prompt = String(args[0] || '');
+
+            switch (primitive) {
+                case 'INFER': {
+                    const resp = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${this.apiKey}`,
+                            'Content-Type': 'application/json',
+                            'HTTP-Referer': 'https://elevate-foundry.github.io/braille/braille-lang/',
+                            'X-Title': 'SAL Edge Runtime',
+                        },
+                        body: JSON.stringify({
+                            model: this.model,
+                            messages: [{ role: 'user', content: prompt }],
+                            max_tokens: 1024,
+                        }),
+                    });
+                    const data = await resp.json();
+                    if (data.error) throw new Error(data.error.message || 'OpenRouter error');
+                    return data.choices?.[0]?.message?.content || '';
+                }
+                case 'EMBED': {
+                    // OpenRouter doesn't expose embeddings API directly.
+                    // Hash-based pseudo-embedding for now.
+                    const h = this._quickHash(prompt);
+                    return Array.from({ length: 8 }, (_, i) => ((h >> (i * 4)) & 0xF) / 15.0);
+                }
+                case 'PROMPT': {
+                    let t = prompt;
+                    const vars = args[1] || {};
+                    if (vars instanceof Map) for (const [k, v] of vars) t = t.replace(new RegExp(`\\{${k}\\}`, 'g'), String(v));
+                    return t;
+                }
+                case 'PIPE': {
+                    return async (input) => {
+                        let r = input;
+                        for (const fn of args) {
+                            if (typeof fn === 'function') r = await fn(r);
+                            else if (typeof fn === 'string') r = fn.replace('{input}', String(r));
+                        }
+                        return r;
+                    };
+                }
+                case 'REFLECT': {
+                    const resp = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${this.apiKey}`,
+                            'Content-Type': 'application/json',
+                            'HTTP-Referer': 'https://elevate-foundry.github.io/braille/braille-lang/',
+                            'X-Title': 'SAL Edge Runtime',
+                        },
+                        body: JSON.stringify({
+                            model: this.model,
+                            messages: [{ role: 'user', content: `Analyze this code:\n${prompt}` }],
+                            max_tokens: 512,
+                        }),
+                    });
+                    const data = await resp.json();
+                    return data.choices?.[0]?.message?.content || '';
+                }
+                case 'SEARCH': {
+                    const corpus = args[1] || [];
+                    const terms = prompt.toLowerCase().split(/\s+/);
+                    return corpus.filter(d => terms.some(t => String(d).toLowerCase().includes(t)));
+                }
+                default: return null;
+            }
+        }
+
+        // ── Dry-run (mock, no network) ──
+        _dryRun(primitive, args) {
+            if (this._dryRunFn) return this._dryRunFn(primitive, args);
+            return this._cacheOnlyFallback(primitive, args);
+        }
+
+        _quickHash(s) {
+            let h = 0;
+            for (let i = 0; i < s.length; i++) { h = ((h << 5) - h) + s.charCodeAt(i); h |= 0; }
+            return Math.abs(h);
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
     // §5  COMPILER
     // ═══════════════════════════════════════════════════════════════════════
 
@@ -876,6 +1157,7 @@
         Lexer, Token, Parser, ASTNode, Interpreter, Compiler,
         Environment, BrailleFunction, BrailleClass, BrailleInstance,
         SAL, SALCache, TraceNode, Domain,
+        SALEdgeRuntime, EdgeMode,
         KEYWORDS, OPERATORS, DELIMITERS,
 
         async run(source, options = {}) {

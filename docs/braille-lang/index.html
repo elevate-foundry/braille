@@ -678,8 +678,15 @@
             <div class="btn-group">
                 <button class="btn btn-primary" id="btn-run">▶ Run</button>
                 <button class="btn btn-secondary" id="btn-clear">Clear</button>
+                <select id="edge-mode" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg-card);color:var(--text);font-size:0.78rem;font-family:'JetBrains Mono',monospace;cursor:pointer;outline:none;">
+                    <option value="dry_run">⠀ dry-run</option>
+                    <option value="cache_only">⠁ cache-only</option>
+                    <option value="local">⠠ local (WebLLM)</option>
+                    <option value="hybrid">⡪ hybrid</option>
+                    <option value="cloud">⠳ cloud</option>
+                </select>
             </div>
-            <div class="stats" id="stats"></div>
+            <div class="stats" id="stats"><span id="edge-status" style="color:var(--text-dim)"></span></div>
         </div>
     </div>
 </section>
@@ -848,6 +855,7 @@ Connect your OpenRouter key above to begin.</div>
 </footer>
 
 <!-- ════════════ RUNTIME (browser-bundled) ════════════ -->
+<script src="https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm@0.2.78/lib/index.min.js" defer></script>
 <script src="braille-lang-bundle.js"></script>
 <script>
 // ── App logic ──
@@ -889,6 +897,53 @@ document.addEventListener('DOMContentLoaded', () => {
             // Re-run with new view
             runCode();
         });
+    });
+
+    // ── Edge mode ──
+    let sharedEdgeRuntime = null;
+    const edgeModeSelect = document.getElementById('edge-mode');
+    const edgeStatusEl = document.getElementById('edge-status');
+
+    edgeModeSelect.addEventListener('change', async () => {
+        const mode = edgeModeSelect.value;
+        edgeStatusEl.textContent = '';
+
+        if (mode === 'local' || mode === 'hybrid') {
+            if (!window.webllm) {
+                edgeStatusEl.textContent = '⠻ WebLLM not loaded — needs WebGPU browser';
+                edgeStatusEl.style.color = 'var(--red)';
+                return;
+            }
+            if (!sharedEdgeRuntime || !sharedEdgeRuntime.localReady) {
+                edgeStatusEl.textContent = '⠠ downloading local model...';
+                edgeStatusEl.style.color = 'var(--orange)';
+                sharedEdgeRuntime = new BrailleLang.SALEdgeRuntime({
+                    mode: mode,
+                    onStatus: (ev) => {
+                        if (ev.event === 'local_progress') {
+                            const pct = ev.progress !== undefined ? (ev.progress * 100).toFixed(0) : '?';
+                            edgeStatusEl.textContent = `⠠ loading model: ${pct}%`;
+                        } else if (ev.event === 'local_ready') {
+                            edgeStatusEl.textContent = '⠠ local model ready';
+                            edgeStatusEl.style.color = 'var(--green)';
+                        } else if (ev.event === 'local_error') {
+                            edgeStatusEl.textContent = `⠻ ${ev.error}`;
+                            edgeStatusEl.style.color = 'var(--red)';
+                        }
+                    },
+                });
+                await sharedEdgeRuntime.initLocal();
+            }
+        } else if (mode === 'cloud') {
+            const key = sessionStorage.getItem('sal_api_key');
+            edgeStatusEl.textContent = key ? '⠳ cloud ready' : '⠻ enter API key in SAL Chat below';
+            edgeStatusEl.style.color = key ? 'var(--green)' : 'var(--orange)';
+        } else if (mode === 'cache_only') {
+            edgeStatusEl.textContent = '⠁ offline — cache replay only';
+            edgeStatusEl.style.color = 'var(--cyan)';
+        } else {
+            edgeStatusEl.textContent = '';
+        }
     });
 
     // ── Run ──
@@ -951,7 +1006,15 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // Run or SAL mode — both need execution
-            const interpreter = new BrailleLang.Interpreter({ dryRun: true });
+            const edgeMode = document.getElementById('edge-mode').value;
+            const edgeStatusEl = document.getElementById('edge-status');
+            const apiKey = sessionStorage.getItem('sal_api_key') || null;
+            const interpreter = new BrailleLang.Interpreter({
+                dryRun: edgeMode === 'dry_run',
+                edgeMode: edgeMode,
+                apiKey: apiKey,
+                onEdgeStatus: (ev) => { edgeStatusEl.textContent = ev.event === 'local_progress' ? `⠠ loading: ${(ev.progress*100||0).toFixed(0)}%` : ev.event; },
+            });
             const startTime = performance.now();
             const result = await interpreter.execute(ast);
             const duration = (performance.now() - startTime).toFixed(1);
@@ -960,7 +1023,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const sal = result.sal;
                 const s = sal.stats;
                 let html = '<span style="color:var(--accent);font-weight:700">⣠ SAL — Symbolic Abstraction Layer</span>\n';
-                html += '<span style="color:var(--text-dim)">Control plane for stochastic computation</span>\n\n';
+                const edgeTier = interpreter.edge.getStatus().tier;
+                html += `<span style="color:var(--text-dim)">Control plane for stochastic computation · ${edgeTier}</span>\n\n`;
 
                 // Session
                 html += `<span style="color:var(--yellow)">SESSION</span> ${sal.session.id}\n`;
@@ -1040,7 +1104,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 html += `<span class="info">→ ${interpreter._stringify(result.result)}</span>\n`;
             }
             output.innerHTML = html || '<span class="info">(no output)</span>';
-            stats.textContent = `${result.stats.statementsExecuted} stmts · ${result.stats.aiCalls} AI calls · ${duration}ms`;
+            const tier = interpreter.edge.getStatus().tier;
+            stats.textContent = `${result.stats.statementsExecuted} stmts · ${result.stats.aiCalls} AI calls · ${duration}ms · ${tier}`;
 
         } catch (e) {
             output.innerHTML = `<span class="error">⠻ ${e.message}</span>`;
