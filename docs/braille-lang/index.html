@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⡂⡲⡡⡩⡬⡬⡥ BrailleLang — AI-Native Programming in Braille</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0e17;
+            --bg-card: #111827;
+            --bg-code: #0d1321;
+            --border: #1e293b;
+            --border-glow: #3b82f680;
+            --text: #e2e8f0;
+            --text-dim: #94a3b8;
+            --text-bright: #f8fafc;
+            --accent: #3b82f6;
+            --accent-glow: #3b82f640;
+            --green: #22c55e;
+            --green-dim: #22c55e40;
+            --purple: #a78bfa;
+            --purple-dim: #a78bfa40;
+            --orange: #f97316;
+            --orange-dim: #f9731640;
+            --pink: #ec4899;
+            --red: #ef4444;
+            --cyan: #06b6d4;
+            --yellow: #eab308;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* ── Hero ── */
+        .hero {
+            position: relative;
+            padding: 80px 20px 60px;
+            text-align: center;
+            overflow: hidden;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(ellipse at 50% 0%, var(--accent-glow) 0%, transparent 50%),
+                        radial-gradient(ellipse at 20% 50%, var(--purple-dim) 0%, transparent 40%),
+                        radial-gradient(ellipse at 80% 50%, var(--green-dim) 0%, transparent 40%);
+            animation: heroGlow 8s ease-in-out infinite alternate;
+            z-index: 0;
+        }
+        @keyframes heroGlow {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(-2%, -3%) scale(1.05); }
+        }
+        .hero > * { position: relative; z-index: 1; }
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, var(--text-bright), var(--accent), var(--purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .hero .braille-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 2rem;
+            color: var(--accent);
+            margin-bottom: 16px;
+            letter-spacing: 0.15em;
+            text-shadow: 0 0 30px var(--accent-glow);
+        }
+        .hero p {
+            font-size: 1.15rem;
+            color: var(--text-dim);
+            max-width: 640px;
+            margin: 0 auto 32px;
+        }
+        .hero-badges {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+        }
+        .badge.ai { border-color: var(--purple); color: var(--purple); }
+        .badge.braille { border-color: var(--accent); color: var(--accent); }
+        .badge.open { border-color: var(--green); color: var(--green); }
+
+        /* ── Container ── */
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* ── Sections ── */
+        section {
+            padding: 60px 0;
+        }
+        section h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--text-bright);
+        }
+        section .subtitle {
+            color: var(--text-dim);
+            margin-bottom: 32px;
+            font-size: 1rem;
+        }
+
+        /* ── Concept Grid ── */
+        .concept-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 12px;
+            margin-top: 24px;
+        }
+        .concept-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            transition: all 0.2s;
+        }
+        .concept-card:hover {
+            border-color: var(--accent);
+            box-shadow: 0 0 20px var(--accent-glow);
+            transform: translateY(-2px);
+        }
+        .concept-card .braille-char {
+            font-size: 2rem;
+            font-family: 'JetBrains Mono', monospace;
+            margin-bottom: 4px;
+        }
+        .concept-card .concept-name {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--purple);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .concept-card .prog-role {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            margin-top: 2px;
+        }
+        .concept-card .js-equiv {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--green);
+            margin-top: 4px;
+        }
+
+        /* ── Playground ── */
+        .playground {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+        .playground-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 20px;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg-code);
+        }
+        .playground-header h3 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .playground-tabs {
+            display: flex;
+            gap: 4px;
+        }
+        .playground-tab {
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 0.78rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid transparent;
+            background: transparent;
+            color: var(--text-dim);
+            transition: all 0.15s;
+        }
+        .playground-tab:hover { color: var(--text); background: var(--border); }
+        .playground-tab.active {
+            color: var(--accent);
+            background: var(--accent-glow);
+            border-color: var(--accent);
+        }
+        .playground-body {
+            display: flex;
+            min-height: 340px;
+        }
+        @media (max-width: 768px) {
+            .playground-body { flex-direction: column; }
+        }
+        .editor-pane, .output-pane {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .editor-pane {
+            border-right: 1px solid var(--border);
+        }
+        @media (max-width: 768px) {
+            .editor-pane { border-right: none; border-bottom: 1px solid var(--border); }
+        }
+        .pane-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-dim);
+            padding: 8px 16px 4px;
+        }
+        #editor {
+            flex: 1;
+            width: 100%;
+            min-height: 280px;
+            padding: 8px 16px;
+            background: transparent;
+            color: var(--text-bright);
+            border: none;
+            outline: none;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            line-height: 1.8;
+            resize: none;
+            tab-size: 2;
+        }
+        #output {
+            flex: 1;
+            padding: 8px 16px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            line-height: 1.7;
+            white-space: pre-wrap;
+            overflow-y: auto;
+            color: var(--green);
+            min-height: 280px;
+        }
+        #output .error { color: var(--red); }
+        #output .info { color: var(--text-dim); }
+        #output .ai { color: var(--purple); }
+
+        .playground-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 10px 16px;
+            border-top: 1px solid var(--border);
+            background: var(--bg-code);
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 8px 20px;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            transition: all 0.15s;
+            font-family: 'Inter', sans-serif;
+        }
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+        .btn-primary:hover {
+            background: #2563eb;
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+        .btn-secondary {
+            background: var(--bg-card);
+            color: var(--text);
+        }
+        .btn-secondary:hover { border-color: var(--text-dim); }
+        .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+        .stats {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* ── Examples ── */
+        .example-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 16px;
+            margin-top: 24px;
+        }
+        .example-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .example-card:hover {
+            border-color: var(--accent);
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+        .example-card .example-title {
+            padding: 14px 16px 8px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--text-bright);
+        }
+        .example-card .example-desc {
+            padding: 0 16px 8px;
+            font-size: 0.8rem;
+            color: var(--text-dim);
+        }
+        .example-card pre {
+            padding: 10px 16px 14px;
+            background: var(--bg-code);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+            line-height: 1.7;
+            color: var(--cyan);
+            overflow-x: auto;
+            border-top: 1px solid var(--border);
+        }
+
+        /* ── Reference Table ── */
+        .ref-section { margin-top: 32px; }
+        .ref-section h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--text-bright);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 24px;
+        }
+        th, td {
+            text-align: left;
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.85rem;
+        }
+        th {
+            color: var(--text-dim);
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+        td:first-child {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.3rem;
+            color: var(--accent);
+        }
+        td:nth-child(3) {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--green);
+        }
+
+        /* ── Encoder ── */
+        .encoder-row {
+            display: flex;
+            gap: 16px;
+            margin-top: 16px;
+            align-items: stretch;
+        }
+        @media (max-width: 600px) {
+            .encoder-row { flex-direction: column; }
+        }
+        .encoder-box {
+            flex: 1;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+        }
+        .encoder-box label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-dim);
+            margin-bottom: 8px;
+        }
+        .encoder-box textarea {
+            width: 100%;
+            min-height: 80px;
+            background: var(--bg-code);
+            color: var(--text-bright);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            resize: vertical;
+            outline: none;
+        }
+        .encoder-box textarea:focus { border-color: var(--accent); }
+
+        /* ── Architecture ── */
+        .arch-flow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin: 24px 0;
+        }
+        .arch-node {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-align: center;
+        }
+        .arch-node .mono {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            margin-top: 2px;
+        }
+        .arch-arrow {
+            font-size: 1.2rem;
+            color: var(--accent);
+        }
+
+        /* ── Footer ── */
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            border-top: 1px solid var(--border);
+            color: var(--text-dim);
+            font-size: 0.85rem;
+        }
+        footer a { color: var(--accent); text-decoration: none; }
+        footer a:hover { text-decoration: underline; }
+
+        /* ── Scrollbar ── */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+    </style>
+</head>
+<body>
+
+<!-- ════════════ HERO ════════════ -->
+<div class="hero">
+    <div class="braille-title">⡂⡲⡡⡩⡬⡬⡥</div>
+    <h1>BrailleLang</h1>
+    <p>An AI-native programming language encoded entirely in Unicode Braille (U+2800–U+28FF). Every keyword is a concept. Every program is tactile.</p>
+    <div class="hero-badges">
+        <span class="badge braille">⠠ AI-Native Primitives</span>
+        <span class="badge ai">⣠ 256 Braille Patterns</span>
+        <span class="badge open">⠃ Open Source</span>
+    </div>
+</div>
+
+<div class="container">
+
+<!-- ════════════ PLAYGROUND ════════════ -->
+<section id="playground">
+    <h2>⠸ Playground</h2>
+    <p class="subtitle">Write and run BrailleLang code directly in your browser.</p>
+    <div class="playground">
+        <div class="playground-header">
+            <h3>⠰ Editor</h3>
+            <div class="playground-tabs">
+                <button class="playground-tab active" data-view="run">Run</button>
+                <button class="playground-tab" data-view="tokens">Tokens</button>
+                <button class="playground-tab" data-view="ast">AST</button>
+                <button class="playground-tab" data-view="js">→ JS</button>
+            </div>
+        </div>
+        <div class="playground-body">
+            <div class="editor-pane">
+                <div class="pane-label">Source (.br)</div>
+                <textarea id="editor" spellcheck="false">⣀ Hello World in BrailleLang ⣀
+
+⠰ ⠣ ⠶⡈⡥⡬⡬⡯⠠⡷⡯⡲⡬⡤⠶ ⠜ ⠆
+
+⠁ ⡮⡡⡭⡥ ⠪ ⠶⡂⡲⡡⡩⡬⡬⡥⡌⡡⡮⡧⠶ ⠆
+⠰ ⠣ ⠶⡈⡥⡬⡬⡯⠠⡦⡲⡯⡭⠠⠶ ⠂ ⡮⡡⡭⡥ ⠜ ⠆
+
+⣿</textarea>
+            </div>
+            <div class="output-pane">
+                <div class="pane-label">Output</div>
+                <div id="output"><span class="info">Press ▶ Run to execute...</span></div>
+            </div>
+        </div>
+        <div class="playground-footer">
+            <div class="btn-group">
+                <button class="btn btn-primary" id="btn-run">▶ Run</button>
+                <button class="btn btn-secondary" id="btn-clear">Clear</button>
+            </div>
+            <div class="stats" id="stats"></div>
+        </div>
+    </div>
+</section>
+
+<!-- ════════════ EXAMPLES ════════════ -->
+<section id="examples">
+    <h2>⠷ Examples</h2>
+    <p class="subtitle">Click an example to load it into the playground.</p>
+    <div class="example-grid">
+        <div class="example-card" data-example="hello">
+            <div class="example-title">Hello World</div>
+            <div class="example-desc">Print a greeting and use variables</div>
+            <pre>⠰ ⠣ ⠶⡈⡥⡬⡬⡯⠠⡷⡯⡲⡬⡤⠶ ⠜ ⠆
+⠁ ⡮⡡⡭⡥ ⠪ ⠶⡂⡲⡡⡩⡬⡬⡥⡌⡡⡮⡧⠶ ⠆
+⠰ ⠣ ⡮⡡⡭⡥ ⠜ ⠆</pre>
+        </div>
+        <div class="example-card" data-example="fibonacci">
+            <div class="example-title">Fibonacci</div>
+            <div class="example-desc">Recursive function with loops</div>
+            <pre>⠃ ⡦⡩⡢ ⠣ ⠐⡮ ⠜ ⠳
+  ⠡ ⠣ ⠐⡮ ⠕ ⠼⠃ ⠜ ⠳ ⡁ ⠐⡮ ⠆ ⠾
+  ⡠ ⠳ ⡁ ⡦⡩⡢ ⠣ ⠐⡮ ⠤ ⠼⠁ ⠜
+    ⠮ ⡦⡩⡢ ⠣ ⠐⡮ ⠤ ⠼⠃ ⠜ ⠆ ⠾
+⠾</pre>
+        </div>
+        <div class="example-card" data-example="ai-infer">
+            <div class="example-title">AI Inference</div>
+            <div class="example-desc">Call an LLM with ⠠ (MIND)</div>
+            <pre>⠁ ⡲⡥⡳⡵⡬⡴ ⠪ ⠠ ⠣ ⠶⡷⡨⡡⡴⠠⡩⡳⠠⡂⡲⡡⡩⡬⡬⡥⠶ ⠜ ⠆
+⠰ ⠣ ⡲⡥⡳⡵⡬⡴ ⠜ ⠆</pre>
+        </div>
+        <div class="example-card" data-example="arithmetic">
+            <div class="example-title">Arithmetic</div>
+            <div class="example-desc">Math operators and expressions</div>
+            <pre>⠁ ⠐⡡ ⠪ ⠼⠁⠚ ⠆
+⠁ ⠐⡢ ⠪ ⠼⠃⠚ ⠆
+⠰ ⠣ ⠐⡡ ⠮ ⠐⡢ ⠜ ⠆
+⠰ ⠣ ⠐⡡ ⠦ ⠐⡢ ⠜ ⠆</pre>
+        </div>
+        <div class="example-card" data-example="control-flow">
+            <div class="example-title">Control Flow</div>
+            <div class="example-desc">If/else with TRUTH and WISDOM</div>
+            <pre>⠁ ⠐⡸ ⠪ ⠼⠁⠚ ⠆
+⠡ ⠣ ⠐⡸ ⠲ ⠼⠑ ⠜ ⠳
+  ⠰ ⠣ ⠶⡬⡡⡲⡧⡥⠶ ⠜ ⠆
+⠾ ⡠ ⠳
+  ⠰ ⠣ ⠶⡳⡭⡡⡬⡬⠶ ⠜ ⠆
+⠾</pre>
+        </div>
+        <div class="example-card" data-example="embed">
+            <div class="example-title">AI Embeddings</div>
+            <div class="example-desc">Get vector embeddings with ⠫ (TECHNOLOGY)</div>
+            <pre>⠁ ⡶⡥⡣ ⠪ ⠫ ⠣ ⠶⡢⡲⡡⡩⡬⡬⡥⠶ ⠜ ⠆
+⠰ ⠣ ⠶⡅⡭⡢⡥⡤⡤⡩⡮⡧⠊⠶ ⠂ ⡶⡥⡣ ⠜ ⠆</pre>
+        </div>
+    </div>
+</section>
+
+<!-- ════════════ ENCODER ════════════ -->
+<section id="encoder">
+    <h2>⠿ Encoder / Decoder</h2>
+    <p class="subtitle">Translate between ASCII and Braille Unicode.</p>
+    <div class="encoder-row">
+        <div class="encoder-box">
+            <label>ASCII Text</label>
+            <textarea id="ascii-input" placeholder="Type ASCII here...">Hello World</textarea>
+        </div>
+        <div class="encoder-box">
+            <label>Braille (U+2800–U+28FF)</label>
+            <textarea id="braille-output" placeholder="Braille appears here..." readonly></textarea>
+        </div>
+    </div>
+</section>
+
+<!-- ════════════ CONCEPT MAP ════════════ -->
+<section id="concepts">
+    <h2>⣠ Concept → Keyword Map</h2>
+    <p class="subtitle">Every keyword's Braille pattern reflects its semantic meaning from the BrailleConceptAtlas.</p>
+    <div class="concept-grid" id="concept-grid"></div>
+</section>
+
+<!-- ════════════ REFERENCE ════════════ -->
+<section id="reference">
+    <h2>⠷ Language Reference</h2>
+
+    <div class="ref-section">
+        <h3>Operators</h3>
+        <table>
+            <thead><tr><th>Braille</th><th>Operation</th><th>Symbol</th><th>Concept</th></tr></thead>
+            <tbody id="op-table"></tbody>
+        </table>
+    </div>
+
+    <div class="ref-section">
+        <h3>Delimiters</h3>
+        <table>
+            <thead><tr><th>Braille</th><th>Name</th><th>Symbol</th><th>Concept</th></tr></thead>
+            <tbody id="delim-table"></tbody>
+        </table>
+    </div>
+
+    <div class="ref-section">
+        <h3>Identifier Prefix <code style="color:var(--accent)">⠐</code></h3>
+        <p style="color:var(--text-dim);margin-bottom:12px;">Single-character variable names that collide with keywords must be prefixed with <code style="color:var(--accent)">⠐</code>. Multi-character names that form a unique braille word don't need it.</p>
+    </div>
+</section>
+
+<!-- ════════════ ARCHITECTURE ════════════ -->
+<section id="architecture">
+    <h2>⠫ Architecture</h2>
+    <p class="subtitle">How BrailleLang source becomes execution.</p>
+    <div class="arch-flow">
+        <div class="arch-node">📄 Source<div class="mono">.br file</div></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-node">⠷ Lexer<div class="mono">Tokens</div></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-node">⠳ Parser<div class="mono">AST</div></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-node" style="border-color:var(--green)">⠿ Interpreter<div class="mono">Execute</div></div>
+        <div class="arch-arrow" style="color:var(--text-dim)">or</div>
+        <div class="arch-node" style="border-color:var(--purple)">⠫ Compiler<div class="mono">→ JavaScript</div></div>
+    </div>
+</section>
+
+</div>
+
+<!-- ════════════ FOOTER ════════════ -->
+<footer>
+    <p><strong>⡂⡲⡡⡩⡬⡬⡥ BrailleLang</strong> — Part of the <a href="https://github.com/elevate-foundry/braille">BrailleBuddy</a> project.</p>
+    <p style="margin-top:8px">Built with ⡁ (GOD = existence) by <a href="https://github.com/elevate-foundry">Elevate Foundry</a></p>
+</footer>
+
+<!-- ════════════ RUNTIME (browser-bundled) ════════════ -->
+<script src="braille-lang-bundle.js"></script>
+<script>
+// ── App logic ──
+document.addEventListener('DOMContentLoaded', () => {
+    const editor = document.getElementById('editor');
+    const output = document.getElementById('output');
+    const stats = document.getElementById('stats');
+    const asciiInput = document.getElementById('ascii-input');
+    const brailleOutput = document.getElementById('braille-output');
+
+    // ── Examples ──
+    const EXAMPLES = {
+        'hello': `⣀ Hello World in BrailleLang ⣀\n\n⠰ ⠣ ⠶⡈⡥⡬⡬⡯⠠⡷⡯⡲⡬⡤⠶ ⠜ ⠆\n\n⠁ ⡮⡡⡭⡥ ⠪ ⠶⡂⡲⡡⡩⡬⡬⡥⡌⡡⡮⡧⠶ ⠆\n⠰ ⠣ ⠶⡈⡥⡬⡬⡯⠠⡦⡲⡯⡭⠠⠶ ⠂ ⡮⡡⡭⡥ ⠜ ⠆\n\n⣿`,
+        'fibonacci': `⣀ Fibonacci in BrailleLang ⣀\n\n⠃ ⡦⡩⡢ ⠣ ⠐⡮ ⠜ ⠳\n  ⠡ ⠣ ⠐⡮ ⠕ ⠼⠃ ⠜ ⠳\n    ⡁ ⠐⡮ ⠆\n  ⠾\n  ⡠ ⠳\n    ⡁ ⡦⡩⡢ ⠣ ⠐⡮ ⠤ ⠼⠁ ⠜ ⠮ ⡦⡩⡢ ⠣ ⠐⡮ ⠤ ⠼⠃ ⠜ ⠆\n  ⠾\n⠾\n\n⠁ ⠐⡩ ⠪ ⠼⠚ ⠆\n⠄ ⠣ ⠐⡩ ⠖ ⠼⠁⠚ ⠜ ⠳\n  ⠰ ⠣ ⡦⡩⡢ ⠣ ⠐⡩ ⠜ ⠜ ⠆\n  ⠐⡩ ⠪ ⠐⡩ ⠮ ⠼⠁ ⠆\n⠾\n\n⣿`,
+        'ai-infer': `⣀ AI Inference Example ⣀\n\n⠁ ⡲⡥⡳⡵⡬⡴ ⠪ ⠠ ⠣ ⠶⡷⡨⡡⡴⠠⡩⡳⠠⡢⡲⡡⡩⡬⡬⡥⠶ ⠜ ⠆\n⠰ ⠣ ⠶⡁⡉⠠⡳⡡⡩⡤⠊⠠⠶ ⠂ ⡲⡥⡳⡵⡬⡴ ⠜ ⠆\n\n⠁ ⡶⡥⡣ ⠪ ⠫ ⠣ ⠶⡢⡲⡡⡩⡬⡬⡥⠶ ⠜ ⠆\n⠰ ⠣ ⠶⡅⡭⡢⡥⡤⡤⡩⡮⡧⠊⠠⠶ ⠂ ⡶⡥⡣ ⠜ ⠆\n\n⣿`,
+        'arithmetic': `⣀ Arithmetic in BrailleLang ⣀\n\n⠁ ⠐⡡ ⠪ ⠼⠁⠚ ⠆\n⠁ ⠐⡢ ⠪ ⠼⠃⠚ ⠆\n\n⠰ ⠣ ⠶⡡⠠⠮⠠⡢⠠⠪⠶ ⠂ ⠐⡡ ⠮ ⠐⡢ ⠜ ⠆\n⠰ ⠣ ⠶⡡⠠⠦⠠⡢⠠⠪⠶ ⠂ ⠐⡡ ⠦ ⠐⡢ ⠜ ⠆\n⠰ ⠣ ⠶⡡⠠⠤⠠⡢⠠⠪⠶ ⠂ ⠐⡡ ⠤ ⠐⡢ ⠜ ⠆\n\n⣿`,
+        'control-flow': `⣀ Control Flow in BrailleLang ⣀\n\n⠁ ⠐⡸ ⠪ ⠼⠁⠚ ⠆\n\n⠡ ⠣ ⠐⡸ ⠲ ⠼⠑ ⠜ ⠳\n  ⠰ ⠣ ⠶⡸⠠⡩⡳⠠⡬⡡⡲⡧⡥⡲⠠⡴⡨⡡⡮⠠⠑⠶ ⠜ ⠆\n⠾ ⡠ ⠳\n  ⠰ ⠣ ⠶⡸⠠⡩⡳⠠⡳⡭⡡⡬⡬⠶ ⠜ ⠆\n⠾\n\n⣿`,
+        'embed': `⣀ AI Embeddings Example ⣀\n\n⠁ ⡶⡥⡣ ⠪ ⠫ ⠣ ⠶⡢⡲⡡⡩⡬⡬⡥⠠⡩⡳⠠⡢⡥⡡⡵⡴⡩⡦⡵⡬⠶ ⠜ ⠆\n⠰ ⠣ ⠶⡅⡭⡢⡥⡤⡤⡩⡮⡧⠊⠠⠶ ⠂ ⡶⡥⡣ ⠜ ⠆\n\n⣿`,
+    };
+
+    // Load example on click
+    document.querySelectorAll('.example-card').forEach(card => {
+        card.addEventListener('click', () => {
+            const key = card.dataset.example;
+            if (EXAMPLES[key]) {
+                editor.value = EXAMPLES[key];
+                output.innerHTML = '<span class="info">Example loaded. Press ▶ Run.</span>';
+            }
+        });
+    });
+
+    // ── Tab switching ──
+    let currentView = 'run';
+    document.querySelectorAll('.playground-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.playground-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            currentView = tab.dataset.view;
+            // Re-run with new view
+            runCode();
+        });
+    });
+
+    // ── Run ──
+    document.getElementById('btn-run').addEventListener('click', runCode);
+    document.getElementById('btn-clear').addEventListener('click', () => {
+        output.innerHTML = '<span class="info">Cleared.</span>';
+        stats.textContent = '';
+    });
+
+    // Ctrl+Enter to run
+    editor.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+            e.preventDefault();
+            runCode();
+        }
+    });
+
+    async function runCode() {
+        const source = editor.value;
+        output.innerHTML = '';
+
+        try {
+            const lexer = new BrailleLang.Lexer(source);
+            const tokens = lexer.tokenize();
+
+            if (currentView === 'tokens') {
+                let html = '';
+                for (const tok of tokens) {
+                    if (tok.type === 'EOF') continue;
+                    const meta = tok.meta.name || tok.meta.decoded || tok.meta.numStr || '';
+                    const color = tok.type === 'KEYWORD' ? 'var(--accent)' :
+                                  tok.type === 'OPERATOR' ? 'var(--orange)' :
+                                  tok.type === 'DELIMITER' ? 'var(--yellow)' :
+                                  tok.type === 'STRING' ? 'var(--green)' :
+                                  tok.type === 'NUMBER' ? 'var(--cyan)' :
+                                  tok.type === 'COMMENT' ? 'var(--text-dim)' :
+                                  'var(--purple)';
+                    html += `<span style="color:${color}">${tok.type.padEnd(12)}</span> ${tok.value.padEnd(6)} <span class="info">${meta}</span>\n`;
+                }
+                output.innerHTML = html;
+                stats.textContent = `${tokens.length} tokens`;
+                return;
+            }
+
+            const parser = new BrailleLang.Parser(tokens);
+            const ast = parser.parse();
+
+            if (currentView === 'ast') {
+                output.innerHTML = JSON.stringify(ast, null, 2);
+                stats.textContent = `${ast.body.length} top-level nodes`;
+                return;
+            }
+
+            if (currentView === 'js') {
+                const compiler = new BrailleLang.Compiler({ includeRuntime: false });
+                const js = compiler.compile(ast);
+                output.innerHTML = js;
+                stats.textContent = `${js.split('\n').length} lines JS`;
+                return;
+            }
+
+            // Run mode
+            const interpreter = new BrailleLang.Interpreter({ dryRun: true });
+            const startTime = performance.now();
+            const result = await interpreter.execute(ast);
+            const duration = (performance.now() - startTime).toFixed(1);
+
+            let html = '';
+            for (const line of result.output) {
+                html += line + '\n';
+            }
+            if (result.result !== null && result.result !== undefined) {
+                html += `<span class="info">→ ${interpreter._stringify(result.result)}</span>\n`;
+            }
+            output.innerHTML = html || '<span class="info">(no output)</span>';
+            stats.textContent = `${result.stats.statementsExecuted} stmts · ${result.stats.aiCalls} AI calls · ${duration}ms`;
+
+        } catch (e) {
+            output.innerHTML = `<span class="error">⠻ ${e.message}</span>`;
+            stats.textContent = 'Error';
+        }
+    }
+
+    // ── Encoder ──
+    function encodeToBraille(ascii) {
+        let result = '';
+        for (let i = 0; i < ascii.length; i++) {
+            result += String.fromCodePoint(0x2800 + ascii.charCodeAt(i));
+        }
+        return result;
+    }
+
+    asciiInput.addEventListener('input', () => {
+        brailleOutput.value = encodeToBraille(asciiInput.value);
+    });
+    // Initial
+    brailleOutput.value = encodeToBraille(asciiInput.value);
+
+    // ── Populate concept grid ──
+    const KEYWORDS = BrailleLang.KEYWORDS;
+    const grid = document.getElementById('concept-grid');
+    const sortedKeys = Object.keys(KEYWORDS).map(Number).sort((a, b) => a - b);
+    for (const key of sortedKeys) {
+        const kw = KEYWORDS[key];
+        const brChar = String.fromCodePoint(0x2800 + key);
+        const card = document.createElement('div');
+        card.className = 'concept-card';
+        card.innerHTML = `
+            <div class="braille-char">${brChar}</div>
+            <div class="concept-name">${kw.concept}</div>
+            <div class="prog-role">${kw.name.toLowerCase()}</div>
+            <div class="js-equiv">${kw.js}</div>
+        `;
+        grid.appendChild(card);
+    }
+
+    // ── Populate operator table ──
+    const OPERATORS = BrailleLang.OPERATORS;
+    const opTable = document.getElementById('op-table');
+    for (const key of Object.keys(OPERATORS).map(Number).sort((a, b) => a - b)) {
+        const op = OPERATORS[key];
+        const brChar = String.fromCodePoint(0x2800 + key);
+        opTable.innerHTML += `<tr><td>${brChar}</td><td>${op.name}</td><td>${op.symbol}</td><td style="color:var(--text-dim)">${op.concept}</td></tr>`;
+    }
+
+    // ── Populate delimiter table ──
+    const DELIMITERS = BrailleLang.DELIMITERS;
+    const delimTable = document.getElementById('delim-table');
+    for (const key of Object.keys(DELIMITERS).map(Number).sort((a, b) => a - b)) {
+        const d = DELIMITERS[key];
+        const brChar = String.fromCodePoint(0x2800 + key);
+        delimTable.innerHTML += `<tr><td>${brChar}</td><td>${d.name}</td><td>${d.symbol}</td><td style="color:var(--text-dim)">${d.concept}</td></tr>`;
+    }
+});
+</script>
+</body>
+</html>

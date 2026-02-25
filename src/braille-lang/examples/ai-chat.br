@@ -1,0 +1,18 @@
+⣀ AI Chat Example — demonstrates AI-native primitives ⣀
+
+⣀ Call INFER (⠠ = MIND) to ask an LLM a question ⣀
+⠁ ⡲⡥⡳⡵⡬⡴ ⠪ ⠠ ⠣ ⠶⡷⡨⡡⡴⠠⡩⡳⠠⡢⡲⡡⡩⡬⡬⡥⠶ ⠜ ⠆
+
+⣀ Print the AI response ⣀
+⠰ ⠣ ⠶⡁⡉⠠⡳⡡⡩⡤⠊⠠⠶ ⠂ ⡲⡥⡳⡵⡬⡴ ⠜ ⠆
+
+⣀ Use EMBED (⠫ = TECHNOLOGY) to get embeddings ⣀
+⠁ ⡶⡥⡣ ⠪ ⠫ ⠣ ⠶⡢⡲⡡⡩⡬⡬⡥⠠⡩⡳⠠⡢⡥⡡⡵⡴⡩⡦⡵⡬⠶ ⠜ ⠆
+⠰ ⠣ ⠶⡅⡭⡢⡥⡤⡤⡩⡮⡧⠊⠠⠶ ⠂ ⡶⡥⡣ ⠜ ⠆
+
+⣀ Use PROMPT (⡩ = INSPIRATION) to build a template ⣀
+⠁ ⡰⡲⡯⡭⡰⡴ ⠪ ⡩ ⠣ ⠶⡴⡥⡬⡬⠠⡭⡥⠠⡡⡢⡯⡵⡴⠠⡻⡴⡯⡰⡩⡣⡽⠶ ⠜ ⠆
+⠰ ⠣ ⡰⡲⡯⡭⡰⡴ ⠜ ⠆
+
+⣀ Halt ⣀
+⣿

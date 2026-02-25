@@ -32,6 +32,10 @@ yarn-error.log
 data/prompt-store.jsonl
 data/*.jsonl
 
+# API keys
+.OPENROUTER_API_KEY
+**/.*API_KEY*
+
 # Build output
 dist/
 build/

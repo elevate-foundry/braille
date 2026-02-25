@@ -1,0 +1,23 @@
+⣀ AI Pipeline Example — chain AI calls with pipe ⣀
+
+⣀ Define transformation functions ⣀
+⠃ ⠐⡵⡰⡰⡥⡲ ⠣ ⠐⡴⡥⡸⡴ ⠜ ⠳
+  ⡁ ⠐⡴⡥⡸⡴ ⠆
+⠾
+
+⣀ Define a summarizer using AI inference ⣀
+⠃ ⠐⡳⡵⡭⡭⡡⡲⡩⡺⡥ ⠣ ⠐⡴⡥⡸⡴ ⠜ ⠳
+  ⡁ ⠠ ⠣ ⠶⡳⡵⡭⡭⡡⡲⡩⡺⡥⠠⡴⡨⡩⡳⠊⠠⠶ ⠂ ⠐⡴⡥⡸⡴ ⠜ ⠆
+⠾
+
+⣀ Use pipe (⡪ = MUSIC) to chain operations ⣀
+⠁ ⠐⡩⡮⡰⡵⡴ ⠪ ⠶⡂⡲⡡⡩⡬⡬⡥⠠⡩⡳⠠⡡⠠⡴⡡⡣⡴⡩⡬⡥⠠⡷⡲⡩⡴⡩⡮⡧⠠⡳⡹⡳⡴⡥⡭⠶ ⠆
+
+⣀ Print the input directly ⣀
+⠰ ⠣ ⠶⡉⡮⡰⡵⡴⠊⠠⠶ ⠂ ⠐⡩⡮⡰⡵⡴ ⠜ ⠆
+
+⣀ Call upper function ⣀
+⠁ ⠐⡲⡥⡳⡵⡬⡴ ⠪ ⠐⡵⡰⡰⡥⡲ ⠣ ⠐⡩⡮⡰⡵⡴ ⠜ ⠆
+⠰ ⠣ ⠶⡒⡥⡳⡵⡬⡴⠊⠠⠶ ⠂ ⠐⡲⡥⡳⡵⡬⡴ ⠜ ⠆
+
+⣿

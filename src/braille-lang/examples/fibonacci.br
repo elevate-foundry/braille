@@ -1,0 +1,21 @@
+⣀ Fibonacci in BrailleLang ⣀
+
+⣀ Define fibonacci function ⣀
+⣀ ⠐ is the identifier prefix — makes the next word an identifier ⣀
+⠃ ⡦⡩⡢ ⠣ ⠐⡮ ⠜ ⠳
+  ⠡ ⠣ ⠐⡮ ⠕ ⠼⠃ ⠜ ⠳
+    ⡁ ⠐⡮ ⠆
+  ⠾
+  ⡠ ⠳
+    ⡁ ⡦⡩⡢ ⠣ ⠐⡮ ⠤ ⠼⠁ ⠜ ⠮ ⡦⡩⡢ ⠣ ⠐⡮ ⠤ ⠼⠃ ⠜ ⠆
+  ⠾
+⠾
+
+⣀ Print first 10 fibonacci numbers ⣀
+⠁ ⠐⡩ ⠪ ⠼⠚ ⠆
+⠄ ⠣ ⠐⡩ ⠖ ⠼⠁⠚ ⠜ ⠳
+  ⠰ ⠣ ⡦⡩⡢ ⠣ ⠐⡩ ⠜ ⠜ ⠆
+  ⠐⡩ ⠪ ⠐⡩ ⠮ ⠼⠁ ⠆
+⠾
+
+⣿
