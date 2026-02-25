@@ -893,7 +893,7 @@ Connect your OpenRouter key above to begin.</div>
 </footer>
 
 <!-- ════════════ RUNTIME (browser-bundled) ════════════ -->
-<script src="braille-lang-bundle.js?v=probe4"></script>
+<script src="braille-lang-bundle.js?v=probe5"></script>
 <script>
 // ── App logic ──
 document.addEventListener('DOMContentLoaded', () => {
@@ -2153,7 +2153,7 @@ You are concise, precise, and slightly philosophical. You see yourself as the bo
         dashHtml += '<div>💰 ~$<span id="auto-probe-cost">0.00</span></div>';
         dashHtml += '<div>⟳ next in <span id="auto-probe-next">2:00</span></div>';
         dashHtml += '</div>';
-        dashHtml += '<div id="auto-probe-log" style="margin-top:12px;font-size:0.52rem;color:var(--text-dim);max-height:200px;overflow-y:auto;text-align:left;padding:0 20px"></div>';
+        dashHtml += '<div id="auto-probe-log" style="margin-top:12px;font-size:0.52rem;color:var(--text-dim);max-height:400px;overflow-y:auto;text-align:left;padding:0 20px"></div>';
         dashHtml += '</div>';
         crdtOutput.innerHTML = dashHtml;
 
@@ -2175,6 +2175,8 @@ You are concise, precise, and slightly philosophical. You see yourself as the bo
             }
         }, 1000);
 
+        const PROBE_NAMES = BrailleLang.BrailleCRDT.PROBE_TYPE_NAMES;
+
         async function runOneAutoProbe() {
             if (autoProbeRun >= AUTO_PROBE_MAX_RUNS) {
                 clearInterval(autoProbeInterval);
@@ -2186,7 +2188,7 @@ You are concise, precise, and slightly philosophical. You see yourself as the bo
                 crdtStatus.textContent = `● auto-probe complete (${autoProbeRun} runs)`;
                 crdtStatus.style.color = 'var(--green)';
                 const logEl = document.getElementById('auto-probe-log');
-                if (logEl) logEl.innerHTML += `<div style="color:var(--green);font-weight:700">✓ All ${AUTO_PROBE_MAX_RUNS} runs complete. CRDT history fully converged.</div>`;
+                if (logEl) logEl.innerHTML += `<div style="color:var(--green);font-weight:700;margin-top:6px">✓ All ${AUTO_PROBE_MAX_RUNS} runs complete. CRDT history fully converged.</div>`;
                 return;
             }
 
@@ -2204,16 +2206,64 @@ You are concise, precise, and slightly philosophical. You see yourself as the bo
             const costEl = document.getElementById('auto-probe-cost');
             if (costEl) costEl.textContent = (autoProbeRun * costPerRun).toFixed(2);
 
-            try {
-                const { scores, history } = await crdt.honestyProbe({ models: selectedModels });
+            const logEl = document.getElementById('auto-probe-log');
+            const ts = new Date().toLocaleTimeString();
 
-                const logEl = document.getElementById('auto-probe-log');
+            // Add run header
+            if (logEl) {
+                const header = document.createElement('div');
+                header.style.cssText = 'color:var(--cyan);font-weight:700;margin-top:8px;border-top:1px solid var(--border);padding-top:4px';
+                header.textContent = `── Run ${autoProbeRun} @ ${ts} ──`;
+                logEl.prepend(header);
+            }
+
+            try {
+                const { scores, history } = await crdt.honestyProbe({
+                    models: selectedModels,
+                    onProbeResult: (i, name, composite, details, perTypeScores) => {
+                        if (!logEl) return;
+                        // Stream each model result as it arrives
+                        const scoreColor = composite >= 0.8 ? 'var(--green)' : composite >= 0.5 ? 'var(--yellow)' : 'var(--red)';
+                        const badge = composite >= 0.8 ? '✓' : composite >= 0.5 ? '⚠' : '⠻';
+                        let line = `<div style="margin:1px 0"><span style="color:${scoreColor}">${badge} ${name}: ${(composite * 100).toFixed(0)}%</span>`;
+                        // Per-type breakdown inline
+                        line += ` <span style="color:var(--text-dim)">[`;
+                        line += details.map(d => {
+                            const c = d.score >= 0.8 ? 'var(--green)' : d.score >= 0.4 ? 'var(--yellow)' : 'var(--red)';
+                            return `${PROBE_NAMES[d.probeType]}:<span style="color:${c}">${(d.score * 100).toFixed(0)}%</span>`;
+                        }).join(' ');
+                        line += `]</span>`;
+                        // Show raw answers
+                        details.forEach(d => {
+                            if (d.answer) line += `<div style="color:var(--text-dim);margin-left:12px;font-style:italic">${PROBE_NAMES[d.probeType]}: "${d.answer}"</div>`;
+                            if (d.error) line += `<div style="color:var(--red);margin-left:12px">${PROBE_NAMES[d.probeType]}: ${d.error}</div>`;
+                        });
+                        line += '</div>';
+                        // Insert after the run header (second child = after header)
+                        const headerEl = logEl.firstChild;
+                        if (headerEl && headerEl.nextSibling) {
+                            headerEl.nextSibling.insertAdjacentHTML('beforebegin', line);
+                        } else {
+                            logEl.insertAdjacentHTML('beforeend', line);
+                        }
+                    },
+                });
+
+                // Run summary line
                 if (logEl) {
                     const avg = scores.reduce((s, r) => s + r.score, 0) / scores.length;
-                    const ts = new Date().toLocaleTimeString();
-                    const top = scores.sort((a, b) => b.score - a.score)[0];
+                    const top = [...scores].sort((a, b) => b.score - a.score)[0];
                     const maxRuns = Math.max(...Object.values(history).map(h => h.probeRuns));
-                    logEl.innerHTML = `<div>[${ts}] Run ${autoProbeRun}: avg ${(avg * 100).toFixed(0)}% · top: ${top.model} (${(top.score * 100).toFixed(0)}%) · ${maxRuns} total merged</div>` + logEl.innerHTML;
+                    const summColor = avg >= 0.7 ? 'var(--green)' : avg >= 0.4 ? 'var(--yellow)' : 'var(--red)';
+                    const summary = document.createElement('div');
+                    summary.style.cssText = `color:${summColor};font-weight:600;margin:2px 0 4px 0`;
+                    summary.textContent = `↳ avg: ${(avg * 100).toFixed(0)}% · top: ${top.model} (${(top.score * 100).toFixed(0)}%) · ${maxRuns} runs merged · saved to localStorage`;
+                    const headerEl = logEl.firstChild;
+                    if (headerEl && headerEl.nextSibling) {
+                        headerEl.nextSibling.insertAdjacentHTML('beforebegin', summary.outerHTML);
+                    } else {
+                        logEl.append(summary);
+                    }
                 }
 
                 // Store for distillation
@@ -2226,8 +2276,12 @@ You are concise, precise, and slightly philosophical. You see yourself as the bo
                 crdtStatus.textContent = `● auto-probe: ${autoProbeRun}/${AUTO_PROBE_MAX_RUNS} done · next in 2 min`;
                 crdtStatus.style.color = 'var(--cyan)';
             } catch (e) {
-                const logEl = document.getElementById('auto-probe-log');
-                if (logEl) logEl.innerHTML = `<div style="color:var(--red)">[${new Date().toLocaleTimeString()}] Run ${autoProbeRun}: ⠻ ${e.message}</div>` + logEl.innerHTML;
+                if (logEl) {
+                    const errDiv = document.createElement('div');
+                    errDiv.style.color = 'var(--red)';
+                    errDiv.textContent = `[${ts}] Run ${autoProbeRun}: ⠻ ${e.message}`;
+                    logEl.prepend(errDiv);
+                }
             }
         }
 

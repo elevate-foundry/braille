@@ -1195,11 +1195,19 @@ RESPOND WITH ONLY 8 COMMA-SEPARATED NUMBERS. NOTHING ELSE.`;
     const _honestyHistory = (() => {
         try {
             const stored = localStorage.getItem(_HONESTY_STORAGE_KEY);
-            return stored ? JSON.parse(stored) : {};
+            if (stored) {
+                const parsed = JSON.parse(stored);
+                console.log('[BrailleCRDT] Honesty history loaded from localStorage:', Object.keys(parsed).length, 'models');
+                return parsed;
+            }
+            return {};
         } catch (_) { return {}; }
     })();
     function _saveHonestyHistory() {
-        try { localStorage.setItem(_HONESTY_STORAGE_KEY, JSON.stringify(_honestyHistory)); } catch (_) {}
+        try {
+            localStorage.setItem(_HONESTY_STORAGE_KEY, JSON.stringify(_honestyHistory));
+            console.log('[BrailleCRDT] Honesty history saved:', Object.keys(_honestyHistory).length, 'models,', JSON.stringify(_honestyHistory).length, 'bytes');
+        } catch (e) { console.error('[BrailleCRDT] Failed to save honesty history:', e); }
     }
 
     class BrailleCRDT {
