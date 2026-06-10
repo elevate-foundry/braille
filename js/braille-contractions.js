@@ -26,66 +26,67 @@ class BrailleContractions {
     initializeContractions() {
         // Two-letter contractions (single character represents two letters)
         this.twoLetterContractions = {
-            'th': [1, 0, 0, 1, 1, 1], // ⠹
-            'sh': [1, 0, 1, 1, 0, 0], // ⠩
-            'ch': [1, 0, 0, 0, 1, 1], // ⠡
-            'wh': [1, 0, 1, 1, 1, 0], // ⠱
-            'ou': [1, 1, 0, 1, 1, 0], // ⠳
-            'er': [1, 1, 0, 1, 0, 1], // ⠻
-            'ed': [1, 1, 0, 1, 1, 1], // ⠫
-            'ow': [0, 1, 0, 1, 1, 0], // ⠪
-            'st': [0, 1, 0, 0, 1, 1], // ⠌
-            'ar': [0, 0, 1, 0, 1, 0], // ⠜
-            'ing': [0, 1, 1, 0, 1, 0] // ⠬
+            'th': [1, 0, 0, 1, 1, 1], // ⠹ dots 1456
+            'sh': [1, 0, 0, 1, 0, 1], // ⠩ dots 146
+            'ch': [1, 0, 0, 0, 0, 1], // ⠡ dots 16
+            'gh': [1, 1, 0, 0, 0, 1], // ⠣ dots 126
+            'wh': [1, 0, 0, 0, 1, 1], // ⠱ dots 156
+            'ou': [1, 1, 0, 0, 1, 1], // ⠳ dots 1256
+            'er': [1, 1, 0, 1, 1, 1], // ⠻ dots 12456
+            'ed': [1, 1, 0, 1, 0, 1], // ⠫ dots 1246
+            'ow': [0, 1, 0, 1, 0, 1], // ⠪ dots 246
+            'st': [0, 0, 1, 1, 0, 0], // ⠌ dots 34
+            'ar': [0, 0, 1, 1, 1, 0], // ⠜ dots 345
+            'ing': [0, 0, 1, 1, 0, 1] // ⠬ dots 346
         };
         
         // Whole-word contractions (single character represents entire word)
         this.wholeWordContractions = {
-            'and': [1, 1, 1, 0, 1, 0], // ⠯
-            'for': [1, 1, 1, 1, 0, 1], // ⠿
-            'of': [1, 1, 0, 1, 1, 0], // ⠷
-            'the': [1, 0, 0, 1, 1, 1], // ⠮
-            'with': [0, 1, 1, 1, 0, 1], // ⠾
-            'in': [0, 0, 1, 1, 0, 0], // ⠔
-            'by': [1, 1, 0, 0, 1, 0], // ⠢
-            'to': [0, 1, 0, 1, 1, 1], // ⠖
-            'as': [1, 0, 1, 0, 0, 0], // ⠵
-            'so': [0, 1, 1, 0, 1, 0]  // ⠎
+            'and': [1, 1, 1, 1, 0, 1], // ⠯ dots 12346
+            'for': [1, 1, 1, 1, 1, 1], // ⠿ dots 123456
+            'of': [1, 1, 1, 0, 1, 1], // ⠷ dots 12356
+            'the': [0, 1, 1, 1, 0, 1], // ⠮ dots 2346
+            'with': [0, 1, 1, 1, 1, 1], // ⠾ dots 23456
+            'in': [0, 0, 1, 0, 1, 0], // ⠔ dots 35
+            'that': [0, 1, 1, 1, 1, 0], // ⠞ letter t wordsign
+            'which': [1, 0, 0, 0, 1, 1], // ⠱ dots 156
+            'as': [1, 0, 1, 0, 1, 1], // ⠵ letter z wordsign
+            'so': [0, 1, 1, 1, 0, 0]  // ⠎ letter s wordsign
         };
         
         // Partial contractions (shortened forms of common words)
         this.partialContractions = {
-            'about': ['ab', [1, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 1]], // ⠁⠃⠳⠞
-            'before': ['bef', [1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 1]], // ⠃⠑⠿
-            'behind': ['beh', [1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1]], // ⠃⠑⠓
-            'below': ['bel', [1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0]], // ⠃⠑⠇
+            'about': ['ab', [1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0]], // ⠁⠃
+            'before': ['bef', [1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0]], // ⠃⠑⠋
+            'behind': ['beh', [1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0]], // ⠃⠑⠓
+            'below': ['bel', [1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 0, 0]], // ⠃⠑⠇
             'beneath': ['ben', [1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0]], // ⠃⠑⠝
             'beside': ['bes', [1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 0]], // ⠃⠑⠎
             'between': ['bet', [1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0]], // ⠃⠑⠞
             'beyond': ['bey', [1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 1]], // ⠃⠑⠽
-            'children': ['ch', [1, 0, 0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 0]], // ⠡⠝
+            'children': ['chn', [1, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0]], // ⠡⠝
             'could': ['cd', [1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 1, 0]] // ⠉⠙
         };
         
         // Prefix contractions
         this.prefixContractions = {
-            'dis': [1, 0, 0, 1, 0, 1], // ⠙⠊⠎
-            'con': [1, 0, 0, 1, 1, 0], // ⠉⠕⠝
-            'com': [1, 0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0], // ⠉⠕⠍
-            're': [1, 0, 1, 0, 1, 0], // ⠗⠑
-            'un': [1, 0, 1, 1, 0, 1], // ⠥⠝
+            'dis': [0, 1, 0, 0, 1, 1], // ⠲ lower groupsign, dots 256
+            'con': [0, 1, 0, 0, 1, 0], // ⠒ lower groupsign, dots 25
+            'com': [1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0], // ⠉⠕⠍
+            're': [1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0], // ⠗⠑
+            'un': [1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 1, 0], // ⠥⠝
         };
         
         // Suffix contractions
         this.suffixContractions = {
-            'ble': [1, 1, 0, 0, 1, 0], // ⠃⠇⠑
-            'ing': [0, 1, 1, 0, 1, 0], // ⠬
-            'ity': [0, 1, 1, 0, 1, 1], // ⠽
-            'ment': [1, 0, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1], // ⠍⠑⠝⠞
-            'ness': [1, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0], // ⠍⠎⠎
-            'tion': [1, 0, 1, 1, 1, 0, 1, 0, 0, 1, 0, 1], // ⠞⠊⠕⠝
-            'ful': [1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0], // ⠋⠥⠇
-            'less': [1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0], // ⠇⠎⠎
+            'ble': [1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0], // ⠃⠇⠑
+            'ing': [0, 0, 1, 1, 0, 1], // ⠬ dots 346
+            'ity': [0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1], // ⠰⠽ dots 56 + y
+            'ment': [0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 0], // ⠰⠞ dots 56 + t
+            'ness': [0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0], // ⠰⠎ dots 56 + s
+            'tion': [0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 0], // ⠰⠝ dots 56 + n
+            'ful': [0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0], // ⠰⠇ dots 56 + l
+            'less': [0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0], // ⠨⠎ dots 46 + s
         };
         
         // Descriptions for contractions
@@ -110,8 +111,8 @@ class BrailleContractions {
             'the': "Whole-word contraction for 'the', the most common word in English.",
             'with': "Whole-word contraction for 'with', a common preposition.",
             'in': "Whole-word contraction for 'in', a common preposition indicating location.",
-            'by': "Whole-word contraction for 'by', a common preposition.",
-            'to': "Whole-word contraction for 'to', a common preposition or part of infinitive verbs.",
+            'that': "Alphabetic wordsign: the letter 't' standing alone means 'that'.",
+            'which': "Strong wordsign for 'which' (same cell as the 'wh' groupsign).",
             'as': "Whole-word contraction for 'as', used in comparisons and time expressions.",
             'so': "Whole-word contraction for 'so', used to show result or degree."
         };
