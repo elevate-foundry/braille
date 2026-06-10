@@ -148,3 +148,18 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ---
 
 Created with ❤️ by Ryan
+
+<!-- ELEVATE:BEGIN (auto-generated section; edits here are overwritten) -->
+## About
+
+| | |
+| --- | --- |
+| **Description** | _(no description set)_ |
+| **Language** | JavaScript |
+| **Commits** | 89 |
+| **Created** | 2025-03-12 |
+| **Last push** | 2026-02-25 |
+| **Site** | https://elevate-foundry.github.io/braille/ |
+
+Part of [**elevate-foundry**](https://github.com/elevate-foundry) · [repository](https://github.com/elevate-foundry/braille)
+<!-- ELEVATE:END -->
